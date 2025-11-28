@@ -333,7 +333,7 @@ export class GenericListOrchestrator<T extends BaseListItem> extends Orchestrato
           // Mark as private
           privateItems.forEach(item => { item.isPrivate = true; });
         } catch (error) {
-          this.systemLogger.warn(this.name, `Could not decrypt private items: ${error}`);
+          this.systemLogger.error(this.name, `Could not decrypt private items: ${error}`);
         }
       }
 
@@ -412,8 +412,7 @@ export class GenericListOrchestrator<T extends BaseListItem> extends Orchestrato
       }
 
       const tags: string[][] = JSON.parse(plaintext);
-      const items = this.config.tagsToItem(tags, event.created_at);
-      return items;
+      return this.config.tagsToItem(tags, event.created_at);
     } catch (error) {
       this.systemLogger.error(this.name, `Failed to decrypt private items: ${error}`);
       return [];

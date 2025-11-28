@@ -96,27 +96,9 @@ export const bookmarkListConfig: ListConfig<BookmarkItem> = {
     });
 
     return items;
-  },
-
-  // Custom decryption (bookmarks use simple ID array in encrypted content)
-  decryptPrivateItems: async (content: string, pubkey: string): Promise<BookmarkItem[]> => {
-    // Note: Encryption uses default (tags as JSON), but decryption expects ID array
-    // This matches current BookmarkOrchestrator behavior
-    try {
-      const bookmarkIds = JSON.parse(content);
-      if (!Array.isArray(bookmarkIds)) {
-        return [];
-      }
-      return bookmarkIds.map(id => ({
-        id,
-        type: 'e' as const,
-        value: id,
-        addedAt: Math.floor(Date.now() / 1000)
-      }));
-    } catch {
-      return [];
-    }
   }
+  // Note: No custom decryptPrivateItems - uses GenericListOrchestrator default
+  // which properly decrypts NIP-44/NIP-04 content, parses JSON tags, and converts via tagsToItem
 };
 
 /**
