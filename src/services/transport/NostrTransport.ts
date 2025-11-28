@@ -85,32 +85,46 @@ export class NostrTransport {
     this.systemLogger.info('NostrTransport', 'NDK initialized, ready to connect');
   }
 
+  // Shared promise prevents multiple parallel connect attempts
+  private connectPromise: Promise<void> | null = null;
+
   /**
    * Ensure NDK is connected to relays (lazy connection)
-   * Continues even if some relays fail - uses available relays
+   * Uses shared promise so parallel callers wait on the same connection attempt
    */
   private async ensureConnected(): Promise<void> {
-    if (!this.ndkConnected) {
-      this.systemLogger.info('NostrTransport', 'Connecting to relays via NDK...');
+    if (this.ndkConnected) {
+      return;
+    }
 
-      // Connect with 3s timeout - NDK will continue connecting in background
-      await this.ndk.connect(3000);
+    // Reuse existing connection attempt if in progress
+    if (this.connectPromise) {
+      return this.connectPromise;
+    }
 
-      // Check how many relays actually connected
-      const connectedRelays = Array.from(this.ndk.pool.relays.values())
-        .filter(relay => relay.status === 1); // 1 = CONNECTED
+    // Start new connection attempt
+    this.connectPromise = this.doConnect();
+    return this.connectPromise;
+  }
 
-      if (connectedRelays.length > 0) {
-        this.ndkConnected = true;
-        this.systemLogger.info(
-          'NostrTransport',
-          `Connected to ${connectedRelays.length}/${this.ndk.pool.relays.size} relays via NDK`
-        );
-      } else {
-        this.systemLogger.warn('NostrTransport', 'No relays connected yet, continuing in background...');
-        // Mark as connected anyway - relays will connect in background
-        this.ndkConnected = true;
-      }
+  private async doConnect(): Promise<void> {
+    this.systemLogger.info('NostrTransport', 'Connecting to relays via NDK...');
+
+    await this.ndk.connect(3000);
+
+    const connectedRelays = Array.from(this.ndk.pool.relays.values())
+      .filter(relay => relay.status === 1);
+
+    this.ndkConnected = true;
+
+    if (connectedRelays.length > 0) {
+      this.systemLogger.info(
+        'NostrTransport',
+        `Connected to ${connectedRelays.length}/${this.ndk.pool.relays.size} relays via NDK`
+      );
+    } else {
+      // Relays connect in background - not a problem
+      this.systemLogger.info('NostrTransport', 'Relays connecting in background...');
     }
   }
 
@@ -119,6 +133,54 @@ export class NostrTransport {
       NostrTransport.instance = new NostrTransport();
     }
     return NostrTransport.instance;
+  }
+
+  /**
+   * Connect to a specific relay and wait until connected
+   * Use this for external relays (like NWC) before publishing
+   */
+  public async connectToRelay(url: string, timeoutMs: number = 5000): Promise<boolean> {
+    await this.ensureConnected();
+
+    // Check if relay is already connected
+    const existingRelay = this.ndk.pool.relays.get(url);
+    if (existingRelay && existingRelay.status === 1) {
+      return true;
+    }
+
+    // Add relay to pool and connect
+    const relay = this.ndk.pool.getRelay(url, true); // true = create if not exists
+
+    if (!relay) {
+      this.systemLogger.warn('NostrTransport', `Failed to create relay: ${url}`);
+      return false;
+    }
+
+    // If already connected, return immediately
+    if (relay.status === 1) {
+      return true;
+    }
+
+    // Wait for connection with timeout
+    return new Promise<boolean>((resolve) => {
+      const timeout = setTimeout(() => {
+        this.systemLogger.warn('NostrTransport', `Relay connection timeout: ${url}`);
+        resolve(false);
+      }, timeoutMs);
+
+      const onConnect = () => {
+        clearTimeout(timeout);
+        relay.off('connect', onConnect);
+        resolve(true);
+      };
+
+      relay.on('connect', onConnect);
+
+      // Trigger connection if not already connecting
+      if (relay.status === 0) { // 0 = DISCONNECTED
+        relay.connect();
+      }
+    });
   }
 
   /**

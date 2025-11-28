@@ -160,6 +160,13 @@ export class NWCService {
         content: encryptedContent
       }, appSecretKey);
 
+      // Ensure NWC relay is connected before publishing
+      const connected = await this.transport.connectToRelay(connection.relay);
+      if (!connected) {
+        this.systemLogger.warn('NWCService', `Failed to connect to NWC relay: ${connection.relay}`);
+        return false;
+      }
+
       // Publish to relay and wait for response
       await this.transport.publish([connection.relay], event);
 
