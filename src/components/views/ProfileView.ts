@@ -27,6 +27,14 @@ import { EventBus } from '../../services/EventBus';
 import { AuthGuard } from '../../services/AuthGuard';
 import { ArticleNotificationService } from '../../services/ArticleNotificationService';
 
+// Shared promise map to prevent duplicate profile loads on rapid navigation
+type ProfileLoadResult = {
+  profile: UserProfile;
+  following: string[];
+  followEvent: any;
+};
+const loadingProfiles: Map<string, Promise<ProfileLoadResult>> = new Map();
+
 export class ProfileView extends View {
   private container: HTMLElement;
   private npub: string;
@@ -145,20 +153,11 @@ export class ProfileView extends View {
         }
       }
 
-      // Fetch profile metadata, profile's following list, and follow event
-      const [profile, following, followEvents] = await Promise.all([
-        this.userProfileService.getUserProfile(this.pubkey),
-        this.userService.getUserFollowing(this.pubkey),
-        this.transport.fetch(this.transport.getReadRelays(), [{
-          authors: [this.pubkey],
-          kinds: [3],
-          limit: 1
-        }], 5000)
-      ]);
-
+      // Fetch profile data (uses shared promise to prevent duplicate requests)
+      const { profile, following, followEvent } = await this.getProfileData();
 
       this.followingCount = following.length;
-      this.followEvent = followEvents.length > 0 ? followEvents[0] : null;
+      this.followEvent = followEvent;
 
       // Check if this profile user follows the logged-in user
       if (currentUser && this.pubkey !== currentUser.pubkey) {
@@ -187,6 +186,44 @@ export class ProfileView extends View {
       console.error('❌ PV: Failed to load profile', error);
       this.showError('Failed to load profile');
     }
+  }
+
+  /**
+   * Fetch profile data with shared promise to prevent duplicate requests
+   */
+  private async fetchProfileData(): Promise<ProfileLoadResult> {
+    try {
+      const [profile, following, followEvents] = await Promise.all([
+        this.userProfileService.getUserProfile(this.pubkey),
+        this.userService.getUserFollowing(this.pubkey),
+        this.transport.fetch(this.transport.getReadRelays(), [{
+          authors: [this.pubkey],
+          kinds: [3],
+          limit: 1
+        }], 5000)
+      ]);
+
+      return {
+        profile,
+        following,
+        followEvent: followEvents.length > 0 ? followEvents[0] : null
+      };
+    } finally {
+      // Remove from loading map after completion (success or error)
+      loadingProfiles.delete(this.pubkey);
+    }
+  }
+
+  /**
+   * Get profile data, reusing in-flight request if available
+   */
+  private async getProfileData(): Promise<ProfileLoadResult> {
+    let loadPromise = loadingProfiles.get(this.pubkey);
+    if (!loadPromise) {
+      loadPromise = this.fetchProfileData();
+      loadingProfiles.set(this.pubkey, loadPromise);
+    }
+    return loadPromise;
   }
 
   /**
@@ -607,20 +644,11 @@ export class ProfileView extends View {
       // Get current logged-in user
       const currentUser = this.authService.getCurrentUser();
 
-      // Fetch profile metadata, profile's following list, and follow event
-      const [profile, following, followEvents] = await Promise.all([
-        this.userProfileService.getUserProfile(this.pubkey),
-        this.userService.getUserFollowing(this.pubkey),
-        this.transport.fetch(this.transport.getReadRelays(), [{
-          authors: [this.pubkey],
-          kinds: [3],
-          limit: 1
-        }], 5000)
-      ]);
-
+      // Fetch profile data (uses shared promise to prevent duplicate requests)
+      const { profile, following, followEvent } = await this.getProfileData();
 
       this.followingCount = following.length;
-      this.followEvent = followEvents.length > 0 ? followEvents[0] : null;
+      this.followEvent = followEvent;
 
       // Check if this profile user follows the logged-in user
       if (currentUser && this.pubkey !== currentUser.pubkey) {
