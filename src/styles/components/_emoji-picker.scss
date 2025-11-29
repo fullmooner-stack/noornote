@@ -56,9 +56,8 @@
   }
 }
 
-// Category tabs
-.emoji-picker-tabs {
-  display: flex;
+// Category tabs (overrides for emoji icon tabs)
+.emoji-picker-custom .tabs {
   gap: calc($gap / 4);
   padding: calc($gap / 2) $gap;
   background: var(--surface-elevated-color);
@@ -72,14 +71,11 @@
   }
 }
 
-.emoji-picker-tab {
-  background: transparent;
-  border: none;
+.emoji-picker-custom .tab {
   padding: calc($gap / 2);
   font-size: 24px;
-  cursor: pointer;
   border-radius: var(--border-radius-sm);
-  transition: background-color 0.2s ease;
+  border-bottom: none;
   flex-shrink: 0;
   opacity: 0.5;
 
@@ -159,7 +155,7 @@
     background: var(--surface-dark-color);
   }
 
-  .emoji-picker-tabs {
+  .emoji-picker-custom .tabs {
     background: var(--surface-dark-color);
   }
 

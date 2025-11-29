@@ -3,6 +3,8 @@
  * Manages switching between timeline and search results views
  */
 
+import { switchTab } from '../../helpers/TabsHelper';
+
 export type TabType = 'timeline' | 'search';
 
 export class ProfileTabs {
@@ -29,8 +31,8 @@ export class ProfileTabs {
     container.className = 'profile-tabs';
 
     container.innerHTML = `
-      <div class="profile-tabs__list">
-        <button class="profile-tabs__tab profile-tabs__tab--active" data-tab="timeline">
+      <div class="tabs">
+        <button class="tab tab--active" data-tab="timeline">
           User Timeline
         </button>
       </div>
@@ -47,7 +49,7 @@ export class ProfileTabs {
       const target = e.target as HTMLElement;
 
       // Handle tab click
-      if (target.classList.contains('profile-tabs__tab')) {
+      if (target.classList.contains('tab')) {
         const tab = target.dataset.tab as TabType;
         if (tab) {
           this.switchTab(tab);
@@ -55,7 +57,7 @@ export class ProfileTabs {
       }
 
       // Handle close button
-      if (target.classList.contains('profile-tabs__close')) {
+      if (target.classList.contains('tab__close')) {
         this.onCloseSearch();
       }
     });
@@ -70,15 +72,15 @@ export class ProfileTabs {
     if (existingSearchTab) return;
 
     // Add search tab
-    const tabsList = this.container.querySelector('.profile-tabs__list');
+    const tabsList = this.container.querySelector('.tabs');
     if (!tabsList) return;
 
     const searchTab = document.createElement('button');
-    searchTab.className = 'profile-tabs__tab';
+    searchTab.className = 'tab';
     searchTab.dataset.tab = 'search';
     searchTab.innerHTML = `
       Search Results
-      <span class="profile-tabs__close" title="Close search">×</span>
+      <span class="tab__close" title="Close search">×</span>
     `;
 
     tabsList.appendChild(searchTab);
@@ -107,14 +109,7 @@ export class ProfileTabs {
     this.activeTab = tab;
 
     // Update active state
-    const tabs = this.container.querySelectorAll('.profile-tabs__tab');
-    tabs.forEach(tabEl => {
-      if ((tabEl as HTMLElement).dataset.tab === tab) {
-        tabEl.classList.add('profile-tabs__tab--active');
-      } else {
-        tabEl.classList.remove('profile-tabs__tab--active');
-      }
-    });
+    switchTab(this.container, tab);
 
     // Notify parent
     this.onTabChange(tab);

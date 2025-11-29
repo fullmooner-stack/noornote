@@ -12,6 +12,7 @@ import { Router } from '../../services/Router';
 import { EventBus } from '../../services/EventBus';
 import { SystemLogger } from '../system/SystemLogger';
 import { encodeNevent } from '../../services/NostrToolsAdapter';
+import { deactivateAllTabs, activateTabElement } from '../../helpers/TabsHelper';
 import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
 
 export class GlobalSearchView {
@@ -283,24 +284,20 @@ export class GlobalSearchView {
   private activateSearchTab(): void {
     this.ensureSearchTabButton();
 
-    // Hide all other tab contents
-    document.querySelectorAll('.secondary-tab-content').forEach(content => {
-      content.classList.remove('secondary-tab-content--active');
-    });
-
-    // Deactivate all tab buttons
-    document.querySelectorAll('.secondary-tab').forEach(tab => {
-      tab.classList.remove('secondary-tab--active');
-    });
+    // Deactivate all tabs in secondary-content
+    const secondaryContent = document.querySelector('.secondary-content');
+    if (secondaryContent) {
+      deactivateAllTabs(secondaryContent as HTMLElement);
+    }
 
     // Activate search tab button
-    const searchTabBtn = document.querySelector('.secondary-tab[data-tab="search-results"]');
+    const searchTabBtn = document.querySelector('.tab[data-tab="search-results"]') as HTMLElement;
     if (searchTabBtn) {
-      searchTabBtn.classList.add('secondary-tab--active');
+      activateTabElement(searchTabBtn);
     }
 
     // Show search results container
-    this.container.classList.add('secondary-tab-content', 'secondary-tab-content--active');
+    this.container.classList.add('tab-content', 'tab-content--active');
     this.container.setAttribute('data-tab-content', 'search-results');
   }
 
@@ -308,16 +305,16 @@ export class GlobalSearchView {
    * Ensure search tab button exists in tabs container
    */
   private ensureSearchTabButton(): void {
-    const tabsContainer = document.querySelector('.secondary-tabs');
+    const tabsContainer = document.querySelector('.tabs');
     if (!tabsContainer) return;
 
     // Check if tab already exists
-    const existingTab = tabsContainer.querySelector('.secondary-tab[data-tab="search-results"]');
+    const existingTab = tabsContainer.querySelector('.tab[data-tab="search-results"]');
     if (existingTab) return;
 
     // Create new tab button
     const searchTab = document.createElement('button');
-    searchTab.className = 'secondary-tab';
+    searchTab.className = 'tab';
     searchTab.setAttribute('data-tab', 'search-results');
     searchTab.textContent = 'Search Results';
 

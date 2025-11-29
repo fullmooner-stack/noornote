@@ -24,6 +24,7 @@ import { PostEditorToolbar } from '../post/PostEditorToolbar';
 import { MentionAutocomplete } from '../mentions/MentionAutocomplete';
 import { MediaUploadService } from '../../services/MediaUploadService';
 import { marked } from 'marked';
+import { setupTabClickHandlers, switchTab } from '../../helpers/TabsHelper';
 
 type TabMode = 'edit' | 'preview';
 
@@ -144,9 +145,9 @@ export class ArticleEditorView extends View {
         </header>
 
         <div class="article-editor__toolbar">
-          <div class="article-editor__tabs">
-            <button class="article-editor__tab article-editor__tab--active" data-tab="edit">Edit</button>
-            <button class="article-editor__tab" data-tab="preview">Preview</button>
+          <div class="tabs">
+            <button class="tab tab--active" data-tab="edit">Edit</button>
+            <button class="tab" data-tab="preview">Preview</button>
           </div>
           ${this.relaySelector.render()}
         </div>
@@ -337,13 +338,7 @@ export class ArticleEditorView extends View {
     backBtn?.addEventListener('click', () => this.handleBack());
 
     // Tab switching
-    const tabs = this.container.querySelectorAll('.article-editor__tab');
-    tabs.forEach(tab => {
-      tab.addEventListener('click', (e) => {
-        const targetTab = (e.currentTarget as HTMLElement).dataset.tab as TabMode;
-        this.switchTab(targetTab);
-      });
-    });
+    setupTabClickHandlers(this.container, (tabId) => this.switchTab(tabId as TabMode));
 
     // Field inputs
     this.setupFieldListeners();
@@ -620,10 +615,7 @@ export class ArticleEditorView extends View {
     this.currentTab = tab;
 
     // Update tab buttons
-    const tabs = this.container.querySelectorAll('.article-editor__tab');
-    tabs.forEach(t => {
-      t.classList.toggle('article-editor__tab--active', t.getAttribute('data-tab') === tab);
-    });
+    switchTab(this.container, tab);
 
     // Update body content
     const body = this.container.querySelector('.article-editor__body');

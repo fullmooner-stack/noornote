@@ -23,6 +23,7 @@ import { MuteListSecondaryManager } from './managers/MuteListSecondaryManager';
 import { NotificationsBadgeManager } from './managers/NotificationsBadgeManager';
 import { ListViewPartial, type ListType } from './partials/ListViewPartial';
 import { ListsMenuPartial } from './partials/ListsMenuPartial';
+import { deactivateAllTabs, switchTabWithContent } from '../../helpers/TabsHelper';
 
 export class MainLayout {
   private element: HTMLElement;
@@ -378,17 +379,7 @@ export class MainLayout {
     if (systemLogTab) {
       systemLogTab.addEventListener('click', () => {
         console.log('[TAB CLICK] system-log');
-
-        // Remove active class from all tabs and contents
-        this.element.querySelectorAll('.secondary-tab').forEach(t => t.classList.remove('secondary-tab--active'));
-        this.element.querySelectorAll('.secondary-tab-content').forEach(c => c.classList.remove('secondary-tab-content--active'));
-
-        // Add active class to system-log tab and content
-        systemLogTab.classList.add('secondary-tab--active');
-        const systemLogContent = this.element.querySelector('[data-tab-content="system-log"]');
-        if (systemLogContent) {
-          systemLogContent.classList.add('secondary-tab-content--active');
-        }
+        switchTabWithContent(this.element, 'system-log');
       });
     }
   }
@@ -536,12 +527,12 @@ export class MainLayout {
         <div class="secondary-user">
           <!-- User status will be mounted here -->
         </div>
-        <div class="secondary-tabs">
-          <button class="secondary-tab secondary-tab--active" data-tab="system-log">System Logs</button>
+        <div class="tabs">
+          <button class="tab tab--active" data-tab="system-log">System Logs</button>
           <!-- List tabs (Bookmarks/Follows/Mutes) will be inserted dynamically here -->
         </div>
         <div class="secondary-content-body">
-          <div class="secondary-tab-content secondary-tab-content--active" data-tab-content="system-log">
+          <div class="tab-content tab-content--active" data-tab-content="system-log">
             <!-- Debug Logger will be mounted here -->
           </div>
           <!-- List content will be inserted dynamically here -->
@@ -904,7 +895,7 @@ export class MainLayout {
     });
 
     // Insert tab and content into DOM
-    const tabsContainer = this.element.querySelector('.secondary-tabs');
+    const tabsContainer = this.element.querySelector('.tabs');
     const contentBody = this.element.querySelector('.secondary-content-body');
 
     if (tabsContainer && contentBody) {
@@ -917,21 +908,17 @@ export class MainLayout {
       // Setup tab click handler
       tab.addEventListener('click', (e) => {
         // Ignore clicks on close button
-        if ((e.target as HTMLElement).closest('.secondary-tab__close')) {
+        if ((e.target as HTMLElement).closest('.tab__close')) {
           return;
         }
 
-        // Deactivate all tabs
-        this.element.querySelectorAll('.secondary-tab').forEach(t => t.classList.remove('secondary-tab--active'));
-        this.element.querySelectorAll('.secondary-tab-content').forEach(c => c.classList.remove('secondary-tab-content--active'));
-
-        // Activate clicked tab
+        // Deactivate all tabs and activate clicked tab
+        deactivateAllTabs(this.element);
         this.currentListView?.activate();
       });
 
       // Activate the new tab
-      this.element.querySelectorAll('.secondary-tab').forEach(t => t.classList.remove('secondary-tab--active'));
-      this.element.querySelectorAll('.secondary-tab-content').forEach(c => c.classList.remove('secondary-tab-content--active'));
+      deactivateAllTabs(this.element);
       this.currentListView.activate();
 
       // Render content
@@ -948,13 +935,7 @@ export class MainLayout {
       this.currentListView = null;
 
       // Activate System Logs tab
-      const systemLogTab = this.element.querySelector('[data-tab="system-log"]');
-      const systemLogContent = this.element.querySelector('[data-tab-content="system-log"]');
-
-      if (systemLogTab && systemLogContent) {
-        systemLogTab.classList.add('secondary-tab--active');
-        systemLogContent.classList.add('secondary-tab-content--active');
-      }
+      switchTabWithContent(this.element, 'system-log');
     }
   }
 

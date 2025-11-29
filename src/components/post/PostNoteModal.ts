@@ -184,15 +184,15 @@ export class PostNoteModal {
 
     return `
       <div class="post-note-header">
-        <div class="post-note-tabs">
+        <div class="tabs">
           <button
-            class="post-note-tab ${this.currentTab === 'edit' ? 'post-note-tab--active' : ''}"
+            class="tab ${this.currentTab === 'edit' ? 'tab--active' : ''}"
             data-tab="edit"
           >
             Edit
           </button>
           <button
-            class="post-note-tab ${this.currentTab === 'preview' ? 'post-note-tab--active' : ''}"
+            class="tab ${this.currentTab === 'preview' ? 'tab--active' : ''}"
             data-tab="preview"
           >
             Preview
@@ -300,7 +300,7 @@ export class PostNoteModal {
     this.eventHandlerManager = new ModalEventHandlerManager({
       modalSelector: '.post-note-modal',
       textareaSelector: '[data-textarea]',
-      activeTabClass: 'post-note-tab--active',
+      activeTabClass: 'tab--active',
       currentTab: this.currentTab,
       onTabSwitch: (tab) => this.switchTab(tab),
       onTextInput: (value) => {

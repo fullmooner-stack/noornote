@@ -16,6 +16,7 @@ import { ToastService } from '../../../services/ToastService';
 import { ListSyncManager } from '../../../services/sync/ListSyncManager';
 import { SyncConfirmationModal } from '../../modals/SyncConfirmationModal';
 import { InfiniteScroll } from '../../ui/InfiniteScroll';
+import { switchTabWithContent } from '../../../helpers/TabsHelper';
 
 export abstract class BaseListSecondaryManager<TItem, TWithProfile> {
   protected eventBus: EventBus;
@@ -118,7 +119,7 @@ export abstract class BaseListSecondaryManager<TItem, TWithProfile> {
    */
   protected refreshListIfActive(): void {
     const listTab = this.containerElement.querySelector(`[data-tab-content="${this.getTabDataAttribute()}"]`);
-    if (listTab && listTab.classList.contains('secondary-tab-content--active')) {
+    if (listTab && listTab.classList.contains('tab-content--active')) {
       this.renderListTab(listTab as HTMLElement).catch(err => {
         console.error(`Failed to refresh ${this.getListType()}:`, err);
       });
@@ -129,18 +130,7 @@ export abstract class BaseListSecondaryManager<TItem, TWithProfile> {
    * Switch to System Logs tab
    */
   protected switchToSystemLogsTab(): void {
-    this.containerElement.querySelectorAll('.secondary-tab').forEach(t => t.classList.remove('secondary-tab--active'));
-    this.containerElement.querySelectorAll('.secondary-tab-content').forEach(c => c.classList.remove('secondary-tab-content--active'));
-
-    const systemLogsTabButton = this.containerElement.querySelector('[data-tab="system-log"]');
-    const systemLogsTabContent = this.containerElement.querySelector('[data-tab-content="system-log"]');
-
-    if (systemLogsTabButton) {
-      systemLogsTabButton.classList.add('secondary-tab--active');
-    }
-    if (systemLogsTabContent) {
-      systemLogsTabContent.classList.add('secondary-tab-content--active');
-    }
+    switchTabWithContent(this.containerElement, 'system-log');
   }
 
   /**

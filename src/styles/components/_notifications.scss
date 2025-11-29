@@ -18,32 +18,9 @@
   margin-bottom: $gap;
 }
 
-.notifications-view__tabs {
-  display: flex;
-  gap: $gap;
+.notifications-view .tabs {
   border-bottom: 1px solid $color-2;
   margin-bottom: $gap;
-}
-
-.notifications-view__tab {
-  padding: calc($gap / 2) $gap;
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  color: rgba($color-5, 0.6);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    color: $color-5;
-  }
-
-  &--active {
-    color: $color-4;
-    border-bottom-color: $color-4;
-  }
 }
 
 .notifications-view__list {

@@ -226,13 +226,14 @@ export class EmojiPicker {
 
     // Category tabs
     const tabs = document.createElement('div');
-    tabs.className = 'emoji-picker-tabs';
+    tabs.className = 'tabs';
 
     EMOJI_CATEGORIES.forEach((category, index) => {
       const tab = document.createElement('button');
-      tab.className = `emoji-picker-tab ${index === 0 ? 'emoji-picker-tab--active' : ''}`;
+      tab.className = `tab ${index === 0 ? 'tab--active' : ''}`;
       tab.textContent = category.icon;
       tab.title = category.name;
+      tab.dataset.category = String(index);
       tab.addEventListener('click', () => this.switchCategory(index));
       tabs.appendChild(tab);
     });
@@ -331,18 +332,18 @@ export class EmojiPicker {
     this.currentCategory = categoryIndex;
 
     // Update active tab
-    const tabs = this.container.querySelectorAll('.emoji-picker-tab');
+    const tabs = this.container.querySelectorAll('.tab');
     tabs.forEach((tab, index) => {
       if (index === categoryIndex) {
-        tab.classList.add('emoji-picker-tab--active');
+        tab.classList.add('tab--active');
       } else {
-        tab.classList.remove('emoji-picker-tab--active');
+        tab.classList.remove('tab--active');
       }
     });
 
     // Auto-scroll tab into view
     const activeTab = tabs[categoryIndex] as HTMLElement;
-    const tabsContainer = this.container.querySelector('.emoji-picker-tabs') as HTMLElement;
+    const tabsContainer = this.container.querySelector('.tabs') as HTMLElement;
     if (activeTab && tabsContainer) {
       // Use scrollIntoView for reliable scrolling
       activeTab.scrollIntoView({

@@ -117,35 +117,8 @@
   margin-bottom: $gap;
   border-bottom: 2px solid $color-2;
 
-  &__list {
-    display: flex;
-    gap: calc($gap / 2);
-  }
-
-  &__tab {
-    background: none;
-    border: none;
-    border-bottom: 2px solid transparent;
-    color: var(--color-text-secondary);
-    padding: calc($gap / 2) $gap;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
+  .tab {
     margin-bottom: -2px;
-    display: flex;
-    align-items: center;
-    gap: calc($gap / 2);
-
-    &:hover {
-      color: $color-5;
-      border-bottom-color: $color-3;
-    }
-
-    &--active {
-      color: $color-5;
-      border-bottom-color: $color-4;
-    }
 
     @include mobile-down {
       padding: calc($gap / 4) calc($gap / 2);
@@ -153,18 +126,14 @@
     }
   }
 
-  &__close {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  // Circular close button style
+  .tab__close {
     width: 20px;
     height: 20px;
     background: rgba($color-3, 0.5);
     border-radius: 50%;
     font-size: 16px;
     line-height: 1;
-    transition: background 0.2s ease;
-    cursor: pointer;
 
     &:hover {
       background: rgba($color-3, 0.8);

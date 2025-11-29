@@ -73,80 +73,14 @@
     border-bottom: 1px solid $color-2;
   }
 
-  .secondary-tabs {
-    display: flex;
-    gap: calc($gap / 2);
+  .tabs {
     border-bottom: 1px solid $color-2;
-  }
-
-  .secondary-tab {
-    background: none;
-    border: none;
-    padding: calc($gap / 2) $gap;
-    font-size: 14px;
-    color: $color-4;
-    cursor: pointer;
-    transition: color 0.2s ease;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    gap: calc($gap / 2);
-
-    &:hover {
-      background: color.adjust($color-2, $lightness: 5%);
-    }
-
-    &--active {
-      color: $color-5;
-      font-weight: 600;
-    }
-
-    // List tabs with close button
-    &--list {
-      .secondary-tab__label {
-        flex: 1;
-      }
-
-      .secondary-tab__close {
-        background: none;
-        border: none;
-        padding: 0;
-        cursor: pointer;
-        color: $color-4;
-        transition: color 0.2s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 18px;
-        height: 18px;
-
-        svg {
-          width: 14px;
-          height: 14px;
-        }
-
-        &:hover {
-          color: $color-5;
-        }
-      }
-    }
   }
 
   .secondary-content-body {
     height: calc(100% - 120px);
     overflow: hidden;
     position: relative;
-  }
-
-  .secondary-tab-content {
-    display: none;
-    height: 100%;
-    overflow-y: auto;
-    @include custom-scrollbar;
-
-    &--active {
-      display: block;
-    }
   }
 
   // Empty/loading states (shared by all lists)

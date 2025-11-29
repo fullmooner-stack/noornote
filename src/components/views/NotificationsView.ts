@@ -11,6 +11,7 @@ import { InfiniteScroll } from '../ui/InfiniteScroll';
 import { UserProfileService } from '../../services/UserProfileService';
 import { SystemLogger } from '../system/SystemLogger';
 import { NotificationsCacheService } from '../../services/NotificationsCacheService';
+import { setupTabClickHandlers, switchTab } from '../../helpers/TabsHelper';
 
 type TabType = 'all' | 'mentions' | 'reactions' | 'zaps' | 'replies';
 
@@ -70,12 +71,12 @@ export class NotificationsView extends View {
       <div class="notifications-view__header">
         <h1>Notifications</h1>
       </div>
-      <div class="notifications-view__tabs">
-        <button class="notifications-view__tab notifications-view__tab--active" data-tab="all">All</button>
-        <button class="notifications-view__tab" data-tab="mentions">Mentions</button>
-        <button class="notifications-view__tab" data-tab="reactions">Reactions</button>
-        <button class="notifications-view__tab" data-tab="zaps">Zaps</button>
-        <button class="notifications-view__tab" data-tab="replies">Replies</button>
+      <div class="tabs">
+        <button class="tab tab--active" data-tab="all">All</button>
+        <button class="tab" data-tab="mentions">Mentions</button>
+        <button class="tab" data-tab="reactions">Reactions</button>
+        <button class="tab" data-tab="zaps">Zaps</button>
+        <button class="tab" data-tab="replies">Replies</button>
       </div>
       <div class="notifications-view__content">
         <div class="notifications-view__list"></div>
@@ -83,13 +84,7 @@ export class NotificationsView extends View {
     `;
 
     // Setup tab click handlers
-    const tabs = this.container.querySelectorAll('.notifications-view__tab');
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        const tabType = tab.getAttribute('data-tab') as TabType;
-        this.switchTab(tabType);
-      });
-    });
+    setupTabClickHandlers(this.container, (tabId) => this.switchTab(tabId as TabType));
   }
 
   /**
@@ -346,14 +341,7 @@ export class NotificationsView extends View {
     this.activeTab = tabType;
 
     // Update tab UI
-    const tabs = this.container.querySelectorAll('.notifications-view__tab');
-    tabs.forEach(tab => {
-      if (tab.getAttribute('data-tab') === tabType) {
-        tab.classList.add('notifications-view__tab--active');
-      } else {
-        tab.classList.remove('notifications-view__tab--active');
-      }
-    });
+    switchTab(this.container, tabType);
 
     // Reset and reload notifications
     this.resetAndReload();

@@ -85,7 +85,7 @@ export class BookmarkSecondaryManager {
 
   private refreshIfActive(): void {
     const listTab = this.containerElement.querySelector('[data-tab-content="list-bookmarks"]');
-    if (listTab && listTab.classList.contains('secondary-tab-content--active')) {
+    if (listTab && listTab.classList.contains('tab-content--active')) {
       this.renderBookmarksTab(listTab as HTMLElement);
     }
   }

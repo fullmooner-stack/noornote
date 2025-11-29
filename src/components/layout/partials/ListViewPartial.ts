@@ -34,12 +34,12 @@ export class ListViewPartial {
    */
   public createTab(): HTMLElement {
     const tab = document.createElement('button');
-    tab.className = 'secondary-tab secondary-tab--list';
+    tab.className = 'tab tab--closable';
     tab.dataset.tab = `list-${this.config.type}`;
 
     tab.innerHTML = `
-      <span class="secondary-tab__label">${this.config.title}</span>
-      <button class="secondary-tab__close" aria-label="Close list" title="Close list">
+      <span class="tab__label">${this.config.title}</span>
+      <button class="tab__close" aria-label="Close list" title="Close list">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="7" cy="7" r="6.5" stroke="currentColor" stroke-width="1"/>
           <path d="M4.5 4.5l5 5M9.5 4.5l-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -48,7 +48,7 @@ export class ListViewPartial {
     `;
 
     // Close button handler
-    const closeBtn = tab.querySelector('.secondary-tab__close');
+    const closeBtn = tab.querySelector('.tab__close');
     closeBtn?.addEventListener('click', (e) => {
       e.stopPropagation(); // Prevent tab activation
       this.config.onClose();
@@ -63,7 +63,7 @@ export class ListViewPartial {
    */
   public createContent(): HTMLElement {
     const content = document.createElement('div');
-    content.className = 'secondary-tab-content';
+    content.className = 'tab-content';
     content.dataset.tabContent = `list-${this.config.type}`;
 
     this.contentElement = content;
@@ -84,10 +84,10 @@ export class ListViewPartial {
    */
   public activate(): void {
     if (this.tabElement) {
-      this.tabElement.classList.add('secondary-tab--active');
+      this.tabElement.classList.add('tab--active');
     }
     if (this.contentElement) {
-      this.contentElement.classList.add('secondary-tab-content--active');
+      this.contentElement.classList.add('tab-content--active');
     }
   }
 
@@ -96,10 +96,10 @@ export class ListViewPartial {
    */
   public deactivate(): void {
     if (this.tabElement) {
-      this.tabElement.classList.remove('secondary-tab--active');
+      this.tabElement.classList.remove('tab--active');
     }
     if (this.contentElement) {
-      this.contentElement.classList.remove('secondary-tab-content--active');
+      this.contentElement.classList.remove('tab-content--active');
     }
   }
 
