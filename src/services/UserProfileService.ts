@@ -39,6 +39,10 @@ export class UserProfileService {
   private fetchingProfiles: Map<string, Promise<UserProfile>> = new Map();
   private profileUpdateCallbacks: Map<string, Set<(profile: UserProfile) => void>> = new Map();
 
+  /** Track failed fetches to prevent rapid retry storms (pubkey → timestamp) */
+  private failedFetches: Map<string, number> = new Map();
+  private readonly FAILED_FETCH_COOLDOWN = 2000; // 2 seconds
+
   private constructor() {
     this.orchestrator = ProfileOrchestrator.getInstance();
   }
@@ -84,6 +88,12 @@ export class UserProfileService {
       return await this.fetchingProfiles.get(pubkey)!;
     }
 
+    // Check if recently failed - return default profile during cooldown
+    const lastFailed = this.failedFetches.get(pubkey);
+    if (lastFailed && Date.now() - lastFailed < this.FAILED_FETCH_COOLDOWN) {
+      return this.getDefaultProfile(pubkey);
+    }
+
     // Start new fetch
     const fetchPromise = this.fetchProfileFromRelays(pubkey);
     this.fetchingProfiles.set(pubkey, fetchPromise);
@@ -91,11 +101,16 @@ export class UserProfileService {
     try {
       const profile = await fetchPromise;
 
+      // Clear any previous failure on success
+      this.failedFetches.delete(pubkey);
+
       // NO CACHING - just notify subscribers and return
       this.notifyProfileUpdate(pubkey, profile);
       return profile;
     } catch (error) {
       console.warn(`Failed to fetch profile for ${pubkey}:`, error);
+      // Record failure timestamp to prevent rapid retries
+      this.failedFetches.set(pubkey, Date.now());
       return this.getDefaultProfile(pubkey);
     } finally {
       this.fetchingProfiles.delete(pubkey);
