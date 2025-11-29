@@ -160,8 +160,8 @@
 
 // Heading styles
 @mixin heading-base {
-  font-weight: $font-weight-semibold;
-  line-height: $line-height-tight;
+  font-weight: 600;
+  line-height: 1.25;
   color: var(--color-text-primary);
   @include font-smoothing;
 }
@@ -213,7 +213,7 @@
   justify-content: center;
   border: none;
   border-radius: $radius-md;
-  font-weight: $font-weight-medium;
+  font-weight: 500;
   text-decoration: none;
   cursor: pointer;
   transition: $transition-colors;
@@ -287,7 +287,7 @@
 @mixin input-base {
   width: 100%;
   padding: calc($gap / 2) $gap;
-  line-height: $line-height-normal;
+  line-height: 1.5;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: $radius-md;

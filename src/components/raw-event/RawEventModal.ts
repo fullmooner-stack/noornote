@@ -58,7 +58,7 @@ export class RawEventModal {
     container.className = 'raw-event-modal';
     container.innerHTML = `
       <div class="raw-event-modal__actions">
-        <button class="btn btn--primary btn--copy-json" type="button">
+        <button class="btn btn--copy-json" type="button">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="2" y="2" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1.5"/>
             <path d="M5 5v-1a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-1" stroke="currentColor" stroke-width="1.5"/>

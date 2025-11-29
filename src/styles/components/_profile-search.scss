@@ -188,12 +188,6 @@
 
   &__header {
     margin-bottom: $gap;
-
-    h3 {
-      @include heading-lg;
-      color: $color-5;
-      margin: 0 0 calc($gap / 4) 0;
-    }
   }
 
   &__meta {
@@ -235,7 +229,7 @@
 
   &__excerpt {
     color: $color-5;
-    line-height: $line-height-relaxed;
+    line-height: 1.5;
     margin-bottom: calc($gap / 2);
     word-wrap: break-word;
 

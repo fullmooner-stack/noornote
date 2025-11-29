@@ -371,7 +371,7 @@ export class PrivacySettingsSection extends SettingsSection {
         </div>
         <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem;">
           <button class="btn" data-action="cancel">Cancel</button>
-          <button class="btn btn--primary" data-action="confirm">Migrate</button>
+          <button class="btn" data-action="confirm">Migrate</button>
         </div>
       `,
       width: '500px',
@@ -432,7 +432,7 @@ export class PrivacySettingsSection extends SettingsSection {
         </div>
         <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem;">
           <button class="btn" data-action="cancel">Cancel</button>
-          <button class="btn btn--primary" data-action="confirm">Migrate</button>
+          <button class="btn" data-action="confirm">Migrate</button>
         </div>
       `,
       width: '500px',

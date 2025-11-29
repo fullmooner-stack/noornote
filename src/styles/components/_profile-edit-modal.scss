@@ -120,7 +120,7 @@
   label {
     display: block;
     font-size: 14px;
-    font-weight: $font-weight-semibold;
+    font-weight: 600;
     color: $color-5;
     margin-bottom: calc($gap / 4);
   }
@@ -177,7 +177,7 @@
   border-radius: $radius-sm;
   color: $color-5;
   font-size: 14px;
-  font-weight: $font-weight-semibold;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -194,7 +194,7 @@
   border-radius: $radius-sm;
   color: $color-1;
   font-size: 14px;
-  font-weight: $font-weight-semibold;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -219,7 +219,7 @@
   border-radius: $radius-sm;
   color: $color-1;
   font-size: 14px;
-  font-weight: $font-weight-semibold;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 

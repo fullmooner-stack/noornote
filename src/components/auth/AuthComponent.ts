@@ -96,7 +96,7 @@ export class AuthComponent {
       primaryLoginOption = `
         <section class="auth-section auth-section--primary">
           <div class="auth-primary-action">
-            <button class="btn btn--large btn--primary" data-action="use-key-signer">
+            <button class="btn btn--large" data-action="use-key-signer">
               🔑 Use NoorSigner
             </button>
             <p class="auth-hint">Secure local key signer</p>
@@ -112,7 +112,7 @@ export class AuthComponent {
         ? `
           <section class="auth-section auth-section--primary">
             <div class="auth-primary-action">
-              <button class="btn btn--large btn--primary" data-action="use-extension">
+              <button class="btn btn--large" data-action="use-extension">
                 🔐 Login with ${extensionName}
               </button>
               <p class="auth-hint">Sign with your browser extension</p>
@@ -137,7 +137,7 @@ export class AuthComponent {
 
     primaryContent.innerHTML = `
       <div class="auth-login-card">
-        <h2>Welcome to NoorNote</h2>
+        <h1>Welcome to NoorNote</h1>
 
         ${primaryLoginOption}
 
@@ -146,7 +146,7 @@ export class AuthComponent {
         </div>
 
         <section class="auth-section">
-          <h3>Remote Signer</h3>
+          <h2>Remote Signer</h2>
           <div class="auth-input-group">
             <input
               type="text"
@@ -161,7 +161,7 @@ export class AuthComponent {
         </section>
 
         <section class="auth-section">
-          <h3>View Only</h3>
+          <h2>View Only</h2>
           <div class="auth-input-group">
             <input
               type="text"
@@ -176,7 +176,7 @@ export class AuthComponent {
         </section>
 
         <section class="auth-section">
-          <h3>Create New Account</h3>
+          <h2>Create New Account</h2>
           <div class="auth-create">
             <button class="btn btn--accent" data-action="create-account">Create New Account</button>
           </div>
@@ -673,7 +673,7 @@ export class AuthComponent {
             Without it, you'll lose access to your account forever. There's no recovery option.
           </p>
 
-          <button class="btn btn--primary" data-action="continue-with-keys" data-nsec="${nsec}">
+          <button class="btn" data-action="continue-with-keys" data-nsec="${nsec}">
             I've Saved My Keys - Continue
           </button>
           <button class="btn btn--secondary" data-action="back-to-login">Cancel</button>

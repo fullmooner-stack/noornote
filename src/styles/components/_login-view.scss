@@ -8,17 +8,10 @@
 
 .auth-login-card {
   max-width: 500px;
-  margin: $gap * 4 auto;
+  margin: 0;
   background: $color-2;
   border-radius: calc($gap / 2);
-  padding: $gap * 3;
-
-  h2 {
-    margin: 0 0 calc($gap / 4) 0;
-    font-size: 28px;
-    color: $color-5;
-    text-align: center;
-  }
+  padding: $gap !important;
 
   .auth-subtitle {
     margin: 0 0 $gap * 2 0;
@@ -34,12 +27,6 @@
   border-radius: calc($gap / 2);
   padding: calc($gap * 2);
   margin: calc($gap * 2) 0;
-
-  h3 {
-    margin: 0 0 $gap 0;
-    font-size: 18px;
-    color: $color-5;
-  }
 
   // Primary auth section (no border, prominent)
   &--primary {
@@ -112,7 +99,6 @@
   }
 
   .btn {
-    padding: $gap calc($gap * 2);
     white-space: nowrap;
   }
 }

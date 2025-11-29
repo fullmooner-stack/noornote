@@ -7,38 +7,36 @@
 @use '../abstracts/mixins' as *;
 
 // Heading styles
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.25;
+}
+
 h1 {
-  @include heading-xl;
-  margin-bottom: $gap * 1.5;
+  font-size: 27px;
 }
 
 h2 {
-  @include heading-lg;
-  margin-bottom: $gap;
+  font-size: 23px;
 }
 
 h3 {
-  @include heading-md;
-  margin-bottom: $gap;
+  font-size: 21px;
 }
 
 h4 {
-  @include heading-sm;
-  margin-bottom: $gap;
+  font-size: 19px;
 }
 
-h5,
-h6 {
-  @include heading-base;
-  font-size: 18px;
-  margin-bottom: $gap;
+h5, h6 {
+  font-size: 17px;
 }
 
 // Paragraph styles
 p {
   margin-bottom: $gap;
   color: var(--color-text-primary);
-  line-height: $line-height-relaxed;
+  line-height: 1.5;
 
   &:last-child {
     margin-bottom: 0;
@@ -46,7 +44,7 @@ p {
 
   &.lead {
     font-size: 18px;
-    font-weight: $font-weight-medium;
+    font-weight: 500;
     color: var(--color-text-secondary);
   }
 
@@ -79,7 +77,7 @@ ol {
 
 li {
   margin-bottom: calc($gap / 4);
-  line-height: $line-height-relaxed;
+  line-height: 1.5;
 
   &:last-child {
     margin-bottom: 0;
@@ -92,7 +90,7 @@ dl {
 }
 
 dt {
-  font-weight: $font-weight-semibold;
+  font-weight: 600;
   color: var(--color-text-primary);
   margin-bottom: calc($gap / 4);
 }
@@ -110,7 +108,7 @@ dd {
 // Inline text elements
 strong,
 b {
-  font-weight: $font-weight-semibold;
+  font-weight: 600;
   color: var(--color-text-primary);
 }
 
@@ -145,7 +143,7 @@ code {
 pre {
   font-family: $font-family-mono;
   font-size: 14px;
-  line-height: $line-height-relaxed;
+  line-height: 1.5;
   background-color: var(--color-surface);
   color: var(--color-text-primary);
   padding: $gap;
@@ -165,7 +163,7 @@ pre {
 // Blockquotes
 blockquote {
   font-size: 18px;
-  line-height: $line-height-relaxed;
+  line-height: 1.5;
   color: var(--color-text-secondary);
   border-left: 4px solid $color-4;
   padding-left: $gap;
@@ -206,11 +204,10 @@ hr {
 .text-2xl { font-size: 24px; }
 .text-3xl { font-size: 30px; }
 
-.font-light { font-weight: $font-weight-light; }
-.font-normal { font-weight: $font-weight-normal; }
-.font-medium { font-weight: $font-weight-medium; }
-.font-semibold { font-weight: $font-weight-semibold; }
-.font-bold { font-weight: $font-weight-bold; }
+.font-light { font-weight: 300; }
+.font-normal { font-weight: 400; }
+.font-medium { font-weight: 500; }
+.font-bold { font-weight: 700; }
 
 .text-left { text-align: left; }
 .text-center { text-align: center; }

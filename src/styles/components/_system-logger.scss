@@ -232,10 +232,6 @@
   .system-logger {
     &__header {
       padding: var(--space-xs) var(--space-sm);
-
-      h3 {
-        font-size: var(--font-size-xs);
-      }
     }
 
     &__controls button {

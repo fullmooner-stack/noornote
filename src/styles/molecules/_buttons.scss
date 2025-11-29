@@ -23,8 +23,8 @@
   gap: calc($gap / 4);
 
   // Typography
-  font-weight: $font-weight-medium;
-  line-height: $line-height-tight;
+  font-weight: 500;
+  line-height: 1.25;
   text-decoration: none;
   white-space: nowrap;
 
@@ -115,22 +115,6 @@
   }
 }
 
-// Primary (for main actions)
-.btn--primary {
-  color: white;
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
-
-  &:hover {
-    background-color: var(--color-primary-dark);
-    border-color: var(--color-primary-dark);
-  }
-
-  &:focus {
-    outline-color: var(--color-primary);
-  }
-}
-
 // ========================================
 // Refresh Button Modifier
 // ========================================
@@ -172,7 +156,7 @@
 // Text in refresh button
 .btn--refresh-new-notes__text {
   font-size: 14px;
-  font-weight: $font-weight-medium;
+  font-weight: 500;
   white-space: nowrap;
 }
 

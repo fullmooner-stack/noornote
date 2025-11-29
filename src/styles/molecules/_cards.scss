@@ -22,7 +22,7 @@
 .post-item__heading {
   margin: 0 0 calc($gap / 2) 0;
   color: var(--color-text-primary);
-  font-weight: $font-weight-medium;
+  font-weight: 500;
 }
 
 // Post item text (standalone)
@@ -30,7 +30,7 @@
   margin: 0;
   color: var(--color-text-secondary);
   font-size: 14px;
-  line-height: $line-height-relaxed;
+  line-height: 1.5;
 }
 
 // Widget containers
@@ -49,7 +49,7 @@
 .widget__heading {
   margin: 0 0 calc($gap / 2) 0;
   color: var(--color-text-primary);
-  font-weight: $font-weight-medium;
+  font-weight: 500;
 }
 
 // Widget list (standalone)
