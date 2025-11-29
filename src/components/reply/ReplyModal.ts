@@ -279,7 +279,7 @@ export class ReplyModal {
     if (this.currentTab === 'edit') {
       return `
         <textarea
-          class="post-note-textarea"
+          class="textarea"
           placeholder="Write your reply..."
           data-textarea
         >${this.content}</textarea>
@@ -390,7 +390,7 @@ export class ReplyModal {
     const actions = modal.querySelector('.post-note-actions');
 
     if (header && actions) {
-      const oldEditor = modal.querySelector('.post-note-textarea') || modal.querySelector('.post-note-preview');
+      const oldEditor = modal.querySelector('.textarea') || modal.querySelector('.post-note-preview');
       if (oldEditor) {
         oldEditor.remove();
       }

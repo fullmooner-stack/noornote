@@ -150,7 +150,7 @@ export class AuthComponent {
           <div class="auth-input-group">
             <input
               type="text"
-              class="auth-input"
+              class="input input--monospace"
               placeholder="bunker://..."
               data-input="bunker"
               autocomplete="off"
@@ -165,7 +165,7 @@ export class AuthComponent {
           <div class="auth-input-group">
             <input
               type="text"
-              class="auth-input"
+              class="input input--monospace"
               placeholder="npub1..."
               data-input="npub"
               autocomplete="off"
@@ -481,7 +481,7 @@ export class AuthComponent {
    */
   private async handleSmartLogin(): Promise<void> {
     const primaryContent = document.querySelector('.primary-content');
-    const authInput = primaryContent?.querySelector('.auth-input') as HTMLInputElement;
+    const authInput = primaryContent?.querySelector('.input') as HTMLInputElement;
     const smartLoginBtn = primaryContent?.querySelector('[data-action="smart-login"]') as HTMLButtonElement;
 
     if (!authInput || !smartLoginBtn) return;

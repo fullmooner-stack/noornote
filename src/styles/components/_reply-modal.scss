@@ -57,7 +57,7 @@
 }
 
 // Reply textarea (smaller than post textarea)
-.reply-modal .post-note-textarea {
+.reply-modal .textarea {
   min-height: 120px; // Smaller to fit fixed layout
 }
 
@@ -67,7 +67,7 @@
     min-height: 400px;
   }
 
-  .reply-modal .post-note-textarea {
+  .reply-modal .textarea {
     min-height: 120px;
   }
 }

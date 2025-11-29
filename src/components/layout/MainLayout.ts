@@ -14,7 +14,7 @@ import { AuthStateManager } from '../../services/AuthStateManager';
 import { AuthService } from '../../services/AuthService';
 import { EventBus } from '../../services/EventBus';
 import { WalletBalanceDisplay } from '../ui/WalletBalanceDisplay';
-import { URLNavigationModal } from '../navigation/URLNavigationModal';
+import { SearchSpotlight } from '../navigation/SearchSpotlight';
 import { KeyboardShortcutManager } from '../../services/KeyboardShortcutManager';
 import { GlobalSearchView } from '../search/GlobalSearchView';
 import { BookmarkSecondaryManager } from './managers/BookmarkSecondaryManager';
@@ -29,7 +29,7 @@ export class MainLayout {
   private element: HTMLElement;
   private systemLogger: SystemLogger;
   private userStatus: UserStatus | null = null;
-  private urlNavigationModal: URLNavigationModal | null = null;
+  private searchSpotlight: SearchSpotlight | null = null;
   private keyboardShortcutManager: KeyboardShortcutManager;
   private authComponent: any = null; // Store reference to trigger logout
   private cacheManager: CacheManager;
@@ -161,7 +161,7 @@ export class MainLayout {
    * Initialize search modal
    */
   private initializeSearchModal(): void {
-    this.urlNavigationModal = new URLNavigationModal();
+    this.searchSpotlight = new SearchSpotlight();
   }
 
   /**
@@ -181,10 +181,10 @@ export class MainLayout {
    * Open search modal
    */
   private openSearchModal(): void {
-    if (!this.urlNavigationModal) {
+    if (!this.searchSpotlight) {
       this.initializeSearchModal();
     }
-    this.urlNavigationModal?.open();
+    this.searchSpotlight?.open();
   }
 
 
@@ -967,8 +967,8 @@ export class MainLayout {
       this.walletBalanceDisplay.destroy();
     }
 
-    if (this.urlNavigationModal) {
-      this.urlNavigationModal.destroy();
+    if (this.searchSpotlight) {
+      this.searchSpotlight.destroy();
     }
 
     this.element.remove();

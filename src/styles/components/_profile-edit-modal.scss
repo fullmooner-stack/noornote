@@ -114,45 +114,6 @@
   margin-bottom: $gap;
 }
 
-.form-group {
-  margin-bottom: $gap;
-
-  label {
-    display: block;
-    font-size: 14px;
-    font-weight: 600;
-    color: $color-5;
-    margin-bottom: calc($gap / 4);
-  }
-
-  input[type="text"],
-  textarea {
-    width: 100%;
-    padding: calc($gap / 2);
-    background: $color-2;
-    border: 1px solid $color-3;
-    border-radius: $radius-sm;
-    color: $color-5;
-    font-size: 14px;
-    font-family: $font-family-sans;
-    transition: border-color 0.2s ease;
-
-    &:focus {
-      outline: none;
-      border-color: $color-4;
-    }
-
-    &::placeholder {
-      color: color.adjust($color-5, $alpha: -0.5);
-    }
-  }
-
-  textarea {
-    resize: vertical;
-    height: 120px;
-    min-height: 120px;
-  }
-}
 
 .form-hint {
   display: block;

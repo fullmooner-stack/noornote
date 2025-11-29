@@ -1,12 +1,12 @@
 /**
- * URL Navigation Modal
- * Spotlight-style modal for navigating to URLs
+ * Search Spotlight
+ * Spotlight-style modal for search and navigation
  */
 
 import { Router } from '../../services/Router';
 import { EventBus } from '../../services/EventBus';
 
-export class URLNavigationModal {
+export class SearchSpotlight {
   private element: HTMLElement;
   private router: Router;
   private eventBus: EventBus;
@@ -38,35 +38,35 @@ export class URLNavigationModal {
 
   private createElement(): HTMLElement {
     const modal = document.createElement('div');
-    modal.className = 'url-navigation-modal';
+    modal.className = 'search-spotlight';
 
     modal.innerHTML = `
-      <div class="url-navigation-overlay"></div>
-      <div class="url-navigation-content">
-        <div class="url-navigation-input-wrapper">
+      <div class="search-spotlight__overlay"></div>
+      <div class="search-spotlight__content">
+        <div class="search-spotlight__input-wrapper">
           <input
             type="text"
-            class="url-navigation-input"
+            class="input input--monospace"
             placeholder="Enter URL path (e.g., /profile, /note/...)"
             autocomplete="off"
             spellcheck="false"
           />
         </div>
-        <div class="url-navigation-controls">
-          <button class="url-nav-btn url-nav-back" title="Go Back (Cmd+ArrowLeft)" disabled>
+        <div class="search-spotlight__controls">
+          <button class="search-spotlight__btn search-spotlight__btn--back" title="Go Back (Cmd+ArrowLeft)" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M19 12H5M12 19l-7-7 7-7"/>
             </svg>
             Back
           </button>
-          <button class="url-nav-btn url-nav-forward" title="Go Forward (Cmd+ArrowRight)" disabled>
+          <button class="search-spotlight__btn search-spotlight__btn--forward" title="Go Forward (Cmd+ArrowRight)" disabled>
             Forward
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
           </button>
         </div>
-        <div class="url-navigation-suggestions"></div>
+        <div class="search-spotlight__suggestions"></div>
       </div>
     `;
 
@@ -75,11 +75,11 @@ export class URLNavigationModal {
 
   private setupEventListeners(): void {
     // Overlay click to close
-    const overlay = this.element.querySelector('.url-navigation-overlay');
+    const overlay = this.element.querySelector('.search-spotlight__overlay');
     overlay?.addEventListener('click', () => this.close());
 
     // Input element
-    this.inputElement = this.element.querySelector('.url-navigation-input');
+    this.inputElement = this.element.querySelector('.input');
 
     if (this.inputElement) {
       // Keyboard navigation for input
@@ -104,8 +104,8 @@ export class URLNavigationModal {
     }
 
     // Back/Forward buttons
-    const backBtn = this.element.querySelector('.url-nav-back');
-    const forwardBtn = this.element.querySelector('.url-nav-forward');
+    const backBtn = this.element.querySelector('.search-spotlight__btn--back');
+    const forwardBtn = this.element.querySelector('.search-spotlight__btn--forward');
 
     backBtn?.addEventListener('click', () => {
       this.router.back();
@@ -118,7 +118,7 @@ export class URLNavigationModal {
     });
 
     // Suggestions element
-    this.suggestionsElement = this.element.querySelector('.url-navigation-suggestions');
+    this.suggestionsElement = this.element.querySelector('.search-spotlight__suggestions');
   }
 
   public open(): void {
@@ -221,8 +221,8 @@ export class URLNavigationModal {
   }
 
   private updateNavigationButtons(): void {
-    const backBtn = this.element.querySelector('.url-nav-back') as HTMLButtonElement;
-    const forwardBtn = this.element.querySelector('.url-nav-forward') as HTMLButtonElement;
+    const backBtn = this.element.querySelector('.search-spotlight__btn--back') as HTMLButtonElement;
+    const forwardBtn = this.element.querySelector('.search-spotlight__btn--forward') as HTMLButtonElement;
 
     if (backBtn) {
       backBtn.disabled = !this.router.canGoBack();
@@ -255,24 +255,24 @@ export class URLNavigationModal {
 
     // Render suggestions
     if (suggestions.length === 0) {
-      this.suggestionsElement.innerHTML = '<div class="url-suggestion-empty">No recent URLs</div>';
+      this.suggestionsElement.innerHTML = '<div class="search-spotlight__empty">No recent URLs</div>';
       return;
     }
 
     this.suggestionsElement.innerHTML = suggestions
       .map((url, index) => `
-        <div class="url-suggestion ${index === this.selectedSuggestionIndex ? 'selected' : ''}" data-url="${url}" data-index="${index}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="url-suggestion-icon">
+        <div class="search-spotlight__suggestion ${index === this.selectedSuggestionIndex ? 'search-spotlight__suggestion--selected' : ''}" data-url="${url}" data-index="${index}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-spotlight__suggestion-icon">
             <circle cx="12" cy="12" r="10"/>
             <polyline points="12 6 12 12 16 14"/>
           </svg>
-          <span class="url-suggestion-text">${url}</span>
+          <span class="search-spotlight__suggestion-text">${url}</span>
         </div>
       `)
       .join('');
 
     // Add click handlers to suggestions
-    this.suggestionsElement.querySelectorAll('.url-suggestion').forEach(item => {
+    this.suggestionsElement.querySelectorAll('.search-spotlight__suggestion').forEach(item => {
       item.addEventListener('click', () => {
         const url = item.getAttribute('data-url');
         if (url) {
@@ -303,15 +303,15 @@ export class URLNavigationModal {
     const elements: Element[] = [];
 
     // Add Back/Forward buttons
-    const backBtn = this.element.querySelector('.url-nav-back:not(:disabled)');
-    const forwardBtn = this.element.querySelector('.url-nav-forward:not(:disabled)');
+    const backBtn = this.element.querySelector('.search-spotlight__btn--back:not(:disabled)');
+    const forwardBtn = this.element.querySelector('.search-spotlight__btn--forward:not(:disabled)');
 
     if (backBtn) elements.push(backBtn);
     if (forwardBtn) elements.push(forwardBtn);
 
     // Add suggestions
     if (this.suggestionsElement) {
-      const suggestions = this.suggestionsElement.querySelectorAll('.url-suggestion');
+      const suggestions = this.suggestionsElement.querySelectorAll('.search-spotlight__suggestion');
       elements.push(...Array.from(suggestions));
     }
 
@@ -323,10 +323,10 @@ export class URLNavigationModal {
 
     focusableElements.forEach((item, index) => {
       if (index === this.selectedSuggestionIndex) {
-        item.classList.add('selected');
+        item.classList.add('search-spotlight__suggestion--selected');
         item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       } else {
-        item.classList.remove('selected');
+        item.classList.remove('search-spotlight__suggestion--selected');
       }
     });
   }

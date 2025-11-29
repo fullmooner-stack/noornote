@@ -143,31 +143,6 @@
   }
 }
 
-// Textarea
-.post-note-textarea {
-  width: 100%;
-  min-height: 200px;
-  padding: $gap;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius);
-  color: var(--color-text);
-  font-family: inherit;
-  font-size: 16px;
-  line-height: 1.5;
-  resize: vertical;
-  transition: border-color 0.2s ease;
-  @include custom-scrollbar;
-
-  &:focus {
-    outline: none;
-    border-color: var(--color-primary);
-  }
-
-  &::placeholder {
-    color: var(--color-text-secondary);
-  }
-}
 
 // Preview
 .post-note-preview {
@@ -327,7 +302,7 @@ svg.upload-progress {
     min-height: 300px;
   }
 
-  .post-note-textarea,
+  .textarea,
   .post-note-preview {
     min-height: 150px;
   }

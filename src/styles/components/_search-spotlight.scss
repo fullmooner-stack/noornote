@@ -1,11 +1,11 @@
 /**
- * URL Navigation Modal
- * Spotlight-style modal for URL navigation
+ * Search Spotlight
+ * Spotlight-style modal for search and navigation
  */
 
 @use '../abstracts/variables' as *;
 
-.url-navigation-modal {
+.search-spotlight {
   position: fixed;
   top: 0;
   left: 0;
@@ -16,13 +16,18 @@
   align-items: center;
   justify-content: center;
   pointer-events: none;
+
+  // Larger font for spotlight input
+  .input {
+    font-size: 18px;
+  }
 }
 
-.url-navigation-overlay {
+.search-spotlight__overlay {
   display: none;
 }
 
-.url-navigation-content {
+.search-spotlight__content {
   position: relative;
   width: 90%;
   max-width: 600px;
@@ -34,32 +39,12 @@
   pointer-events: auto;
 }
 
-.url-navigation-input-wrapper {
+.search-spotlight__input-wrapper {
   padding: $gap;
   border-bottom: 1px solid $color-2;
 }
 
-.url-navigation-input {
-  width: 100%;
-  padding: calc($gap / 2);
-  background: $color-2;
-  border: 1px solid $color-2;
-  border-radius: $radius-sm;
-  color: $color-5;
-  font-size: 18px;
-  font-family: monospace;
-
-  &::placeholder {
-    color: rgba($color-5, 0.4);
-  }
-
-  &:focus {
-    outline: none;
-    border-color: $color-4;
-  }
-}
-
-.url-navigation-controls {
+.search-spotlight__controls {
   display: flex;
   gap: calc($gap / 2);
   padding: calc($gap / 2) $gap;
@@ -67,7 +52,7 @@
   border-bottom: 1px solid rgba($color-5, 0.1);
 }
 
-.url-nav-btn {
+.search-spotlight__btn {
   display: flex;
   align-items: center;
   gap: calc($gap / 4);
@@ -90,7 +75,7 @@
     border-color: $color-4;
   }
 
-  &.selected:not(:disabled) {
+  &--selected:not(:disabled) {
     background: $color-1;
     border-color: $color-4;
   }
@@ -101,13 +86,13 @@
   }
 }
 
-.url-navigation-suggestions {
+.search-spotlight__suggestions {
   max-height: 400px;
   overflow-y: auto;
   padding: calc($gap / 2);
 }
 
-.url-suggestion {
+.search-spotlight__suggestion {
   display: flex;
   align-items: center;
   gap: calc($gap / 2);
@@ -120,26 +105,26 @@
     background: $color-2;
   }
 
-  &.selected {
+  &--selected {
     background: $color-2;
     border: 1px solid $color-4;
   }
 }
 
-.url-suggestion-icon {
+.search-spotlight__suggestion-icon {
   width: 16px;
   height: 16px;
   color: rgba($color-5, 0.5);
   flex-shrink: 0;
 }
 
-.url-suggestion-text {
+.search-spotlight__suggestion-text {
   color: $color-5;
   font-size: 14px;
   font-family: monospace;
 }
 
-.url-suggestion-empty {
+.search-spotlight__empty {
   padding: $gap;
   text-align: center;
   color: rgba($color-5, 0.4);

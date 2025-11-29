@@ -1,0 +1,99 @@
+/**
+ * Forms - Unified Form Element Styles
+ * Input fields, textareas, and form groups
+ */
+
+@use '../abstracts/variables' as *;
+@use '../abstracts/mixins' as *;
+
+// ========================================
+// Input Field
+// ========================================
+.input {
+  width: 100%;
+  padding: calc($gap * 0.75);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: $radius-md;
+  color: $color-5;
+  font-size: 14px;
+  font-family: inherit;
+  transition: $transition-colors;
+
+  &::placeholder {
+    color: rgba($color-5, 0.4);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $color-4;
+    box-shadow: 0 0 0 2px rgba($color-4, 0.2);
+  }
+
+  // Modifiers
+  &--title {
+    font-size: 18px;
+    font-weight: 500;
+  }
+
+  &--monospace {
+    font-family: monospace;
+  }
+}
+
+// ========================================
+// Textarea
+// ========================================
+.textarea {
+  width: 100%;
+  padding: $gap;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: $radius-md;
+  color: $color-5;
+  font-size: 14px;
+  font-family: inherit;
+  line-height: 1.6;
+  min-height: 200px;
+  resize: vertical;
+  transition: $transition-colors;
+  @include custom-scrollbar;
+
+  &::placeholder {
+    color: rgba($color-5, 0.4);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $color-4;
+    box-shadow: 0 0 0 2px rgba($color-4, 0.2);
+  }
+
+  // Modifiers
+  &--code {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  }
+
+  &--large {
+    min-height: 400px;
+  }
+
+  &--small {
+    min-height: 120px;
+  }
+}
+
+// ========================================
+// Form Group (label + input)
+// ========================================
+.form-group {
+  margin-bottom: $gap;
+
+  label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: $color-5;
+    margin-bottom: calc($gap / 4);
+  }
+}

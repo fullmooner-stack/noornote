@@ -222,7 +222,7 @@ export class ArticleEditorView extends View {
           <input
             type="text"
             id="article-title"
-            class="article-editor__input article-editor__input--title"
+            class="input input--title"
             placeholder="Article title..."
             value="${this.escapeHtml(this.title)}"
             data-field="title"
@@ -234,7 +234,7 @@ export class ArticleEditorView extends View {
           ${this.renderMarkdownToolbar()}
           <textarea
             id="article-content"
-            class="article-editor__textarea article-editor-content"
+            class="textarea textarea--code textarea--large article-editor-content"
             placeholder="Write your article in Markdown..."
             data-field="content"
           >${this.escapeHtml(this.content)}</textarea>
@@ -249,7 +249,7 @@ export class ArticleEditorView extends View {
                 <input
                   type="text"
                   id="article-image"
-                  class="article-editor__input"
+                  class="input"
                   placeholder="https://... or upload"
                   value="${this.escapeHtml(this.image)}"
                   data-field="image"
@@ -269,7 +269,7 @@ export class ArticleEditorView extends View {
               <label class="article-editor__label" for="article-summary">Summary</label>
               <textarea
                 id="article-summary"
-                class="article-editor__input article-editor__input--summary"
+                class="textarea textarea--small"
                 placeholder="Brief description of your article..."
                 data-field="summary"
               >${this.escapeHtml(this.summary)}</textarea>
@@ -280,7 +280,7 @@ export class ArticleEditorView extends View {
               <input
                 type="text"
                 id="article-tags"
-                class="article-editor__input"
+                class="input"
                 placeholder="nostr, bitcoin, technology (comma separated)"
                 value="${this.escapeHtml(this.tags)}"
                 data-field="tags"
@@ -295,7 +295,7 @@ export class ArticleEditorView extends View {
               <input
                 type="text"
                 id="article-identifier"
-                class="article-editor__input"
+                class="input"
                 placeholder="my-article-slug"
                 value="${this.escapeHtml(this.identifier)}"
                 data-field="identifier"
