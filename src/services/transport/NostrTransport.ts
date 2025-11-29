@@ -117,6 +117,9 @@ export class NostrTransport {
 
     this.ndkConnected = true;
 
+    // Setup listeners for relay disconnect events
+    this.setupRelayEventListeners();
+
     if (connectedRelays.length > 0) {
       this.systemLogger.info(
         'NostrTransport',
@@ -126,6 +129,36 @@ export class NostrTransport {
       // Relays connect in background - not a problem
       this.systemLogger.info('NostrTransport', 'Relays connecting in background...');
     }
+  }
+
+  /**
+   * Setup listeners for NDK relay events (disconnect, connect)
+   * Forwards events to EventBus for ConnectivityService
+   */
+  private setupRelayEventListeners(): void {
+    this.ndk.pool.relays.forEach((relay, url) => {
+      relay.on('disconnect', () => {
+        this.eventBus.emit('relay:error', { url });
+      });
+
+      relay.on('connect', () => {
+        this.eventBus.emit('relay:connected', { url });
+      });
+    });
+
+    // Also listen for new relays added to pool
+    this.ndk.pool.on('relay:connect', (relay: any) => {
+      this.eventBus.emit('relay:connected', { url: relay.url });
+
+      // Setup disconnect listener for new relay
+      relay.on('disconnect', () => {
+        this.eventBus.emit('relay:error', { url: relay.url });
+      });
+    });
+
+    this.ndk.pool.on('relay:disconnect', (relay: any) => {
+      this.eventBus.emit('relay:error', { url: relay.url });
+    });
   }
 
   public static getInstance(): NostrTransport {

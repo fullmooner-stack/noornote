@@ -3,7 +3,7 @@
  * Shows when no internet connection is detected
  *
  * @purpose Block app usage and show clear message when offline
- * @architecture Singleton component, controlled by App.ts
+ * @architecture Singleton component, controlled by App.ts and ConnectivityService
  */
 
 import { EventBus } from '../../services/EventBus';
@@ -70,12 +70,17 @@ export class OfflineOverlay {
    * Setup event listeners for connectivity changes
    */
   private setupEventListeners(): void {
+    // Hide overlay and reload when back online
     this.eventBus.on('connectivity:status', (data: { online: boolean }) => {
       if (data.online && this.isVisible) {
         this.hide();
-        // Reload app to reinitialize everything
         window.location.reload();
       }
+    });
+
+    // Show overlay after prolonged offline (120s)
+    this.eventBus.on('connectivity:prolonged-offline', () => {
+      this.show();
     });
   }
 

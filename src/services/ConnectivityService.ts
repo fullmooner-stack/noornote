@@ -7,12 +7,21 @@
  */
 
 import { EventBus } from './EventBus';
+import { ToastService } from './ToastService';
 
 export class ConnectivityService {
   private static instance: ConnectivityService;
   private eventBus: EventBus;
   private _isOnline: boolean = true;
   private checkInProgress: boolean = false;
+  private offlineTimer: number | null = null;
+  private readonly OFFLINE_OVERLAY_DELAY = 120 * 1000; // 120 seconds
+
+  // Track relay errors to detect connectivity issues
+  private relayErrorCount: number = 0;
+  private relayErrorResetTimer: number | null = null;
+  private readonly RELAY_ERROR_THRESHOLD = 3; // Errors before checking connectivity
+  private readonly RELAY_ERROR_WINDOW = 10 * 1000; // 10 second window
 
   private constructor() {
     this.eventBus = EventBus.getInstance();
@@ -106,6 +115,61 @@ export class ConnectivityService {
 
     if (wasOnline !== online) {
       this.eventBus.emit('connectivity:status', { online });
+
+      if (!online) {
+        this.handleWentOffline();
+      } else {
+        this.handleCameOnline();
+      }
+    }
+  }
+
+  /**
+   * Handle transition to offline state
+   * Shows toast immediately, starts timer for overlay
+   */
+  private handleWentOffline(): void {
+    // Show immediate toast warning
+    ToastService.show('Internet connection lost', 'warning', 5000);
+
+    // Start timer for overlay (120 seconds)
+    this.clearOfflineTimer();
+    this.offlineTimer = window.setTimeout(() => {
+      // Still offline after 120s - show overlay
+      if (!this._isOnline) {
+        this.eventBus.emit('connectivity:prolonged-offline', {});
+      }
+    }, this.OFFLINE_OVERLAY_DELAY);
+  }
+
+  /**
+   * Handle transition to online state
+   * Cancels overlay timer, shows success toast
+   */
+  private handleCameOnline(): void {
+    this.clearOfflineTimer();
+    this.resetRelayErrorCount();
+    ToastService.show('Internet connection established', 'success');
+  }
+
+  /**
+   * Clear the offline timer if running
+   */
+  private clearOfflineTimer(): void {
+    if (this.offlineTimer !== null) {
+      clearTimeout(this.offlineTimer);
+      this.offlineTimer = null;
+    }
+  }
+
+  /**
+   * Reset relay error count
+   */
+  private resetRelayErrorCount(): void {
+    this.relayErrorCount = 0;
+    if (this.relayErrorResetTimer !== null) {
+      clearTimeout(this.relayErrorResetTimer);
+      this.relayErrorResetTimer = null;
     }
   }
 
@@ -126,13 +190,36 @@ export class ConnectivityService {
 
   /**
    * Listen to relay connection events from RelayHealthMonitor
-   * If a relay connects while we think we're offline, verify connectivity
+   * Detects connectivity issues from relay errors
    */
   private setupRelayListeners(): void {
+    // Relay connected - if we were offline, verify connectivity
     this.eventBus.on('relay:connected', () => {
-      // Relay connected - if we were offline, verify internet connectivity
       if (!this._isOnline) {
         this.checkConnectivity();
+      }
+      // Reset error count on successful connection
+      this.resetRelayErrorCount();
+    });
+
+    // Relay error - track errors and check connectivity if threshold reached
+    this.eventBus.on('relay:error', () => {
+      if (!this._isOnline) return; // Already offline, no need to check
+
+      this.relayErrorCount++;
+
+      // Start/reset the error window timer
+      if (this.relayErrorResetTimer !== null) {
+        clearTimeout(this.relayErrorResetTimer);
+      }
+      this.relayErrorResetTimer = window.setTimeout(() => {
+        this.relayErrorCount = 0;
+      }, this.RELAY_ERROR_WINDOW);
+
+      // If we hit threshold, check connectivity
+      if (this.relayErrorCount >= this.RELAY_ERROR_THRESHOLD) {
+        this.checkConnectivity();
+        this.relayErrorCount = 0; // Reset after check
       }
     });
   }

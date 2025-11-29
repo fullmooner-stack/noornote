@@ -60,14 +60,16 @@ export class App {
     this.setupUI();
     this.setupEventListeners();
 
+    // Initialize OfflineOverlay early so it can listen for runtime offline events
+    OfflineOverlay.getInstance();
+
     // Check internet connectivity before proceeding
     const connectivityService = ConnectivityService.getInstance();
     const isOnline = await connectivityService.checkConnectivity();
 
     if (!isOnline) {
       // Show offline overlay and stop initialization
-      const offlineOverlay = OfflineOverlay.getInstance();
-      offlineOverlay.show();
+      OfflineOverlay.getInstance().show();
       return;
     }
 
