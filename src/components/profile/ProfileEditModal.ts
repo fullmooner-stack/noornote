@@ -246,8 +246,8 @@ export class ProfileEditModal {
   private renderActions(): string {
     return `
       <div class="profile-edit-actions">
-        <button class="btn-cancel" data-action="cancel">Cancel</button>
-        <button class="btn-save" data-action="save" disabled>
+        <button class="btn btn--passive" data-action="cancel">Cancel</button>
+        <button class="btn" data-action="save" disabled>
           <span data-save-text>Sync to Relays</span>
           <span data-save-spinner style="display: none;">Saving...</span>
         </button>

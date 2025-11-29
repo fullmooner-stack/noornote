@@ -170,44 +170,6 @@
   border-top: 1px solid $color-2;
 }
 
-.btn-cancel {
-  padding: calc($gap / 2) $gap;
-  background: transparent;
-  border: 1px solid $color-3;
-  border-radius: $radius-sm;
-  color: $color-5;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: $color-2;
-    border-color: $color-4;
-  }
-}
-
-.btn-save {
-  padding: calc($gap / 2) $gap;
-  background: $color-4;
-  border: 1px solid $color-4;
-  border-radius: $radius-sm;
-  color: $color-1;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover:not(:disabled) {
-    background: color.adjust($color-4, $lightness: 10%);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-}
-
 // Edit Profile button (in ProfileView)
 .edit-profile-btn {
   display: flex;

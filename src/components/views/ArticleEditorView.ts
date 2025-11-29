@@ -174,31 +174,31 @@ export class ArticleEditorView extends View {
   private renderMarkdownToolbar(): string {
     return `
       <div class="md-toolbar">
-        <button type="button" class="md-toolbar__btn" data-md-action="heading" title="Heading">
+        <button type="button" class="btn-icon" data-md-action="heading" title="Heading">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
             <path d="M6 12h12M6 4v16M18 4v16"/>
           </svg>
         </button>
-        <button type="button" class="md-toolbar__btn" data-md-action="bold" title="Bold">
+        <button type="button" class="btn-icon" data-md-action="bold" title="Bold">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
             <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
             <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
           </svg>
         </button>
-        <button type="button" class="md-toolbar__btn" data-md-action="italic" title="Italic">
+        <button type="button" class="btn-icon" data-md-action="italic" title="Italic">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
             <line x1="19" y1="4" x2="10" y2="4"/>
             <line x1="14" y1="20" x2="5" y2="20"/>
             <line x1="15" y1="4" x2="9" y2="20"/>
           </svg>
         </button>
-        <button type="button" class="md-toolbar__btn" data-md-action="quote" title="Quote">
+        <button type="button" class="btn-icon" data-md-action="quote" title="Quote">
           <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
             <path d="M10 11H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v3a4 4 0 0 1-4 4H5"/>
             <path d="M19 11h-4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v3a4 4 0 0 1-4 4h-1"/>
           </svg>
         </button>
-        <button type="button" class="md-toolbar__btn" data-md-action="image" title="Insert Image">
+        <button type="button" class="btn-icon" data-md-action="image" title="Insert Image">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
             <circle cx="8.5" cy="8.5" r="1.5"/>

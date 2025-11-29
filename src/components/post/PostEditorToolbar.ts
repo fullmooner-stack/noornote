@@ -42,20 +42,20 @@ export class PostEditorToolbar {
   public render(): string {
     const showPoll = this.config.showPoll !== false; // Default: true
     const pollButtonHtml = showPoll
-      ? `<button class="btn-poll" data-action="poll" title="Create poll">POLL</button>`
+      ? `<button class="btn-icon" data-action="poll" title="Create poll">POLL</button>`
       : '';
 
     return `
       <div class="post-note-toolbar">
         <input type="file" accept="image/*,video/*,audio/*" multiple style="display: none;" data-file-input />
-        <button class="btn-upload" data-action="upload" title="Upload media">
+        <button class="btn-icon" data-action="upload" title="Upload media">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="17 8 12 3 7 8"></polyline>
             <line x1="12" y1="3" x2="12" y2="15"></line>
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
           </svg>
         </button>
-        <button class="btn-emoji" data-action="emoji" title="Insert emoji">
+        <button class="btn-icon" data-action="emoji" title="Insert emoji">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
             <circle cx="9" cy="9" r="0.5" fill="currentColor"></circle>

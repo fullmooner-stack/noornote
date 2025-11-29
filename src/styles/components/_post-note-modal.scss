@@ -273,47 +273,19 @@
   display: inline-block;
 }
 
-.btn-upload,
-.btn-emoji {
-  display: inline-block;
-  margin-right: calc($gap / 2);
-  padding: calc($gap / 2);
-  background: transparent;
-  border: none;
-  border-radius: $radius-sm;
-  color: rgba($color-5, 0.6);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  vertical-align: middle;
+// Upload progress indicator
+svg.upload-progress {
+  transform: rotate(-90deg); // Start from top
 
-  &:hover:not(:disabled) {
-    background: rgba($color-6, 0.1);
-    color: $color-6;
+  .upload-progress-bg {
+    stroke: currentColor;
+    opacity: 0.2;
   }
 
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  svg {
-    display: block;
-  }
-
-  // Upload progress indicator
-  svg.upload-progress {
-    transform: rotate(-90deg); // Start from top
-
-    .upload-progress-bg {
-      stroke: currentColor;
-      opacity: 0.2;
-    }
-
-    .upload-progress-bar {
-      stroke: $color-6; // Soft Mint Green
-      stroke-linecap: round;
-      transition: stroke-dashoffset 0.3s ease;
-    }
+  .upload-progress-bar {
+    stroke: $color-6; // Soft Mint Green
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.3s ease;
   }
 }
 
@@ -341,7 +313,7 @@
   display: inline-block;
   vertical-align: middle;
 
-  button {
+  .btn {
     margin-left: calc($gap / 2);
   }
 }
@@ -397,7 +369,7 @@
     width: 100%;
     margin-left: 0;
 
-    button {
+    .btn {
       flex: 1;
     }
   }

@@ -236,23 +236,3 @@
   }
 }
 
-// Integration with PostEditorToolbar
-.post-note-toolbar {
-  .btn-poll {
-    background: none;
-    border: none;
-    color: $color-5;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    cursor: pointer;
-    padding: calc($gap / 2);
-    border-radius: calc($gap / 4);
-    transition: all 0.2s ease;
-
-    &:hover {
-      color: $color-6;
-      background: $color-2;
-    }
-  }
-}
