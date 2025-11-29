@@ -18,6 +18,8 @@ import { ViewLifecycleManager } from './services/ViewLifecycleManager';
 import { KeySignerClient } from './services/KeySignerClient';
 import { ModalService } from './services/ModalService';
 import { PlatformService } from './services/PlatformService';
+import { ConnectivityService } from './services/ConnectivityService';
+import { OfflineOverlay } from './components/system/OfflineOverlay';
 import type { View } from './components/views/View';
 
 export class App {
@@ -57,6 +59,17 @@ export class App {
     this.setupRoutes();
     this.setupUI();
     this.setupEventListeners();
+
+    // Check internet connectivity before proceeding
+    const connectivityService = ConnectivityService.getInstance();
+    const isOnline = await connectivityService.checkConnectivity();
+
+    if (!isOnline) {
+      // Show offline overlay and stop initialization
+      const offlineOverlay = OfflineOverlay.getInstance();
+      offlineOverlay.show();
+      return;
+    }
 
     // Capture last URL BEFORE auth (to preserve it before auto-login overwrites it)
     const lastURL = this.router.getLastURL();

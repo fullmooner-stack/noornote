@@ -73,6 +73,7 @@
 @use 'components/user-hover-card';
 @use 'components/mutuals';
 @use 'components/bookmark-cards';
+@use 'components/offline-overlay';
 
 // 4. Molecules - Combinations of atoms
 @use 'molecules/buttons';
