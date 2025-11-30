@@ -21,6 +21,7 @@ import { TimelineRenderer } from './timeline-ui/TimelineRenderer';
 import { ISLStatsUpdater } from './timeline-features/ISLStatsUpdater';
 import { ScrollPositionManager } from './timeline-features/ScrollPositionManager';
 import { EventBus } from '../../services/EventBus';
+import { CacheManager } from '../../services/CacheManager';
 
 export class Timeline extends View {
   private element: HTMLElement;
@@ -43,6 +44,10 @@ export class Timeline extends View {
   private islStatsUpdater: ISLStatsUpdater;
   private scrollPositionManager: ScrollPositionManager;
 
+  // EventBus subscription
+  private eventBus: EventBus;
+  private userLoginSubscriptionId?: string;
+
   constructor(userPubkey: string, filterAuthorPubkey?: string) {
     super(); // Call View base class constructor
     this.userPubkey = userPubkey;
@@ -51,6 +56,7 @@ export class Timeline extends View {
     this.userService = UserService.getInstance();
     this.relayConfig = RelayConfig.getInstance();
     this.authService = AuthService.getInstance();
+    this.eventBus = EventBus.getInstance();
     this.element = this.createElement();
     this.infiniteScroll = new InfiniteScroll(() => this.handleLoadMore(), {
       loadingMessage: 'Loading more notes...'
@@ -95,6 +101,11 @@ export class Timeline extends View {
     // Listen for note deletions
     this.setupDeleteListener();
 
+    // Listen for user account switches (only for main timeline, not ProfileView)
+    if (!this.filterAuthorPubkey) {
+      this.setupUserLoginListener();
+    }
+
     this.initializeTimeline();
   }
 
@@ -119,8 +130,7 @@ export class Timeline extends View {
    * Setup listener for mute list updates
    */
   private setupMuteListener(): void {
-    const eventBus = EventBus.getInstance();
-    eventBus.on('mute:updated', async () => {
+    this.eventBus.on('mute:updated', async () => {
       // Re-fetch feed with updated mute list
       await this.eventHandler.handleRefreshClick();
     });
@@ -130,14 +140,52 @@ export class Timeline extends View {
    * Setup listener for note deletions
    */
   private setupDeleteListener(): void {
-    const eventBus = EventBus.getInstance();
-    eventBus.on('note:deleted', (data: { eventId: string }) => {
+    this.eventBus.on('note:deleted', (data: { eventId: string }) => {
       // Remove note from state
       this.stateManager.removeEvent(data.eventId);
 
       // Re-render timeline without the deleted note
       this.renderer.renderEvents();
     });
+  }
+
+  /**
+   * Setup listener for user account switches
+   * When user switches accounts, clear caches and reinitialize timeline
+   */
+  private setupUserLoginListener(): void {
+    this.userLoginSubscriptionId = this.eventBus.on('user:login', (data: { pubkey: string }) => {
+      // Only reinitialize if pubkey actually changed
+      if (data.pubkey !== this.userPubkey) {
+        console.log(`[Timeline] User switched from ${this.userPubkey.slice(0, 8)}... to ${data.pubkey.slice(0, 8)}...`);
+
+        // Clear user-specific caches
+        CacheManager.getInstance().clearUserSpecificCaches();
+
+        // Update pubkey and reinitialize
+        this.userPubkey = data.pubkey;
+        this.reinitialize();
+      }
+    });
+  }
+
+  /**
+   * Reinitialize timeline for new user
+   * Stops polling, clears state, and loads new user's feed
+   */
+  private async reinitialize(): Promise<void> {
+    // Stop polling and clear state
+    this.lifecycleManager.pause();
+    this.stateManager.clear();
+
+    // Clear existing content
+    const eventsContainer = this.element.querySelector('.timeline-events');
+    if (eventsContainer) {
+      eventsContainer.innerHTML = '';
+    }
+
+    // Reinitialize timeline with new user
+    await this.initializeTimeline();
   }
 
   /**
@@ -423,6 +471,11 @@ export class Timeline extends View {
    * Cleanup resources
    */
   public destroy(): void {
+    // Unsubscribe from user login events
+    if (this.userLoginSubscriptionId) {
+      this.eventBus.off(this.userLoginSubscriptionId);
+    }
+
     this.lifecycleManager.destroy();
     this.element.remove();
   }

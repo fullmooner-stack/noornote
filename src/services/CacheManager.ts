@@ -208,6 +208,27 @@ export class CacheManager {
   }
 
   /**
+   * Clear user-specific caches when switching accounts
+   * These caches contain data specific to a user and should not persist across account switches
+   */
+  public clearUserSpecificCaches(): void {
+    const keysToRemove = [
+      'noornote_follows_browser',
+      'noornote_bookmarks_browser',
+      'noornote_mutes_browser_v2',
+      'noornote_notifications_cache',
+      'noornote_notifications_last_seen',
+      'noornote_user_event_ids',
+      'noornote_user_event_ancestry',
+      'noornote_bookmark_folders',
+      'noornote_bookmark_folder_assignments',
+      'noornote_bookmark_root_order'
+    ];
+
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+  }
+
+  /**
    * Clear event cache (legacy placeholder)
    */
   private clearEventCache(): void {

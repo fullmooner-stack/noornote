@@ -503,24 +503,20 @@ export class App {
     }
 
     // Check if localStorage has data from a different user (handles cross-session account switch)
+    // For in-session switches, Timeline handles cache clearing via its own user:login listener
     const lastLoggedInPubkey = localStorage.getItem('noornote_last_logged_in_pubkey');
     if (lastLoggedInPubkey && lastLoggedInPubkey !== data.pubkey) {
-      this.clearUserSpecificCaches();
+      const { CacheManager } = await import('./services/CacheManager');
+      CacheManager.getInstance().clearUserSpecificCaches();
     }
     localStorage.setItem('noornote_last_logged_in_pubkey', data.pubkey);
 
-    // Create or recreate TimelineUI for logged-in user
-    if (this.timelineUI) {
-      if (this.timelineUI.getPubkey() !== data.pubkey) {
-        this.timelineUI.destroy();
-        this.timelineUI = new Timeline(data.pubkey);
-      }
-    } else {
+    // Create TimelineUI if not exists (Timeline self-manages user switches via EventBus)
+    if (!this.timelineUI) {
       this.timelineUI = new Timeline(data.pubkey);
     }
 
     // Load follow list into AppState (for mention autocomplete)
-    // Also preload profiles in background for instant mentions
     try {
       const { UserService } = await import('./services/UserService');
       const { MentionProfileCache } = await import('./services/MentionProfileCache');
@@ -535,51 +531,23 @@ export class App {
       });
 
       // Preload profiles in background (non-blocking, makes mentions instant)
-      mentionCache.preloadProfiles(followingPubkeys).catch(err => {
-        // Profile preload failed (non-critical)
-      });
-    } catch (error) {
+      mentionCache.preloadProfiles(followingPubkeys).catch(() => {});
+    } catch {
       // Follow list load failed
     }
 
+    // Start notification services
     try {
-      // Start NotificationsOrchestrator
       const { NotificationsOrchestrator } = await import('./services/orchestration/NotificationsOrchestrator');
       const notificationsOrch = NotificationsOrchestrator.getInstance();
-
       await notificationsOrch.start();
 
-      // Start article notification polling (1x per hour)
       const { ArticleNotificationService } = await import('./services/ArticleNotificationService');
       const articleNotifService = ArticleNotificationService.getInstance();
       articleNotifService.startPolling();
-
-      // Badge updates are handled via EventBus ('notifications:badge-update')
-      // NotificationsOrchestrator emits this event when new notifications arrive
-    } catch (error) {
+    } catch {
       // Notifications orchestrator start failed
     }
-  }
-
-  /**
-   * Clear user-specific caches when switching accounts
-   * These caches are not per-user, so they must be cleared on account switch
-   */
-  private clearUserSpecificCaches(): void {
-    const keysToRemove = [
-      'noornote_follows_browser',
-      'noornote_bookmarks_browser',
-      'noornote_mutes_browser_v2',
-      'noornote_notifications_cache',
-      'noornote_notifications_last_seen',
-      'noornote_user_event_ids',
-      'noornote_user_event_ancestry',
-      'noornote_bookmark_folders',
-      'noornote_bookmark_folder_assignments',
-      'noornote_bookmark_root_order'
-    ];
-
-    keysToRemove.forEach(key => localStorage.removeItem(key));
   }
 }
 

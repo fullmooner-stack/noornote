@@ -170,4 +170,16 @@ export class TimelineStateManager {
     this.hasMore = true;
     // Keep loading, followingPubkeys, includeReplies, selectedRelay as they are
   }
+
+  /**
+   * Clear all state (for user switch)
+   * Resets everything including following list
+   */
+  clear(): void {
+    this.events = [];
+    this.loading = false;
+    this.hasMore = true;
+    this.followingPubkeys = [];
+    // Keep filter preferences (includeReplies, selectedRelay) as user preference
+  }
 }

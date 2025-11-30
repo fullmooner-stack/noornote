@@ -204,6 +204,25 @@ export class MainLayout {
         this.clearUserStatus();
       }
     });
+
+    // Listen for account switches (user:login fires when switching accounts)
+    this.eventBus.on('user:login', (data: { npub: string; pubkey: string }) => {
+      // Update AccountSwitcher with new user
+      if (this.userStatus) {
+        this.userStatus.updateUser({
+          npub: data.npub,
+          pubkey: data.pubkey,
+          onLogout: () => this.handleLogout(),
+          onAddAccount: () => this.handleAddAccount()
+        });
+      }
+
+      // Update profile link in sidebar
+      const profileLink = this.element.querySelector('.sidebar .profile-link') as HTMLAnchorElement;
+      if (profileLink) {
+        profileLink.href = `/profile/${data.npub}`;
+      }
+    });
   }
 
   /**

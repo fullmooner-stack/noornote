@@ -9,11 +9,34 @@ interface SignRequest {
   id: string;
   method: string;
   event_json?: string;
+  npub?: string;
+  password?: string;
 }
 
 interface SignResponse {
   id: string;
   signature?: string;
+  error?: string;
+}
+
+export interface KeySignerAccount {
+  pubkey: string;
+  npub: string;
+  created_at: number;
+}
+
+interface ListAccountsResponse {
+  id: string;
+  accounts?: KeySignerAccount[];
+  active_pubkey?: string;
+  error?: string;
+}
+
+interface SwitchAccountResponse {
+  id: string;
+  success?: boolean;
+  pubkey?: string;
+  npub?: string;
   error?: string;
 }
 
@@ -442,6 +465,87 @@ export class KeySignerClient {
     } catch (error) {
       console.error('Failed to launch KeySigner init:', error);
       throw error;
+    }
+  }
+
+  /**
+   * List all accounts stored in NoorSigner
+   */
+  public async listAccounts(): Promise<{ accounts: KeySignerAccount[]; activePubkey: string }> {
+    if (!PlatformService.getInstance().isTauri) {
+      throw new Error('KeySigner is only available in Tauri desktop app');
+    }
+
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      const request = {
+        id: `req-${++this.requestId}`,
+        method: 'list_accounts',
+      };
+
+      const responseStr = await invoke('key_signer_request', {
+        request: JSON.stringify(request),
+      }) as string;
+      const response: ListAccountsResponse = JSON.parse(responseStr);
+
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      return {
+        accounts: response.accounts || [],
+        activePubkey: response.active_pubkey || '',
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to list accounts: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Switch to a different account in NoorSigner
+   * Requires password for the target account
+   */
+  public async switchAccount(npub: string, password: string): Promise<{ pubkey: string; npub: string }> {
+    if (!PlatformService.getInstance().isTauri) {
+      throw new Error('KeySigner is only available in Tauri desktop app');
+    }
+
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      const request = {
+        id: `req-${++this.requestId}`,
+        method: 'switch_account',
+        npub,
+        password,
+      };
+
+      console.log('[KeySigner] switchAccount request:', { id: request.id, method: request.method, npub });
+
+      const responseStr = await invoke('key_signer_request', {
+        request: JSON.stringify(request),
+      }) as string;
+      const response: SwitchAccountResponse = JSON.parse(responseStr);
+
+      console.log('[KeySigner] switchAccount response:', response);
+
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      if (!response.success) {
+        throw new Error('Account switch failed');
+      }
+
+      return {
+        pubkey: response.pubkey || '',
+        npub: response.npub || '',
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('[KeySigner] switchAccount error:', errorMessage);
+      // Re-throw to preserve the original error message (e.g., "invalid password")
+      throw new Error(errorMessage);
     }
   }
 

@@ -102,6 +102,12 @@ export class NotificationsOrchestrator extends Orchestrator {
       return;
     }
 
+    // If user changed, stop old subscriptions first
+    if (this.userPubkey && this.userPubkey !== currentUser.pubkey) {
+      this.systemLogger.info('NotificationsOrchestrator', 'User changed, stopping old subscriptions');
+      this.stop();
+    }
+
     // Set userPubkey for self-notification filtering
     this.userPubkey = currentUser.pubkey;
 

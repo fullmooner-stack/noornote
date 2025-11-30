@@ -1,12 +1,14 @@
 /**
  * Account Switcher Component
  * Shows current user with dropdown for switching between stored accounts.
- * Replaces UserStatus component for multi-account support.
+ * Supports both local accounts (nsec/extension) and NoorSigner accounts.
  */
 
 import { UserProfileService, UserProfile } from '../../services/UserProfileService';
 import { AuthService } from '../../services/AuthService';
 import { AccountStorageService, type StoredAccount } from '../../services/AccountStorageService';
+import { KeySignerClient, type KeySignerAccount } from '../../services/KeySignerClient';
+import { KeySignerPasswordModal } from '../modals/KeySignerPasswordModal';
 import { EventBus } from '../../services/EventBus';
 
 export interface AccountSwitcherOptions {
@@ -16,6 +18,13 @@ export interface AccountSwitcherOptions {
   onAddAccount?: () => void;
 }
 
+interface DisplayAccount {
+  pubkey: string;
+  npub: string;
+  displayName?: string;
+  authMethod?: string;
+}
+
 export class AccountSwitcher {
   private element: HTMLElement;
   private dropdown: HTMLElement | null = null;
@@ -23,16 +32,20 @@ export class AccountSwitcher {
   private userProfileService: UserProfileService;
   private authService: AuthService;
   private accountStorage: AccountStorageService;
+  private keySignerClient: KeySignerClient;
   private eventBus: EventBus;
   private options: AccountSwitcherOptions;
   private profile: UserProfile | null = null;
   private unsubscribeProfile?: () => void;
   private clickOutsideHandler: (e: MouseEvent) => void;
+  private keySignerAccounts: KeySignerAccount[] = [];
+  private profileCache: Map<string, UserProfile> = new Map();
 
   constructor(options: AccountSwitcherOptions) {
     this.userProfileService = UserProfileService.getInstance();
     this.authService = AuthService.getInstance();
     this.accountStorage = AccountStorageService.getInstance();
+    this.keySignerClient = KeySignerClient.getInstance();
     this.eventBus = EventBus.getInstance();
     this.options = options;
     this.element = this.createElement();
@@ -84,6 +97,7 @@ export class AccountSwitcher {
       this.options.pubkey,
       (profile: UserProfile) => {
         this.profile = profile;
+        this.profileCache.set(this.options.pubkey, profile);
         this.updateDisplay();
 
         // Also update account storage with profile info
@@ -138,13 +152,20 @@ export class AccountSwitcher {
   /**
    * Open dropdown
    */
-  private openDropdown(): void {
+  private async openDropdown(): Promise<void> {
     if (this.isOpen) return;
 
     this.isOpen = true;
-    this.dropdown = this.createDropdown();
-    this.element.appendChild(this.dropdown);
     this.element.classList.add('account-switcher--open');
+
+    // Show loading state
+    this.dropdown = document.createElement('div');
+    this.dropdown.className = 'account-switcher__dropdown';
+    this.dropdown.innerHTML = '<div class="account-switcher__loading">Loading...</div>';
+    this.element.appendChild(this.dropdown);
+
+    // Fetch accounts and update dropdown
+    await this.populateDropdown();
   }
 
   /**
@@ -162,16 +183,46 @@ export class AccountSwitcher {
   }
 
   /**
-   * Create dropdown element
+   * Populate dropdown with accounts
    */
-  private createDropdown(): HTMLElement {
-    const dropdown = document.createElement('div');
-    dropdown.className = 'account-switcher__dropdown';
+  private async populateDropdown(): Promise<void> {
+    if (!this.dropdown) return;
 
-    const accounts = this.accountStorage.getAccounts();
+    const authMethod = this.authService.getAuthMethod();
+    let accounts: DisplayAccount[] = [];
+
+    // Fetch accounts based on auth method
+    if (authMethod === 'key-signer') {
+      try {
+        const result = await this.keySignerClient.listAccounts();
+        this.keySignerAccounts = result.accounts;
+        accounts = result.accounts.map(acc => ({
+          pubkey: acc.pubkey,
+          npub: acc.npub,
+          authMethod: 'key-signer'
+        }));
+
+        // Load profiles for all accounts
+        await this.loadAccountProfiles(accounts);
+      } catch (error) {
+        console.error('[AccountSwitcher] Failed to list KeySigner accounts:', error);
+      }
+    } else {
+      // Use local account storage for nsec/extension accounts
+      const stored = this.accountStorage.getAccounts();
+      accounts = stored.map(acc => ({
+        pubkey: acc.pubkey,
+        npub: acc.npub,
+        displayName: acc.displayName,
+        authMethod: acc.authMethod
+      }));
+    }
+
+    // Build dropdown content
+    this.dropdown.innerHTML = '';
     const currentPubkey = this.options.pubkey;
 
-    // Account list section
+    // Account list section (only if more than 1 account)
     if (accounts.length > 1) {
       const accountsSection = document.createElement('div');
       accountsSection.className = 'account-switcher__section';
@@ -182,29 +233,31 @@ export class AccountSwitcher {
 
       for (const account of accounts) {
         const isActive = account.pubkey === currentPubkey;
-        const item = this.createAccountItem(account, isActive);
+        const item = this.createAccountItem(account, isActive, authMethod === 'key-signer');
         accountsList.appendChild(item);
       }
 
       accountsSection.appendChild(accountsList);
-      dropdown.appendChild(accountsSection);
+      this.dropdown.appendChild(accountsSection);
     }
 
     // Actions section
     const actionsSection = document.createElement('div');
     actionsSection.className = 'account-switcher__section account-switcher__actions';
 
-    // Add account button
-    const addBtn = document.createElement('button');
-    addBtn.className = 'account-switcher__action';
-    addBtn.innerHTML = `<span class="account-switcher__action-icon">+</span> Add account`;
-    addBtn.addEventListener('click', () => this.handleAddAccount());
-    actionsSection.appendChild(addBtn);
+    // Add account button (only for non-KeySigner or if KeySigner supports it)
+    if (authMethod !== 'key-signer') {
+      const addBtn = document.createElement('button');
+      addBtn.className = 'account-switcher__action';
+      addBtn.innerHTML = `<span class="account-switcher__action-icon">+</span> Add account`;
+      addBtn.addEventListener('click', () => this.handleAddAccount());
+      actionsSection.appendChild(addBtn);
 
-    // Divider
-    const divider = document.createElement('div');
-    divider.className = 'account-switcher__divider';
-    actionsSection.appendChild(divider);
+      // Divider
+      const divider = document.createElement('div');
+      divider.className = 'account-switcher__divider';
+      actionsSection.appendChild(divider);
+    }
 
     // Logout current
     const logoutBtn = document.createElement('button');
@@ -213,45 +266,88 @@ export class AccountSwitcher {
     logoutBtn.addEventListener('click', () => this.handleLogout());
     actionsSection.appendChild(logoutBtn);
 
-    // Logout all (only if multiple accounts)
-    if (accounts.length > 1) {
-      const logoutAllBtn = document.createElement('button');
-      logoutAllBtn.className = 'account-switcher__action account-switcher__action--danger';
-      logoutAllBtn.innerHTML = `<span class="account-switcher__action-icon">&larr;</span> Sign out all accounts`;
-      logoutAllBtn.addEventListener('click', () => this.handleLogoutAll());
-      actionsSection.appendChild(logoutAllBtn);
-    }
+    this.dropdown.appendChild(actionsSection);
+  }
 
-    dropdown.appendChild(actionsSection);
+  /**
+   * Load profiles for accounts
+   */
+  private async loadAccountProfiles(accounts: DisplayAccount[]): Promise<void> {
+    const promises = accounts.map(async (account) => {
+      if (this.profileCache.has(account.pubkey)) {
+        account.displayName = this.getDisplayName(this.profileCache.get(account.pubkey)!);
+        return;
+      }
 
-    return dropdown;
+      try {
+        const profile = await this.userProfileService.getUserProfile(account.pubkey);
+        if (profile) {
+          this.profileCache.set(account.pubkey, profile);
+          account.displayName = this.getDisplayName(profile);
+        }
+      } catch {
+        // Profile load failed, use npub fallback
+      }
+    });
+
+    await Promise.all(promises);
+  }
+
+  /**
+   * Get display name from profile
+   */
+  private getDisplayName(profile: UserProfile): string {
+    return profile.name || profile.display_name || '';
   }
 
   /**
    * Create account item element
    */
-  private createAccountItem(account: StoredAccount, isActive: boolean): HTMLElement {
+  private createAccountItem(account: DisplayAccount, isActive: boolean, isKeySigner: boolean): HTMLElement {
     const item = document.createElement('button');
     item.className = `account-switcher__account${isActive ? ' account-switcher__account--active' : ''}`;
 
-    const badge = AccountStorageService.getAuthMethodBadge(account.authMethod);
     const displayName = account.displayName || `${account.npub.slice(0, 12)}...`;
 
     item.innerHTML = `
       <span class="account-switcher__account-name">${displayName}</span>
-      ${badge ? `<span class="account-switcher__badge">${badge}</span>` : ''}
       ${isActive ? '<span class="account-switcher__active-dot"></span>' : ''}
     `;
 
     if (!isActive) {
-      item.addEventListener('click', () => this.handleSwitch(account.pubkey));
+      item.addEventListener('click', () => {
+        if (isKeySigner) {
+          this.handleKeySignerSwitch(account);
+        } else {
+          this.handleSwitch(account.pubkey);
+        }
+      });
     }
 
     return item;
   }
 
   /**
-   * Handle account switch
+   * Handle KeySigner account switch (requires password)
+   */
+  private handleKeySignerSwitch(account: DisplayAccount): void {
+    this.closeDropdown();
+
+    const modal = new KeySignerPasswordModal({
+      npub: account.npub,
+      displayName: account.displayName,
+      onSuccess: async () => {
+        // NoorSigner has switched accounts - now re-authenticate to update AuthService
+        // This will get the new pubkey from daemon and emit user:login
+        await this.authService.authenticateWithKeySigner();
+      }
+    });
+
+    modal.show();
+  }
+
+  /**
+   * Handle local account switch
    */
   private async handleSwitch(pubkey: string): Promise<void> {
     this.closeDropdown();
@@ -259,7 +355,6 @@ export class AccountSwitcher {
     const result = await this.authService.switchAccount(pubkey);
     if (!result.success) {
       console.error('[AccountSwitcher] Switch failed:', result.error);
-      // Could show a toast here
     }
   }
 
@@ -267,14 +362,10 @@ export class AccountSwitcher {
    * Handle add account
    */
   private handleAddAccount(): void {
-    console.log('[AccountSwitcher] handleAddAccount called');
     this.closeDropdown();
 
     if (this.options.onAddAccount) {
-      console.log('[AccountSwitcher] calling onAddAccount callback');
       this.options.onAddAccount();
-    } else {
-      console.log('[AccountSwitcher] onAddAccount callback not defined!');
     }
   }
 
@@ -287,15 +378,6 @@ export class AccountSwitcher {
     if (this.options.onLogout) {
       this.options.onLogout();
     }
-  }
-
-  /**
-   * Handle logout all accounts
-   */
-  private async handleLogoutAll(): Promise<void> {
-    this.closeDropdown();
-
-    await this.authService.signOutAll();
   }
 
   /**
