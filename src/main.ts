@@ -9,6 +9,7 @@ import { UserProfileService } from './services/UserProfileService';
 import { SystemLogger } from './components/system/SystemLogger';
 import './styles/main.scss';
 import './services/AuthStateManager'; // Initialize AuthStateManager and window.isLoggedIn()
+import './services/MutualChangeService'; // Initialize MutualChangeService (auto-starts on login)
 
 // Track failed image loads (URL → log message for removal)
 const failedImageLogs = new Map<string, string>();

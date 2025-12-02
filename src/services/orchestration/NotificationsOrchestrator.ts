@@ -23,7 +23,7 @@ import { SystemLogger } from '../../components/system/SystemLogger';
 import { AuthService } from '../AuthService';
 import { EventBus } from '../EventBus';
 
-export type NotificationType = 'mention' | 'reply' | 'thread-reply' | 'repost' | 'reaction' | 'zap' | 'article';
+export type NotificationType = 'mention' | 'reply' | 'thread-reply' | 'repost' | 'reaction' | 'zap' | 'article' | 'mutual_unfollow' | 'mutual_new';
 
 export interface NotificationEvent {
   event: NostrEvent;
@@ -177,6 +177,11 @@ export class NotificationsOrchestrator extends Orchestrator {
     // Listen for article notification events
     this.eventBus.on('article-notification:new', (data: { pubkey: string; articleId: string; naddr: string; title: string; createdAt: number }) => {
       this.handleNewArticleNotification(data);
+    });
+
+    // Listen for mutual change notification events
+    this.eventBus.on('mutual-notification:new', (data: { event: NostrEvent; type: 'mutual_unfollow' | 'mutual_new' }) => {
+      this.handleMutualNotification(data);
     });
   }
 
@@ -842,6 +847,38 @@ export class NotificationsOrchestrator extends Orchestrator {
     this.notifications.unshift(notification);
 
     this.systemLogger.info('NotificationsOrchestrator', `📰 New article notification: ${data.title.slice(0, 30)}...`);
+
+    // Emit badge update
+    this.eventBus.emit('notifications:badge-update');
+    this.eventBus.emit('notifications:new', { notification });
+  }
+
+  /**
+   * Handle mutual change notification from MutualChangeDetector
+   */
+  private handleMutualNotification(data: { event: NostrEvent; type: 'mutual_unfollow' | 'mutual_new' }): void {
+    // Skip if from muted user
+    if (this.mutedPubkeys.has(data.event.pubkey)) {
+      return;
+    }
+
+    const notification: NotificationEvent = {
+      event: data.event,
+      type: data.type,
+      timestamp: data.event.created_at
+    };
+
+    // Check for duplicates
+    const isDuplicate = this.notifications.some(n => n.event.id === data.event.id);
+    if (isDuplicate) {
+      return;
+    }
+
+    // Add to notifications list (at the beginning for newest first)
+    this.notifications.unshift(notification);
+
+    const typeLabel = data.type === 'mutual_unfollow' ? 'unfollowed' : 'new mutual';
+    this.systemLogger.info('NotificationsOrchestrator', `🔔 Mutual notification: ${typeLabel}`);
 
     // Emit badge update
     this.eventBus.emit('notifications:badge-update');

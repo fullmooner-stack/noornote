@@ -13,6 +13,8 @@ import { BaseListSecondaryManager } from './BaseListSecondaryManager';
 import { FollowListOrchestrator } from '../../../services/orchestration/FollowListOrchestrator';
 import { UserProfileService } from '../../../services/UserProfileService';
 import { MutualService } from '../../../services/MutualService';
+import { MutualChangeDetector } from '../../../services/MutualChangeDetector';
+import { MutualChangeStorage } from '../../../services/storage/MutualChangeStorage';
 import { ZapStatsService } from '../../../services/ZapStatsService';
 import { ToastService } from '../../../services/ToastService';
 import { Router } from '../../../services/Router';
@@ -41,6 +43,8 @@ export class FollowListSecondaryManager extends BaseListSecondaryManager<FollowI
   private followOrch: FollowListOrchestrator;
   private userProfileService: UserProfileService;
   private mutualService: MutualService;
+  private mutualChangeDetector: MutualChangeDetector;
+  private mutualChangeStorage: MutualChangeStorage;
   private zapStatsService: ZapStatsService;
   private router: Router;
   private adapter: FollowStorageAdapter;
@@ -68,6 +72,8 @@ export class FollowListSecondaryManager extends BaseListSecondaryManager<FollowI
     this.followOrch = FollowListOrchestrator.getInstance();
     this.userProfileService = UserProfileService.getInstance();
     this.mutualService = MutualService.getInstance();
+    this.mutualChangeDetector = MutualChangeDetector.getInstance();
+    this.mutualChangeStorage = MutualChangeStorage.getInstance();
     this.zapStatsService = ZapStatsService.getInstance();
     this.router = Router.getInstance();
 
@@ -90,6 +96,16 @@ export class FollowListSecondaryManager extends BaseListSecondaryManager<FollowI
       if (container) {
         this.updateSortControlsUI(container);
       }
+    });
+
+    // Listen for mutual changes detected (update green dot)
+    this.eventBus.on('mutual-changes:detected', () => {
+      this.updateGreenDot();
+    });
+
+    // Listen for mutual changes seen (remove green dot)
+    this.eventBus.on('mutual-changes:seen', () => {
+      this.updateGreenDot();
     });
   }
 
@@ -191,6 +207,12 @@ export class FollowListSecondaryManager extends BaseListSecondaryManager<FollowI
     this.currentSort = 'date';
     this.isLoadingAll = false;
 
+    // Clear unseen changes when tab is opened
+    if (this.mutualChangeStorage.hasUnseenChanges()) {
+      this.mutualChangeStorage.setUnseenChanges(false);
+      this.updateGreenDot();
+    }
+
     try {
       const currentUser = this.authService.getCurrentUser();
 
@@ -229,11 +251,19 @@ export class FollowListSecondaryManager extends BaseListSecondaryManager<FollowI
       // Store original order for date sorting
       this.originalOrder = itemsWithProfiles.map(item => item.pubkey);
 
+      // Get last check info for display
+      const lastCheckTimestamp = this.mutualChangeStorage.getLastCheckTimestamp();
+      const lastCheckText = lastCheckTimestamp ? this.formatTimeAgo(lastCheckTimestamp) : 'Never';
+
       // Render container with sticky header, controls and list
       container.innerHTML = `
         <div class="follows-header">
           <div class="follows-stats">
             Following: ${this.totalFollowing} | Mutuals: <span class="mutual-count">...</span> (<span class="mutual-percentage">...</span>%)
+          </div>
+          <div class="follows-check-changes">
+            <a href="#" class="follows-check-changes__link">Check for changes</a>
+            <span class="follows-check-changes__last-check">Last: ${lastCheckText}</span>
           </div>
         </div>
         ${this.renderControlButtons()}
@@ -256,6 +286,7 @@ export class FollowListSecondaryManager extends BaseListSecondaryManager<FollowI
         </div>
         <div class="follows-list"></div>
         ${this.renderControlButtons()}
+        <div class="mutual-changes-modal" style="display: none;"></div>
       `;
 
       // Bind sync button handlers
@@ -270,6 +301,9 @@ export class FollowListSecondaryManager extends BaseListSecondaryManager<FollowI
 
       // Bind sort controls
       this.bindSortControls(container);
+
+      // Bind check for changes link
+      this.bindCheckForChanges(container);
 
       const list = container.querySelector('.follows-list');
       if (!list) return;
@@ -299,6 +333,177 @@ export class FollowListSecondaryManager extends BaseListSecondaryManager<FollowI
         </div>
       `;
     }
+  }
+
+  /**
+   * Bind "Check for Changes" link handler
+   */
+  private bindCheckForChanges(container: HTMLElement): void {
+    const checkLink = container.querySelector('.follows-check-changes__link');
+    checkLink?.addEventListener('click', async (e) => {
+      e.preventDefault();
+      await this.handleCheckForChanges(container);
+    });
+  }
+
+  /**
+   * Handle "Check for Changes" click
+   */
+  private async handleCheckForChanges(container: HTMLElement): Promise<void> {
+    const checkLink = container.querySelector('.follows-check-changes__link');
+    const lastCheckSpan = container.querySelector('.follows-check-changes__last-check');
+
+    if (checkLink) {
+      checkLink.textContent = 'Checking...';
+      (checkLink as HTMLElement).style.pointerEvents = 'none';
+    }
+
+    try {
+      const result = await this.mutualChangeDetector.detect();
+
+      // Update last check text
+      if (lastCheckSpan) {
+        lastCheckSpan.textContent = 'Last: Just now';
+      }
+
+      if (result.isFirstCheck) {
+        ToastService.show('Initial snapshot saved. Changes will be detected on next check.', 'info');
+      } else if (result.totalChanges === 0) {
+        ToastService.show('No changes detected', 'success');
+      } else {
+        // Show modal with results
+        this.showChangesModal(container, result);
+      }
+    } catch (error) {
+      console.error('Failed to check for changes:', error);
+      ToastService.show('Failed to check for changes', 'error');
+    } finally {
+      if (checkLink) {
+        checkLink.textContent = 'Check for changes';
+        (checkLink as HTMLElement).style.pointerEvents = '';
+      }
+    }
+  }
+
+  /**
+   * Show modal with detected changes
+   */
+  private async showChangesModal(
+    container: HTMLElement,
+    result: { unfollows: string[]; newMutuals: string[]; totalChanges: number }
+  ): Promise<void> {
+    const modal = container.querySelector('.mutual-changes-modal') as HTMLElement;
+    if (!modal) return;
+
+    // Fetch usernames for display
+    const unfollowNames = await Promise.all(
+      result.unfollows.map(async (pubkey) => {
+        const profile = await this.userProfileService.getUserProfile(pubkey);
+        return extractDisplayName(profile);
+      })
+    );
+
+    const newMutualNames = await Promise.all(
+      result.newMutuals.map(async (pubkey) => {
+        const profile = await this.userProfileService.getUserProfile(pubkey);
+        return extractDisplayName(profile);
+      })
+    );
+
+    modal.innerHTML = `
+      <div class="mutual-changes-modal__backdrop"></div>
+      <div class="mutual-changes-modal__content">
+        <h3>Mutual Changes Detected</h3>
+        <p class="mutual-changes-modal__summary">
+          ${result.totalChanges} ${result.totalChanges === 1 ? 'change' : 'changes'} detected
+        </p>
+
+        ${newMutualNames.length > 0 ? `
+          <div class="mutual-changes-modal__section mutual-changes-modal__section--positive">
+            <h4>New Mutuals (${newMutualNames.length})</h4>
+            <ul class="mutual-changes-modal__list">
+              ${newMutualNames.map(name => `
+                <li class="mutual-changes-modal__item mutual-changes-modal__item--positive">
+                  ${this.escapeHtml(name)} started following you back!
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+        ` : ''}
+
+        ${unfollowNames.length > 0 ? `
+          <div class="mutual-changes-modal__section mutual-changes-modal__section--negative">
+            <h4>Unfollows (${unfollowNames.length})</h4>
+            <ul class="mutual-changes-modal__list">
+              ${unfollowNames.map(name => `
+                <li class="mutual-changes-modal__item mutual-changes-modal__item--negative">
+                  ${this.escapeHtml(name)} stopped following back
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+        ` : ''}
+
+        <div class="mutual-changes-modal__actions">
+          <button class="btn btn--primary mutual-changes-modal__mark-seen">Mark as Seen</button>
+          <button class="btn btn--passive mutual-changes-modal__close">Close</button>
+        </div>
+      </div>
+    `;
+
+    modal.style.display = 'flex';
+
+    // Event listeners
+    modal.querySelector('.mutual-changes-modal__mark-seen')?.addEventListener('click', () => {
+      this.mutualChangeDetector.markAsSeen();
+      modal.style.display = 'none';
+      ToastService.show('Changes marked as seen', 'success');
+    });
+
+    modal.querySelector('.mutual-changes-modal__close')?.addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+
+    modal.querySelector('.mutual-changes-modal__backdrop')?.addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+  }
+
+  /**
+   * Update green dot indicator in sidebar
+   */
+  private updateGreenDot(): void {
+    const hasUnseen = this.mutualChangeStorage.hasUnseenChanges();
+
+    // Find the follows tab button in sidebar and update dot
+    const tabButton = document.querySelector('[data-tab="list-follows"]');
+    if (tabButton) {
+      const existingDot = tabButton.querySelector('.follows-unseen-dot');
+      if (hasUnseen && !existingDot) {
+        const dot = document.createElement('span');
+        dot.className = 'follows-unseen-dot';
+        tabButton.appendChild(dot);
+      } else if (!hasUnseen && existingDot) {
+        existingDot.remove();
+      }
+    }
+  }
+
+  /**
+   * Format timestamp as relative time
+   */
+  private formatTimeAgo(timestamp: number): string {
+    const now = Date.now();
+    const diff = now - timestamp;
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    if (minutes > 0) return `${minutes}m ago`;
+    return 'Just now';
   }
 
   /**

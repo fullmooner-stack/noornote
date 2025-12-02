@@ -210,6 +210,12 @@ export class NotificationItem {
           <path d="M10 1v4h4M8 9H5M11 12H5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>`;
 
+      case 'mutual_unfollow':
+        return '⚠️';
+
+      case 'mutual_new':
+        return '✅';
+
       default:
         return '🔔';
     }
@@ -230,6 +236,8 @@ export class NotificationItem {
         return amount ? `zapped ${amount.toLocaleString()} sats` : 'zapped your note';
       }
       case 'article': return 'posted a new article';
+      case 'mutual_unfollow': return 'stopped following you back';
+      case 'mutual_new': return 'started following you back!';
       default: return 'interacted with your note';
     }
   }
@@ -271,6 +279,11 @@ export class NotificationItem {
    * Get preview text synchronously (initial render with raw content)
    */
   private getPreviewSync(): string {
+    // For mutual notifications, no preview needed
+    if (this.options.type === 'mutual_unfollow' || this.options.type === 'mutual_new') {
+      return '';
+    }
+
     // For reactions, show placeholder (will fetch the liked note async)
     if (this.options.type === 'reaction') {
       return 'Loading...';
@@ -505,6 +518,13 @@ export class NotificationItem {
         router.navigate(`/article/${dTag[1]}`);
         return;
       }
+    }
+
+    // For mutual notifications, navigate to profile of the person
+    if (this.options.type === 'mutual_unfollow' || this.options.type === 'mutual_new') {
+      const npub = hexToNpub(this.options.event.pubkey);
+      router.navigate(`/profile/${npub}`);
+      return;
     }
 
     // Default: navigate to the notification event itself

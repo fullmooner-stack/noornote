@@ -161,3 +161,141 @@
     }
   }
 }
+
+// Check for changes section
+.follows-check-changes {
+  display: flex;
+  align-items: center;
+  gap: $gap;
+  font-size: 12px;
+
+  &__link {
+    color: $color-4;
+    text-decoration: none;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__last-check {
+    color: $color-3;
+  }
+}
+
+// Green dot indicator for unseen changes
+.follows-unseen-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: #10b981;
+  border-radius: 50%;
+  margin-left: 4px;
+  animation: dot-pulse 2s ease-in-out infinite;
+}
+
+@keyframes dot-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.85);
+  }
+}
+
+// Mutual changes modal
+.mutual-changes-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+
+  &__backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  &__content {
+    position: relative;
+    background: $color-1;
+    border: 1px solid $color-2;
+    border-radius: 8px;
+    padding: $gap * 1.5;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+    z-index: 1001;
+
+    h3 {
+      margin: 0 0 $gap 0;
+      font-size: 16px;
+      color: $color-5;
+    }
+  }
+
+  &__summary {
+    color: $color-3;
+    font-size: 13px;
+    margin-bottom: $gap;
+  }
+
+  &__section {
+    margin-bottom: $gap;
+
+    h4 {
+      font-size: 13px;
+      margin: 0 0 calc($gap / 2) 0;
+    }
+
+    &--positive h4 {
+      color: #10b981;
+    }
+
+    &--negative h4 {
+      color: #ef4444;
+    }
+  }
+
+  &__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  &__item {
+    padding: calc($gap / 2) 0;
+    border-bottom: 1px solid $color-2;
+    font-size: 13px;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &--positive {
+      color: #10b981;
+    }
+
+    &--negative {
+      color: #ef4444;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: calc($gap / 2);
+    margin-top: $gap;
+    justify-content: flex-end;
+  }
+}
