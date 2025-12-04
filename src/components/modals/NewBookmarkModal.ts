@@ -7,7 +7,7 @@ import { ModalService } from '../../services/ModalService';
 import { BookmarkFolderService } from '../../services/BookmarkFolderService';
 
 export interface NewBookmarkModalOptions {
-  onConfirm: (url: string, folderId: string, newFolderName?: string) => void;
+  onConfirm: (url: string, description: string, folderId: string, newFolderName?: string) => void;
 }
 
 export class NewBookmarkModal {
@@ -60,6 +60,18 @@ export class NewBookmarkModal {
         </div>
 
         <div class="form-group">
+          <label for="new-bookmark-description-input">Description</label>
+          <input
+            type="text"
+            id="new-bookmark-description-input"
+            class="input"
+            placeholder="Optional description..."
+            maxlength="200"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="form-group">
           <label for="new-bookmark-folder-select">Save to</label>
           <select id="new-bookmark-folder-select" class="input">
             <option value="">Root Level</option>
@@ -96,6 +108,7 @@ export class NewBookmarkModal {
 
   private setupEventHandlers(): void {
     const urlInput = document.getElementById('new-bookmark-url-input') as HTMLInputElement;
+    const descriptionInput = document.getElementById('new-bookmark-description-input') as HTMLInputElement;
     const folderSelect = document.getElementById('new-bookmark-folder-select') as HTMLSelectElement;
     const newFolderGroup = document.querySelector('.new-bookmark-modal__new-folder-group') as HTMLElement;
     const newFolderInput = document.getElementById('new-bookmark-folder-name-input') as HTMLInputElement;
@@ -116,6 +129,7 @@ export class NewBookmarkModal {
 
     const handleSave = () => {
       const url = urlInput.value.trim();
+      const description = descriptionInput?.value.trim() || '';
 
       if (!url) {
         urlInput.focus();
@@ -138,7 +152,7 @@ export class NewBookmarkModal {
       }
 
       this.modalService.hide();
-      this.options.onConfirm(url, folderId, newFolderName);
+      this.options.onConfirm(url, description, folderId, newFolderName);
     };
 
     // Cancel

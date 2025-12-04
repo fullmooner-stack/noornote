@@ -434,7 +434,8 @@ export class BookmarkSecondaryManager {
       value: bookmark.value,
       event: bookmark.event,
       isPrivate: bookmark.isPrivate,
-      folderId: this.folderService.getBookmarkFolder(bookmark.id)
+      folderId: this.folderService.getBookmarkFolder(bookmark.id),
+      description: bookmark.description
     };
 
     const card = new BookmarkCard(cardData, {
@@ -782,7 +783,7 @@ export class BookmarkSecondaryManager {
 
   private createNewBookmark(): void {
     const modal = new NewBookmarkModal({
-      onConfirm: async (url, folderId, newFolderName) => {
+      onConfirm: async (url, description, folderId, newFolderName) => {
         try {
           let targetFolderId = folderId;
           let categoryName = '';
@@ -806,7 +807,8 @@ export class BookmarkSecondaryManager {
             value: url,
             addedAt: Math.floor(Date.now() / 1000),
             isPrivate: false,
-            category: categoryName
+            category: categoryName,
+            description: description || undefined
           };
 
           // Add to browser storage

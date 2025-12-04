@@ -37,6 +37,7 @@ export interface BookmarkItem {
   addedAt?: number;
   isPrivate?: boolean;
   category?: string;  // d-tag value, '' = root
+  description?: string;  // optional user description for URL bookmarks
 }
 
 /**

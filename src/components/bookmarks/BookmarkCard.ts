@@ -18,6 +18,7 @@ export interface BookmarkCardData {
   event?: NostrEvent;      // Event data (may be undefined if not loaded)
   isPrivate: boolean;
   folderId?: string;
+  description?: string;    // Optional user description for URL bookmarks
 }
 
 export interface BookmarkCardOptions {
@@ -77,10 +78,11 @@ export class BookmarkCard {
     } else {
       // Fallback card when event is not loaded
       // Display depends on bookmark type
-      const { type, value } = this.data;
+      const { type, value, description } = this.data;
       let displayContent = '';
       let displayLabel = 'Unknown';
       let isContentHtml = false;
+      let footerText = '—';
 
       if (type === 'r' && value) {
         // URL bookmark - show the URL as a real link (global handler in App.ts opens in external browser)
@@ -94,6 +96,11 @@ export class BookmarkCard {
         }
         // Render as anchor so App.ts global click handler opens in external browser
         displayContent = `<a href="${this.escapeHtml(value)}" class="bookmark-card__external-link">${this.escapeHtml(displayUrl)}</a>`;
+        // Add description below URL if available
+        if (description) {
+          const descText = description.length > 60 ? description.slice(0, 60) + '...' : description;
+          displayContent += `<span class="bookmark-card__description">${this.escapeHtml(descText)}</span>`;
+        }
         isContentHtml = true;
       } else if (type === 't' && value) {
         // Hashtag bookmark
@@ -119,7 +126,7 @@ export class BookmarkCard {
           ${isContentHtml ? displayContent : this.escapeHtml(displayContent)}
         </div>
         <div class="bookmark-card__footer">
-          <span class="bookmark-card__timestamp">—</span>
+          <span class="bookmark-card__timestamp">${this.escapeHtml(footerText)}</span>
           <button class="bookmark-card__delete" aria-label="Remove bookmark" title="Remove bookmark">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M3 4h10M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M6 7v4M10 7v4M4 4l.5 8.5a1 1 0 0 0 1 .95h5a1 1 0 0 0 1-.95L12 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>

@@ -188,6 +188,13 @@
     -webkit-box-orient: vertical;
   }
 
+  &__description {
+    display: block;
+    margin-top: calc($gap / 4);
+    font-size: 12px;
+    color: $color-3;
+  }
+
   &__footer {
     display: flex;
     justify-content: space-between;
