@@ -72,39 +72,12 @@ export class BookmarkStorageAdapter extends BaseListStorageAdapter<BookmarkItem>
 
   /**
    * File Storage (Persistent Local) - Asynchronous
-   * Writes items to files, overwriting existing data
-   * Also saves folder structure from localStorage
-   *
-   * Strategy: Simply split by isPrivate flag and overwrite files
-   * - isPrivate=true → private file
-   * - isPrivate=false/undefined → public file (default)
+   * Writes items to files using BookmarkSetData format with categories
    */
-  async setFileItems(items: BookmarkItem[]): Promise<void> {
+  async setFileItems(_items: BookmarkItem[]): Promise<void> {
     try {
-      // Split by privacy flag
-      const publicItems = items.filter(item => !item.isPrivate);
-      const privateItems = items.filter(item => item.isPrivate);
-
-      const timestamp = this.getCurrentTimestamp();
-
-      // Get folder data from localStorage
-      const folders = this.getFoldersFromLocalStorage();
-      const folderAssignments = this.getAssignmentsFromLocalStorage();
-      const rootOrder = this.getRootOrderFromLocalStorage();
-
-      // Overwrite files
-      await this.fileStorage.writePublic({
-        items: publicItems,
-        lastModified: timestamp,
-        folders,
-        folderAssignments,
-        rootOrder
-      });
-
-      await this.fileStorage.writePrivate({
-        items: privateItems,
-        lastModified: timestamp
-      });
+      // Use orchestrator to save in BookmarkSetData format (with categories)
+      await this.bookmarkOrchestrator.saveToFile();
     } catch (error) {
       console.error('[BookmarkStorageAdapter] Failed to write to file storage:', error);
       throw error;

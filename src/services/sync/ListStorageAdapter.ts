@@ -27,6 +27,16 @@ export interface FetchFromRelaysResult<T> {
    * In this case, local private items should be preserved during sync
    */
   decryptionFailed?: boolean;
+  /**
+   * Category assignments from relay (bookmarkId -> categoryName)
+   * Only used for Bookmarks (NIP-51 kind:30003 with d-tag)
+   */
+  categoryAssignments?: Map<string, string>;
+  /**
+   * Category names (d-tags) found on relays
+   * Only used for Bookmarks
+   */
+  categories?: string[];
 }
 
 export interface ListStorageAdapter<T> {

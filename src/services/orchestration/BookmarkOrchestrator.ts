@@ -11,10 +11,13 @@
 
 import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
 import type { BookmarkItem } from '../storage/BookmarkFileStorage';
+import { BookmarkFileStorage } from '../storage/BookmarkFileStorage';
 import type { FetchFromRelaysResult } from '../sync/ListStorageAdapter';
+import type { BookmarkSetData, BookmarkSet } from '../../types/BookmarkSetData';
 import { GenericListOrchestrator } from './GenericListOrchestrator';
 import { bookmarkListConfig, createBookmarkFileStorageWrapper } from './configs/BookmarkListConfig';
 import { BookmarkFolderService } from '../BookmarkFolderService';
+import { toNostrEvents } from '../sync/serializers/BookmarkSerializer';
 
 // Re-export BookmarkItem for external use
 export type { BookmarkItem };
@@ -105,7 +108,7 @@ export class BookmarkOrchestrator extends GenericListOrchestrator<BookmarkItem> 
    * Add a bookmark (public or private)
    * Writes to browserItems (localStorage)
    */
-  public async addBookmark(noteId: string, isPrivate: boolean): Promise<boolean> {
+  public async addBookmark(noteId: string, isPrivate: boolean, category: string = ''): Promise<boolean> {
     const currentUser = this.authService.getCurrentUser();
     if (!currentUser) {
       throw new Error('User not authenticated');
@@ -123,16 +126,17 @@ export class BookmarkOrchestrator extends GenericListOrchestrator<BookmarkItem> 
         type: 'e',
         value: noteId,
         addedAt: Math.floor(Date.now() / 1000),
-        isPrivate: isPrivate
+        isPrivate: isPrivate,
+        category: category
       };
 
       await this.addItem(item);
 
-      // Ensure folder assignment exists (root by default)
+      // Keep folderService in sync for UI
       this.folderService.ensureBookmarkAssignment(noteId);
 
       this.systemLogger.info('BookmarkOrchestrator',
-        `Added ${isPrivate ? 'private' : 'public'} bookmark (local): ${noteId}`
+        `Added ${isPrivate ? 'private' : 'public'} bookmark to "${category || 'root'}": ${noteId}`
       );
 
       this.eventBus.emit('bookmark:updated', {});
@@ -257,11 +261,24 @@ export class BookmarkOrchestrator extends GenericListOrchestrator<BookmarkItem> 
     }
   }
 
-  // ===== NIP-51 Bookmark Sets: Multi-Category Publish/Fetch =====
+  // ===== File & Relay Sync =====
+
+  /**
+   * Save to file (override to use BookmarkSetData format)
+   */
+  public async saveToFile(): Promise<void> {
+    const setData = this.buildSetDataFromLocalStorage();
+    const storage = BookmarkFileStorage.getInstance();
+    await storage.write(setData);
+
+    this.systemLogger.info('BookmarkOrchestrator',
+      `Saved to file: ${setData.sets.length} sets`
+    );
+  }
 
   /**
    * Publish to relays (manual sync via UI button)
-   * Creates one kind:30003 event per category (folder)
+   * Uses BookmarkSerializer for consistent format
    *
    * NIP-51 Bookmark Sets:
    * - Root bookmarks → d: ""
@@ -279,80 +296,52 @@ export class BookmarkOrchestrator extends GenericListOrchestrator<BookmarkItem> 
       throw new Error('No write relays available');
     }
 
-    // Read folder structure from file (authoritative source after "Save to file")
-    const { BookmarkFileStorage } = await import('../storage/BookmarkFileStorage');
-    const fileStorage = BookmarkFileStorage.getInstance();
-    const publicData = await fileStorage.readPublic();
-    const privateData = await fileStorage.readPrivate();
-
-    // Merge all items
-    const allItems = [...publicData.items, ...privateData.items];
-
-    // Get folders and assignments from file
-    const folders = publicData.folders || [];
-    const folderAssignments = publicData.folderAssignments || [];
+    // Build BookmarkSetData from localStorage
+    const setData = this.buildSetDataFromLocalStorage();
 
     this.systemLogger.info('BookmarkOrchestrator',
-      `Publishing: ${allItems.length} items, ${folders.length} folders, ${folderAssignments.length} assignments`
+      `Publishing: ${setData.sets.length} sets to relays`
     );
 
-    // Group bookmarks by folder
-    const bookmarksByFolder = new Map<string, BookmarkItem[]>();
+    // Convert to Nostr events using serializer
+    const events = await toNostrEvents(
+      setData,
+      currentUser.pubkey,
+      async (tags, pubkey) => {
+        // Convert BookmarkTag[] to BookmarkItem[] for encryption
+        const items: BookmarkItem[] = tags.map(tag => ({
+          id: tag.value,
+          type: tag.type,
+          value: tag.value,
+          isPrivate: true
+        }));
+        return await this.encryptPrivateItems(items, pubkey);
+      }
+    );
 
-    // Initialize with root and all folders
-    bookmarksByFolder.set('', []); // Root
-    folders.forEach(folder => bookmarksByFolder.set(folder.name, []));
-
-    // Assign bookmarks to their folders using file-based assignments
-    allItems.forEach(item => {
-      const assignment = folderAssignments.find(a => a.bookmarkId === item.id);
-      const folderId = assignment?.folderId || '';
-      const folder = folders.find(f => f.id === folderId);
-      const categoryName = folder?.name || ''; // Root if no folder
-
-      const categoryItems = bookmarksByFolder.get(categoryName) || [];
-      categoryItems.push(item);
-      bookmarksByFolder.set(categoryName, categoryItems);
-    });
-
-    // Publish one event per category
+    // Publish each event
     let totalPublished = 0;
 
-    for (const [categoryName, items] of bookmarksByFolder) {
-      // Skip empty categories (except root if it has items or we want to clear it)
-      if (items.length === 0 && categoryName !== '') {
+    for (let i = 0; i < events.length; i++) {
+      const { tags, content } = events[i];
+      const set = setData.sets[i];
+
+      // Skip empty sets (except root)
+      if (set.publicTags.length === 0 && set.privateTags.length === 0 && set.d !== '') {
         continue;
-      }
-
-      const publicItems = items.filter(item => !item.isPrivate);
-      const privateItems = items.filter(item => item.isPrivate);
-
-      // Build tags
-      const tags: string[][] = [['d', categoryName]];
-
-      // Add public bookmark tags
-      publicItems.forEach(item => {
-        const itemTags = this.config.itemToTags(item);
-        tags.push(...itemTags);
-      });
-
-      // Encrypt private items
-      let encryptedContent = '';
-      if (privateItems.length > 0) {
-        encryptedContent = await this.encryptPrivateItems(privateItems, currentUser.pubkey);
       }
 
       const event = {
         kind: 30003,
         created_at: Math.floor(Date.now() / 1000),
         tags,
-        content: encryptedContent,
+        content,
         pubkey: currentUser.pubkey
       };
 
       const signed = await this.authService.signEvent(event);
       if (!signed) {
-        this.systemLogger.error('BookmarkOrchestrator', `Failed to sign event for category: ${categoryName}`);
+        this.systemLogger.error('BookmarkOrchestrator', `Failed to sign event for category: ${set.d}`);
         continue;
       }
 
@@ -360,13 +349,80 @@ export class BookmarkOrchestrator extends GenericListOrchestrator<BookmarkItem> 
       totalPublished++;
 
       this.systemLogger.info('BookmarkOrchestrator',
-        `Published category "${categoryName || 'root'}": ${publicItems.length} public + ${privateItems.length} private`
+        `Published category "${set.d || 'root'}": ${set.publicTags.length} public + ${set.privateTags.length} private`
       );
     }
 
     this.systemLogger.info('BookmarkOrchestrator',
       `Published ${totalPublished} bookmark set events to relays`
     );
+  }
+
+  /**
+   * Build BookmarkSetData from localStorage (uses item.category directly)
+   */
+  private buildSetDataFromLocalStorage(): BookmarkSetData {
+    const allItems = this.getBrowserItems();
+
+    console.log('[DEBUG buildSetDataFromLocalStorage] Items count:', allItems.length);
+
+    // Create sets map
+    const setsMap = new Map<string, BookmarkSet>();
+
+    // Initialize root set
+    setsMap.set('', {
+      kind: 30003,
+      d: '',
+      title: '',  // d-tag = title-tag
+      publicTags: [],
+      privateTags: []
+    });
+
+    // Assign bookmarks to sets (using item.category, fallback to FolderService for migration)
+    for (const item of allItems) {
+      let category = item.category;
+      const originalCategory = category;
+      if (category === undefined) {
+        const folderId = this.folderService.getBookmarkFolder(item.id);
+        const folder = folderId ? this.folderService.getFolder(folderId) : null;
+        category = folder?.name ?? '';
+        console.log(`[DEBUG] Item ${item.id.slice(0,8)}... category=${originalCategory} → folderId="${folderId}" → folderName="${folder?.name}" → final="${category}" isPrivate=${item.isPrivate}`);
+      } else {
+        console.log(`[DEBUG] Item ${item.id.slice(0,8)}... category="${category}" (from item) isPrivate=${item.isPrivate}`);
+      }
+
+      // Create set if it doesn't exist
+      if (!setsMap.has(category)) {
+        setsMap.set(category, {
+          kind: 30003,
+          d: category,
+          title: category,
+          publicTags: [],
+          privateTags: []
+        });
+      }
+
+      const set = setsMap.get(category)!;
+      const tag = { type: item.type, value: item.value };
+      if (item.isPrivate) {
+        set.privateTags.push(tag);
+      } else {
+        set.publicTags.push(tag);
+      }
+    }
+
+    // Build setOrder (root first, then alphabetically)
+    const categories = Array.from(setsMap.keys()).filter(k => k !== '').sort();
+    const setOrder = ['', ...categories];
+
+    return {
+      version: 2,
+      sets: Array.from(setsMap.values()),
+      metadata: {
+        setOrder,
+        lastModified: Math.floor(Date.now() / 1000)
+      }
+    };
   }
 
   /**
@@ -400,25 +456,38 @@ export class BookmarkOrchestrator extends GenericListOrchestrator<BookmarkItem> 
       });
 
       const allItems: BookmarkItem[] = [];
+      const categoryAssignments = new Map<string, string>(); // bookmarkId -> categoryName
+      const categories: string[] = [];
       let anyContentWasEmpty = true;
 
       for (const [categoryName, event] of eventsByDTag) {
+        // Track all categories (including root "")
+        categories.push(categoryName);
+
         const hasContent = event.content && event.content.trim() !== '';
         if (hasContent) anyContentWasEmpty = false;
 
-        // Extract public items from tags
+        // Extract public items from tags (exclude d and title tags)
         const publicItems = this.config.tagsToItem(
-          event.tags.filter(t => t[0] !== 'd'), // Exclude d-tag
+          event.tags.filter(t => t[0] !== 'd' && t[0] !== 'title'),
           event.created_at
         );
-        publicItems.forEach(item => { item.isPrivate = false; });
+        publicItems.forEach(item => {
+          item.isPrivate = false;
+          item.category = categoryName;  // Set category directly on item
+          categoryAssignments.set(item.id, categoryName);
+        });
 
         // Extract private items from encrypted content
         let privateItems: BookmarkItem[] = [];
         if (hasContent) {
           try {
             privateItems = await this.decryptPrivateItems(event, pubkey);
-            privateItems.forEach(item => { item.isPrivate = true; });
+            privateItems.forEach(item => {
+              item.isPrivate = true;
+              item.category = categoryName;  // Set category directly on item
+              categoryAssignments.set(item.id, categoryName);
+            });
           } catch (error) {
             this.systemLogger.error('BookmarkOrchestrator',
               `Failed to decrypt private items for category "${categoryName}": ${error}`
@@ -439,7 +508,9 @@ export class BookmarkOrchestrator extends GenericListOrchestrator<BookmarkItem> 
 
       return {
         items: Array.from(itemMap.values()),
-        relayContentWasEmpty: anyContentWasEmpty
+        relayContentWasEmpty: anyContentWasEmpty,
+        categoryAssignments,
+        categories
       };
     } catch (error) {
       this.systemLogger.error('BookmarkOrchestrator', `Failed to fetch from relays: ${error}`);
@@ -450,6 +521,7 @@ export class BookmarkOrchestrator extends GenericListOrchestrator<BookmarkItem> 
   /**
    * Sync from relays (manual sync)
    * Fetches all categories and merges with local
+   * Creates folders from relay categories and assigns bookmarks
    */
   public async syncFromRelays(pubkey: string): Promise<{ added: number; total: number }> {
     const relays = this.getBootstrapRelays();
@@ -465,13 +537,42 @@ export class BookmarkOrchestrator extends GenericListOrchestrator<BookmarkItem> 
 
       this.setBrowserItems(merged);
 
-      // Ensure folder assignments for all items
-      merged.forEach(item => {
-        this.folderService.ensureBookmarkAssignment(item.id);
-      });
+      // Create folders from relay categories (skip root "")
+      const existingFolders = this.folderService.getFolders();
+      const categories = fetchResult.categories || [];
+
+      for (const categoryName of categories) {
+        if (categoryName === '') continue; // Skip root
+
+        // Check if folder with this name exists
+        const existingFolder = existingFolders.find(f => f.name === categoryName);
+        if (!existingFolder) {
+          this.folderService.createFolder(categoryName);
+          this.systemLogger.info('BookmarkOrchestrator', `Created folder from relay: "${categoryName}"`);
+        }
+      }
+
+      // Assign bookmarks to their categories from relay
+      const categoryAssignments = fetchResult.categoryAssignments;
+      if (categoryAssignments) {
+        const updatedFolders = this.folderService.getFolders(); // Refresh after creating new folders
+
+        for (const [bookmarkId, categoryName] of categoryAssignments) {
+          if (categoryName === '') {
+            // Root - ensure assignment exists (to root)
+            this.folderService.ensureBookmarkAssignment(bookmarkId);
+          } else {
+            // Find folder by name and move bookmark there
+            const folder = updatedFolders.find(f => f.name === categoryName);
+            if (folder) {
+              this.folderService.moveBookmarkToFolder(bookmarkId, folder.id);
+            }
+          }
+        }
+      }
 
       this.systemLogger.info('BookmarkOrchestrator',
-        `Sync complete: ${added} new items added (${merged.length} total)`
+        `Sync complete: ${added} new items, ${categories.length} categories`
       );
 
       return { added, total: merged.length };
