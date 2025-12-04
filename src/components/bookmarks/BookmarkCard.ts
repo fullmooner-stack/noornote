@@ -80,18 +80,21 @@ export class BookmarkCard {
       const { type, value } = this.data;
       let displayContent = '';
       let displayLabel = 'Unknown';
-      let isClickable = false;
+      let isContentHtml = false;
 
       if (type === 'r' && value) {
-        // URL bookmark - show the URL
+        // URL bookmark - show the URL as a real link (global handler in App.ts opens in external browser)
         displayLabel = 'URL';
+        let displayUrl = '';
         try {
           const url = new URL(value);
-          displayContent = url.hostname + (url.pathname !== '/' ? url.pathname.slice(0, 30) : '');
+          displayUrl = url.hostname + (url.pathname !== '/' ? url.pathname.slice(0, 30) : '');
         } catch {
-          displayContent = value.slice(0, 40);
+          displayUrl = value.slice(0, 40);
         }
-        isClickable = true;
+        // Render as anchor so App.ts global click handler opens in external browser
+        displayContent = `<a href="${this.escapeHtml(value)}" class="bookmark-card__external-link">${this.escapeHtml(displayUrl)}</a>`;
+        isContentHtml = true;
       } else if (type === 't' && value) {
         // Hashtag bookmark
         displayLabel = 'Hashtag';
@@ -113,7 +116,7 @@ export class BookmarkCard {
           <span class="bookmark-card__author-name">${this.escapeHtml(displayLabel)}</span>
         </div>
         <div class="bookmark-card__content bookmark-card__content--${type === 'e' || !type ? 'not-found' : 'external'}">
-          ${this.escapeHtml(displayContent)}
+          ${isContentHtml ? displayContent : this.escapeHtml(displayContent)}
         </div>
         <div class="bookmark-card__footer">
           <span class="bookmark-card__timestamp">—</span>
@@ -125,10 +128,6 @@ export class BookmarkCard {
         </div>
       `;
 
-      // For URL bookmarks, clicking opens the URL
-      if (isClickable && value) {
-        card.dataset.externalUrl = value;
-      }
     }
 
     // Bind events
@@ -141,23 +140,35 @@ export class BookmarkCard {
   private bindEvents(card: HTMLElement): void {
     const { id, event } = this.data;
 
-    // Click on card (except delete button) navigates to note or opens URL
-    card.addEventListener('click', (e) => {
+    // Click on card navigates to note or opens external URL
+    card.addEventListener('click', async (e) => {
       const target = e.target as HTMLElement;
       if (target.closest('.bookmark-card__delete')) return;
+
       // Don't navigate if we were dragging
       if (card.dataset.wasDragging === 'true') {
         card.dataset.wasDragging = 'false';
         return;
       }
 
+      // Check if click was on an external link
+      const anchor = target.closest('a');
+      if (anchor) {
+        const href = anchor.getAttribute('href');
+        if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
+          e.preventDefault();
+          e.stopPropagation();
+          // Open in external browser
+          const { open } = await import('@tauri-apps/plugin-shell');
+          await open(href);
+          return;
+        }
+      }
+
       // Navigate to note if event exists
       if (event) {
         const nevent = encodeNevent(event.id);
         this.router.navigate(`/note/${nevent}`);
-      } else if (card.dataset.externalUrl) {
-        // Open external URL in new tab
-        window.open(card.dataset.externalUrl, '_blank', 'noopener,noreferrer');
       }
     });
 
