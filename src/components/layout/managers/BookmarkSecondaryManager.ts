@@ -27,6 +27,7 @@ import { SyncConfirmationModal } from '../../modals/SyncConfirmationModal';
 import { NewFolderModal } from '../../modals/NewFolderModal';
 import { NewBookmarkModal } from '../../modals/NewBookmarkModal';
 import { EditBookmarkModal } from '../../modals/EditBookmarkModal';
+import { EditFolderModal } from '../../modals/EditFolderModal';
 import { BookmarkCard, type BookmarkCardData } from '../../bookmarks/BookmarkCard';
 import { FolderCard, type FolderData } from '../../bookmarks/FolderCard';
 import { UpNavigator } from '../../bookmarks/UpNavigator';
@@ -471,6 +472,7 @@ export class BookmarkSecondaryManager {
 
     const card = new FolderCard(folderData, {
       onClick: (folderId) => this.navigateToFolder(folderId),
+      onEdit: (folderId) => this.editFolder(folderId),
       onDelete: async (folderId) => {
         await this.deleteFolder(folderId);
       },
@@ -749,6 +751,51 @@ export class BookmarkSecondaryManager {
         } catch (error) {
           console.error('Failed to update bookmark:', error);
           ToastService.show('Failed to update bookmark', 'error');
+        }
+      }
+    });
+
+    modal.show();
+  }
+
+  private editFolder(folderId: string): void {
+    const folder = this.folderService.getFolder(folderId);
+    if (!folder) return;
+
+    const modal = new EditFolderModal({
+      currentName: folder.name,
+      onSave: (newName) => {
+        try {
+          // Rename folder
+          this.folderService.renameFolder(folderId, newName);
+
+          // Update category in all bookmarks assigned to this folder
+          const currentItems = this.adapter.getBrowserItems();
+          const updatedItems = currentItems.map(item => {
+            if (item.category === folder.name) {
+              return { ...item, category: newName };
+            }
+            return item;
+          });
+          this.adapter.setBrowserItems(updatedItems);
+
+          // Update cache
+          for (const [id, bookmark] of this.bookmarksCache) {
+            if (bookmark.category === folder.name) {
+              bookmark.category = newName;
+            }
+          }
+
+          ToastService.show('Folder renamed', 'success');
+
+          // Refresh view
+          const container = this.containerElement.querySelector('[data-tab-content="list-bookmarks"]');
+          if (container) {
+            this.renderCurrentView(container as HTMLElement);
+          }
+        } catch (error) {
+          console.error('Failed to rename folder:', error);
+          ToastService.show('Failed to rename folder', 'error');
         }
       }
     });

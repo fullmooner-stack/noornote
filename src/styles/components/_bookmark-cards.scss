@@ -344,10 +344,18 @@
     margin-top: calc($gap / 4);
   }
 
-  &__delete {
+  &__actions {
     position: absolute;
     top: calc($gap / 2);
     right: calc($gap / 2);
+    display: flex;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  &__edit,
+  &__delete {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -356,10 +364,9 @@
     background: none;
     border: none;
     border-radius: $radius-md;
-    color: $color-error;
     cursor: pointer;
     transition: $transition-colors;
-    opacity: 0;
+    opacity: 0.6;
 
     svg {
       width: 14px;
@@ -367,16 +374,28 @@
     }
 
     &:hover {
+      opacity: 1;
+    }
+  }
+
+  &__edit {
+    color: $color-4;
+
+    &:hover {
+      background: rgba($color-4, 0.15);
+    }
+  }
+
+  &__delete {
+    color: $color-error;
+
+    &:hover {
       background: rgba($color-error, 0.15);
     }
   }
 
-  &:hover .folder-card__delete {
-    opacity: 0.6;
-
-    &:hover {
-      opacity: 1;
-    }
+  &:hover .folder-card__actions {
+    opacity: 1;
   }
 
   // Drop target highlight
@@ -554,6 +573,22 @@
 
 // Edit bookmark modal
 .edit-bookmark-modal {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: $gap;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: calc($gap / 2);
+    margin-top: calc($gap / 2);
+  }
+}
+
+// Edit folder modal
+.edit-folder-modal {
   &__content {
     display: flex;
     flex-direction: column;

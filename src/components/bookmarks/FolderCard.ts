@@ -14,6 +14,7 @@ export interface FolderData {
 
 export interface FolderCardOptions {
   onClick: (folderId: string) => void;
+  onEdit?: (folderId: string) => void;
   onDelete: (folderId: string) => Promise<void>;
   onDrop: (bookmarkId: string, folderId: string) => Promise<void>;
   onDragStart?: (folderId: string, element: HTMLElement) => void;
@@ -46,11 +47,18 @@ export class FolderCard {
       </div>
       <div class="folder-card__name">${this.escapeHtml(name)}</div>
       <div class="folder-card__count">${itemCount} ${itemCount === 1 ? 'item' : 'items'}</div>
-      <button class="folder-card__delete" aria-label="Delete folder" title="Delete folder (items move to root)">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 4h10M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M6 7v4M10 7v4M4 4l.5 8.5a1 1 0 0 0 1 .95h5a1 1 0 0 0 1-.95L12 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
+      <div class="folder-card__actions">
+        <button class="folder-card__edit" aria-label="Rename folder" title="Rename folder">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11.5 2.5l2 2M2 14l1-4 9-9 2 2-9 9-4 1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button class="folder-card__delete" aria-label="Delete folder" title="Delete folder (items move to root)">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 4h10M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M6 7v4M10 7v4M4 4l.5 8.5a1 1 0 0 0 1 .95h5a1 1 0 0 0 1-.95L12 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
     `;
 
     this.bindEvents(card);
@@ -61,11 +69,18 @@ export class FolderCard {
   private bindEvents(card: HTMLElement): void {
     const { id } = this.data;
 
-    // Click on folder (except delete) opens it
+    // Click on folder (except actions) opens it
     card.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
-      if (target.closest('.folder-card__delete')) return;
+      if (target.closest('.folder-card__actions')) return;
       this.options.onClick(id);
+    });
+
+    // Edit button
+    const editBtn = card.querySelector('.folder-card__edit');
+    editBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.options.onEdit?.(id);
     });
 
     // Delete button
