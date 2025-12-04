@@ -23,6 +23,7 @@ export interface BookmarkCardData {
 
 export interface BookmarkCardOptions {
   onDelete: (eventId: string) => Promise<void>;
+  onEdit?: (bookmarkId: string) => void;
 }
 
 export class BookmarkCard {
@@ -127,11 +128,18 @@ export class BookmarkCard {
         </div>
         <div class="bookmark-card__footer">
           <span class="bookmark-card__timestamp">${this.escapeHtml(footerText)}</span>
-          <button class="bookmark-card__delete" aria-label="Remove bookmark" title="Remove bookmark">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 4h10M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M6 7v4M10 7v4M4 4l.5 8.5a1 1 0 0 0 1 .95h5a1 1 0 0 0 1-.95L12 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
+          <div class="bookmark-card__actions">
+            ${type === 'r' ? `
+              <button class="btn btn--mini bookmark-card__edit" aria-label="Edit bookmark" title="Edit bookmark">
+                Edit
+              </button>
+            ` : ''}
+            <button class="bookmark-card__delete" aria-label="Remove bookmark" title="Remove bookmark">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 4h10M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M6 7v4M10 7v4M4 4l.5 8.5a1 1 0 0 0 1 .95h5a1 1 0 0 0 1-.95L12 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
         </div>
       `;
 
@@ -150,7 +158,7 @@ export class BookmarkCard {
     // Click on card navigates to note or opens external URL
     card.addEventListener('click', async (e) => {
       const target = e.target as HTMLElement;
-      if (target.closest('.bookmark-card__delete')) return;
+      if (target.closest('.bookmark-card__delete') || target.closest('.bookmark-card__edit')) return;
 
       // Don't navigate if we were dragging
       if (card.dataset.wasDragging === 'true') {
@@ -177,6 +185,13 @@ export class BookmarkCard {
         const nevent = encodeNevent(event.id);
         this.router.navigate(`/note/${nevent}`);
       }
+    });
+
+    // Edit button (only for URL bookmarks)
+    const editBtn = card.querySelector('.bookmark-card__edit');
+    editBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.options.onEdit?.(id);
     });
 
     // Delete button

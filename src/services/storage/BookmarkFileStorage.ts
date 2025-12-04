@@ -412,7 +412,8 @@ export class BookmarkFileStorage {
             value: tag.value,
             addedAt: data.metadata.lastModified,
             isPrivate: false,
-            category
+            category,
+            description: tag.description
           });
         }
       }
@@ -425,7 +426,8 @@ export class BookmarkFileStorage {
             value: tag.value,
             addedAt: data.metadata.lastModified,
             isPrivate: true,
-            category
+            category,
+            description: tag.description
           });
         }
       }

@@ -10,6 +10,7 @@
 export interface BookmarkTag {
   type: 'e' | 'a' | 't' | 'r';
   value: string;
+  description?: string;  // NoorNote-specific, stored locally only
 }
 
 export interface BookmarkSet {

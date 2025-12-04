@@ -26,6 +26,7 @@ import { RestoreListsService } from '../../../services/RestoreListsService';
 import { SyncConfirmationModal } from '../../modals/SyncConfirmationModal';
 import { NewFolderModal } from '../../modals/NewFolderModal';
 import { NewBookmarkModal } from '../../modals/NewBookmarkModal';
+import { EditBookmarkModal } from '../../modals/EditBookmarkModal';
 import { BookmarkCard, type BookmarkCardData } from '../../bookmarks/BookmarkCard';
 import { FolderCard, type FolderData } from '../../bookmarks/FolderCard';
 import { UpNavigator } from '../../bookmarks/UpNavigator';
@@ -442,6 +443,9 @@ export class BookmarkSecondaryManager {
       onDelete: async (eventId) => {
         await this.deleteBookmark(eventId);
       },
+      onEdit: (bookmarkId) => {
+        this.editBookmark(bookmarkId);
+      },
       onDragStart: (eventId) => {
         this.draggedItemId = eventId;
         this.draggedItemType = 'bookmark';
@@ -684,6 +688,72 @@ export class BookmarkSecondaryManager {
       console.error('Failed to delete bookmark:', error);
       ToastService.show('Failed to remove bookmark', 'error');
     }
+  }
+
+  private editBookmark(bookmarkId: string): void {
+    const bookmark = this.bookmarksCache.get(bookmarkId);
+    if (!bookmark || bookmark.type !== 'r') return;
+
+    const modal = new EditBookmarkModal({
+      url: bookmark.value || bookmark.id,
+      description: bookmark.description || '',
+      onSave: (newUrl, newDescription) => {
+        try {
+          // Update in browser storage
+          const currentItems = this.adapter.getBrowserItems();
+          const updatedItems = currentItems.map(item => {
+            if (item.id === bookmarkId) {
+              return {
+                ...item,
+                id: newUrl,
+                value: newUrl,
+                description: newDescription || undefined
+              };
+            }
+            return item;
+          });
+          this.adapter.setBrowserItems(updatedItems);
+
+          // Update cache
+          const cachedBookmark = this.bookmarksCache.get(bookmarkId);
+          if (cachedBookmark) {
+            this.bookmarksCache.delete(bookmarkId);
+            this.bookmarksCache.set(newUrl, {
+              ...cachedBookmark,
+              id: newUrl,
+              value: newUrl,
+              description: newDescription || undefined
+            });
+          }
+
+          // Update folder assignment if URL changed
+          if (bookmarkId !== newUrl) {
+            const folderId = this.folderService.getBookmarkFolder(bookmarkId);
+            this.folderService.removeBookmarkAssignment(bookmarkId);
+            if (folderId) {
+              this.folderService.moveBookmarkToFolder(newUrl, folderId);
+            } else {
+              this.folderService.ensureBookmarkAssignment(newUrl);
+              this.folderService.removeFromRootOrder('bookmark', bookmarkId);
+              this.folderService.addToRootOrder('bookmark', newUrl);
+            }
+          }
+
+          ToastService.show('Bookmark updated', 'success');
+
+          // Refresh view
+          const container = this.containerElement.querySelector('[data-tab-content="list-bookmarks"]');
+          if (container) {
+            this.renderCurrentView(container as HTMLElement);
+          }
+        } catch (error) {
+          console.error('Failed to update bookmark:', error);
+          ToastService.show('Failed to update bookmark', 'error');
+        }
+      }
+    });
+
+    modal.show();
   }
 
   private async deleteFolder(folderId: string): Promise<void> {

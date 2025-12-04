@@ -195,6 +195,17 @@
     color: $color-3;
   }
 
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: calc($gap / 4);
+  }
+
+  &__edit {
+    font-size: 11px;
+    padding: 2px 8px;
+  }
+
   &__footer {
     display: flex;
     justify-content: space-between;
@@ -538,5 +549,21 @@
     &:focus {
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23e570a0' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     }
+  }
+}
+
+// Edit bookmark modal
+.edit-bookmark-modal {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: $gap;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: calc($gap / 2);
+    margin-top: calc($gap / 2);
   }
 }

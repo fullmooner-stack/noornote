@@ -458,7 +458,7 @@ export class BookmarkOrchestrator extends GenericListOrchestrator<BookmarkItem> 
       }
 
       const set = setsMap.get(category)!;
-      const tag = { type: item.type, value: item.value };
+      const tag = { type: item.type, value: item.value, description: item.description };
       if (item.isPrivate) {
         set.privateTags.push(tag);
       } else {

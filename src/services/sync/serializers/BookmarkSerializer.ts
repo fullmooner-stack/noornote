@@ -77,7 +77,7 @@ export function migrateFromOldFormat(oldData: OldBookmarkFileData): BookmarkSetD
 
   // Assign bookmarks to sets
   for (const item of oldData.items) {
-    const tag: BookmarkTag = { type: item.type, value: item.value };
+    const tag: BookmarkTag = { type: item.type, value: item.value, description: item.description };
     const assignment = assignments.find(a => a.bookmarkId === item.id);
 
     if (assignment && assignment.folderId && folderSets.has(assignment.folderId)) {
