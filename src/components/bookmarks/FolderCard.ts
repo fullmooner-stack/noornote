@@ -10,6 +10,7 @@ export interface FolderData {
   id: string;           // d-tag identifier
   name: string;         // title tag or d-tag
   itemCount: number;    // Number of bookmarks in folder
+  isMounted?: boolean;  // Is this folder mounted to profile?
 }
 
 export interface FolderCardOptions {
@@ -19,6 +20,8 @@ export interface FolderCardOptions {
   onDrop: (bookmarkId: string, folderId: string) => Promise<void>;
   onDragStart?: (folderId: string, element: HTMLElement) => void;
   onDragEnd?: () => void;
+  onMountToggle?: (folderId: string, folderName: string) => void;
+  showMountCheckbox?: boolean;  // Only show for logged-in user's own bookmarks
 }
 
 export class FolderCard {
@@ -32,7 +35,8 @@ export class FolderCard {
   }
 
   public render(): HTMLElement {
-    const { id, name, itemCount } = this.data;
+    const { id, name, itemCount, isMounted } = this.data;
+    const showMount = this.options.showMountCheckbox && this.options.onMountToggle;
 
     const card = document.createElement('div');
     card.className = 'folder-card';
@@ -59,6 +63,12 @@ export class FolderCard {
           </svg>
         </button>
       </div>
+      ${showMount ? `
+        <label class="folder-card__mount" title="Mount to Profile">
+          <input type="checkbox" ${isMounted ? 'checked' : ''} />
+          <span>Profile</span>
+        </label>
+      ` : ''}
     `;
 
     this.bindEvents(card);
@@ -67,12 +77,13 @@ export class FolderCard {
   }
 
   private bindEvents(card: HTMLElement): void {
-    const { id } = this.data;
+    const { id, name } = this.data;
 
-    // Click on folder (except actions) opens it
+    // Click on folder (except actions and mount checkbox) opens it
     card.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
       if (target.closest('.folder-card__actions')) return;
+      if (target.closest('.folder-card__mount')) return;
       this.options.onClick(id);
     });
 
@@ -90,6 +101,20 @@ export class FolderCard {
       await this.options.onDelete(id);
       card.remove();
     });
+
+    // Mount checkbox
+    const mountCheckbox = card.querySelector('.folder-card__mount input') as HTMLInputElement;
+    if (mountCheckbox && this.options.onMountToggle) {
+      mountCheckbox.addEventListener('change', (e) => {
+        e.stopPropagation();
+        this.options.onMountToggle!(id, name);
+      });
+      // Prevent label click from triggering card click
+      const mountLabel = card.querySelector('.folder-card__mount');
+      mountLabel?.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    }
 
     // Drag & Drop - as draggable
     card.addEventListener('dragstart', (e) => {
@@ -147,6 +172,14 @@ export class FolderCard {
     const countEl = this.element?.querySelector('.folder-card__count');
     if (countEl) {
       countEl.textContent = `${count} ${count === 1 ? 'item' : 'items'}`;
+    }
+  }
+
+  public updateMountStatus(isMounted: boolean): void {
+    this.data.isMounted = isMounted;
+    const checkbox = this.element?.querySelector('.folder-card__mount input') as HTMLInputElement;
+    if (checkbox) {
+      checkbox.checked = isMounted;
     }
   }
 }

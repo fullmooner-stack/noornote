@@ -396,6 +396,164 @@
   // All timeline styles inherited from _timeline.scss
 }
 
+// =========================================
+// Profile Lists (Mounted Bookmark Folders)
+// =========================================
+
+.profile-lists {
+  padding: $gap 0;
+  border-top: 1px solid $color-2;
+
+  &__loading {
+    padding: $gap;
+    color: $color-3;
+    font-size: 13px;
+    text-align: center;
+  }
+}
+
+.profile-list-section {
+  margin-bottom: $gap * 1.5;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+
+  &.dragging {
+    opacity: 0.7;
+    z-index: 100;
+    position: relative;
+  }
+
+  &.drop-above {
+    border-top: 2px solid $color-4;
+  }
+
+  &.drop-below {
+    border-bottom: 2px solid $color-4;
+  }
+}
+
+.profile-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: calc($gap / 2);
+}
+
+.profile-list-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: $color-5;
+  margin: 0;
+}
+
+.profile-list-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: none;
+  border: none;
+  border-radius: $radius-sm;
+  color: $color-3;
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    color: $color-4;
+    background: rgba($color-4, 0.1);
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.profile-list-section:hover .profile-list-drag-handle {
+  opacity: 1;
+}
+
+.profile-list-items {
+  display: flex;
+  flex-direction: column;
+  gap: calc($gap / 2);
+}
+
+.profile-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: calc($gap / 2);
+  padding: calc($gap / 2);
+  background: $color-2;
+  border-radius: $radius-md;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba($color-4, 0.1);
+  }
+
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    color: $color-4;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__url {
+    color: $color-4;
+    font-size: 13px;
+    text-decoration: none;
+    word-break: break-all;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__desc {
+    font-size: 12px;
+    color: $color-3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__id {
+    font-size: 11px;
+    font-family: monospace;
+    color: $color-3;
+  }
+}
+
+.profile-list-toggle {
+  display: inline-block;
+  margin-top: calc($gap / 2);
+  padding: calc($gap / 4) calc($gap / 2);
+  background: none;
+  border: 1px solid $color-2;
+  border-radius: $radius-sm;
+  color: $color-4;
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    border-color: $color-4;
+    background: rgba($color-4, 0.1);
+  }
+}
+
 // Loading & Error States
 .profile-loading,
 .profile-error,

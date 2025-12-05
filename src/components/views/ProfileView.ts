@@ -26,6 +26,7 @@ import { ClipboardActionsService } from '../../services/ClipboardActionsService'
 import { EventBus } from '../../services/EventBus';
 import { AuthGuard } from '../../services/AuthGuard';
 import { ArticleNotificationService } from '../../services/ArticleNotificationService';
+import { ProfileListsComponent } from '../profile/ProfileListsComponent';
 
 // Shared promise map to prevent duplicate profile loads on rapid navigation
 type ProfileLoadResult = {
@@ -59,6 +60,9 @@ export class ProfileView extends View {
 
   // Search component
   private searchComponent: ProfileSearchComponent | null = null;
+
+  // Profile lists component (mounted bookmark folders)
+  private profileListsComponent: ProfileListsComponent | null = null;
 
   constructor(npub: string) {
     super(); // Call View base class constructor
@@ -314,6 +318,8 @@ export class ProfileView extends View {
             </div>
           </div>
         </div>
+
+        <div class="profile-lists-mount"></div>
       </div>
 
       <div class="profile-timeline-container"></div>
@@ -326,6 +332,9 @@ export class ProfileView extends View {
 
       // Setup copy button handlers
       this.setupCopyButtons();
+
+      // Load profile lists (mounted bookmark folders)
+      this.loadProfileLists();
 
       // Setup QR code button handler
       this.setupQRButton();
@@ -694,6 +703,19 @@ export class ProfileView extends View {
   }
 
   /**
+   * Load profile lists (mounted bookmark folders)
+   */
+  private async loadProfileLists(): Promise<void> {
+    const listsMount = this.container.querySelector('.profile-lists-mount');
+    if (!listsMount) return;
+
+    // Create and render profile lists component
+    this.profileListsComponent = new ProfileListsComponent(this.pubkey);
+    const element = await this.profileListsComponent.render();
+    listsMount.appendChild(element);
+  }
+
+  /**
    * Save view state (implements View base class)
    */
   public override saveState(): void {
@@ -755,6 +777,9 @@ export class ProfileView extends View {
     }
     if (this.searchComponent) {
       this.searchComponent.destroy();
+    }
+    if (this.profileListsComponent) {
+      this.profileListsComponent.destroy();
     }
     this.container.remove();
   }

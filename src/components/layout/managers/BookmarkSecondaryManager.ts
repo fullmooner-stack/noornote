@@ -30,6 +30,8 @@ import { EditFolderModal } from '../../modals/EditFolderModal';
 import { BookmarkCard, type BookmarkCardData } from '../../bookmarks/BookmarkCard';
 import { FolderCard, type FolderData } from '../../bookmarks/FolderCard';
 import { UpNavigator } from '../../bookmarks/UpNavigator';
+import { ProfileMountsService } from '../../../services/ProfileMountsService';
+import { ProfileMountsOrchestrator } from '../../../services/orchestration/ProfileMountsOrchestrator';
 import type { BookmarkItem } from '../../../services/storage/BookmarkFileStorage';
 import type { NostrEvent } from '@nostr-dev-kit/ndk';
 
@@ -48,6 +50,8 @@ export class BookmarkSecondaryManager {
   private relayConfig: RelayConfig;
   private listSyncManager: ListSyncManager<BookmarkItem>;
   private adapter: BookmarkStorageAdapter;
+  private profileMountsService: ProfileMountsService;
+  private profileMountsOrch: ProfileMountsOrchestrator;
 
   // View state
   private currentFolderId: string = ''; // '' = root
@@ -72,6 +76,8 @@ export class BookmarkSecondaryManager {
 
     this.adapter = new BookmarkStorageAdapter();
     this.listSyncManager = new ListSyncManager(this.adapter);
+    this.profileMountsService = ProfileMountsService.getInstance();
+    this.profileMountsOrch = ProfileMountsOrchestrator.getInstance();
 
     this.setupEventListeners();
   }
@@ -464,10 +470,14 @@ export class BookmarkSecondaryManager {
    * Create a folder card
    */
   private createFolderCard(folder: { id: string; name: string }): HTMLElement {
+    const currentUser = this.authService.getCurrentUser();
+    const isLoggedIn = !!currentUser;
+
     const folderData: FolderData = {
       id: folder.id,
       name: folder.name,
-      itemCount: this.folderService.getFolderItemCount(folder.id)
+      itemCount: this.folderService.getFolderItemCount(folder.id),
+      isMounted: isLoggedIn ? this.profileMountsService.isMounted(folder.name) : false
     };
 
     const card = new FolderCard(folderData, {
@@ -486,10 +496,40 @@ export class BookmarkSecondaryManager {
       onDragEnd: () => {
         this.draggedItemId = null;
         this.draggedItemType = null;
-      }
+      },
+      showMountCheckbox: isLoggedIn,
+      onMountToggle: (_folderId, folderName) => this.handleMountToggle(folderName)
     });
 
     return card.render();
+  }
+
+  /**
+   * Handle mount to profile toggle
+   */
+  private async handleMountToggle(folderName: string): Promise<void> {
+    const result = this.profileMountsService.toggleMount(folderName);
+
+    if (result.error) {
+      ToastService.show(result.error, 'error');
+      // Re-render to reset checkbox state
+      const container = this.containerElement.querySelector('[data-tab-content="list-bookmarks"]');
+      if (container) {
+        this.renderCurrentView(container as HTMLElement);
+      }
+      return;
+    }
+
+    if (result.mounted) {
+      ToastService.show(`"${folderName}" mounted to profile`, 'success');
+    } else {
+      ToastService.show(`"${folderName}" unmounted from profile`, 'success');
+    }
+
+    // Publish to relays (async, don't wait)
+    this.profileMountsOrch.publishToRelays().catch(err => {
+      console.error('Failed to publish profile mounts:', err);
+    });
   }
 
   /**
@@ -769,6 +809,9 @@ export class BookmarkSecondaryManager {
           // Rename folder
           this.folderService.renameFolder(folderId, newName);
 
+          // Update profile mount reference if folder was mounted
+          this.profileMountsService.handleFolderRename(folder.name, newName);
+
           // Update category in all bookmarks assigned to this folder
           const currentItems = this.adapter.getBrowserItems();
           const updatedItems = currentItems.map(item => {
@@ -808,6 +851,9 @@ export class BookmarkSecondaryManager {
       // Get folder name before deletion (needed to update category in storage)
       const folder = this.folderService.getFolder(folderId);
       const folderName = folder?.name || '';
+
+      // Remove from profile mounts if mounted
+      this.profileMountsService.handleFolderDelete(folderName);
 
       // Delete folder (moves items to root)
       const affectedIds = this.folderService.deleteFolder(folderId);
