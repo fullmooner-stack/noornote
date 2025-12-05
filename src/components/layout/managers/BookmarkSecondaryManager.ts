@@ -660,14 +660,24 @@ export class BookmarkSecondaryManager {
           // Move bookmark into folder
           this.moveBookmarkToFolder(draggedId, targetId);
         } else if (targetId && targetId !== draggedId) {
-          // Reorder - just move DOM element, no re-render
-          const draggedType = isDraggingFolder ? 'folder' : 'bookmark';
-          const rootOrder = this.folderService.getRootOrder();
-          const targetIndex = rootOrder.findIndex(item => item.id === targetId);
-          if (targetIndex !== -1) {
-            this.folderService.moveInRootOrder(draggedType as 'folder' | 'bookmark', draggedId, targetIndex);
-            // Move DOM element directly
-            grid.insertBefore(draggedCard, dropTarget);
+          // Reorder
+          if (this.currentFolderId && isDraggingBookmark) {
+            // Inside a folder - reorder bookmarks within folder
+            const bookmarksInFolder = this.folderService.getBookmarksInFolder(this.currentFolderId);
+            const targetIndex = bookmarksInFolder.findIndex(id => id === targetId);
+            if (targetIndex !== -1) {
+              this.folderService.moveItemToPosition(draggedId, targetIndex);
+              grid.insertBefore(draggedCard, dropTarget);
+            }
+          } else {
+            // Root level - use root order
+            const draggedType = isDraggingFolder ? 'folder' : 'bookmark';
+            const rootOrder = this.folderService.getRootOrder();
+            const targetIndex = rootOrder.findIndex(item => item.id === targetId);
+            if (targetIndex !== -1) {
+              this.folderService.moveInRootOrder(draggedType as 'folder' | 'bookmark', draggedId, targetIndex);
+              grid.insertBefore(draggedCard, dropTarget);
+            }
           }
         }
       }

@@ -15,9 +15,9 @@
 import { ProfileMountsService } from '../../services/ProfileMountsService';
 import { ProfileMountsOrchestrator } from '../../services/orchestration/ProfileMountsOrchestrator';
 import { BookmarkOrchestrator } from '../../services/orchestration/BookmarkOrchestrator';
+import { BookmarkFolderService } from '../../services/BookmarkFolderService';
 import { AuthService } from '../../services/AuthService';
 import { NostrTransport } from '../../services/transport/NostrTransport';
-import { ToastService } from '../../services/ToastService';
 import type { BookmarkItem } from '../../services/storage/BookmarkFileStorage';
 
 const MAX_ITEMS_COLLAPSED = 5;
@@ -35,6 +35,7 @@ export class ProfileListsComponent {
   private profileMountsService: ProfileMountsService;
   private profileMountsOrch: ProfileMountsOrchestrator;
   private bookmarkOrch: BookmarkOrchestrator;
+  private folderService: BookmarkFolderService;
   private authService: AuthService;
   private transport: NostrTransport;
 
@@ -49,6 +50,7 @@ export class ProfileListsComponent {
     this.profileMountsService = ProfileMountsService.getInstance();
     this.profileMountsOrch = ProfileMountsOrchestrator.getInstance();
     this.bookmarkOrch = BookmarkOrchestrator.getInstance();
+    this.folderService = BookmarkFolderService.getInstance();
     this.authService = AuthService.getInstance();
     this.transport = NostrTransport.getInstance();
 
@@ -103,20 +105,30 @@ export class ProfileListsComponent {
     this.lists = [];
 
     if (this.isOwnProfile) {
-      // Own profile: read from localStorage
+      // Own profile: read from localStorage with correct folder order
       const allItems = this.bookmarkOrch.getBrowserItems();
+      const folders = this.folderService.getFolders();
 
       for (const folderName of folderNames) {
-        const folderItems = allItems.filter(item =>
-          item.category === folderName && !item.isPrivate
-        );
+        // Find folder by name to get its ID
+        const folder = folders.find(f => f.name === folderName);
 
-        if (folderItems.length > 0) {
-          this.lists.push({
-            folderName,
-            items: folderItems,
-            isExpanded: false
-          });
+        if (folder) {
+          // Get ordered bookmark IDs from folder service
+          const orderedIds = this.folderService.getBookmarksInFolder(folder.id);
+
+          // Map to actual items, maintaining order
+          const folderItems = orderedIds
+            .map(id => allItems.find(item => item.id === id))
+            .filter((item): item is BookmarkItem => item !== undefined && !item.isPrivate);
+
+          if (folderItems.length > 0) {
+            this.lists.push({
+              folderName,
+              items: folderItems,
+              isExpanded: false
+            });
+          }
         }
       }
     } else {
