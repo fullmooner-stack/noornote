@@ -76,7 +76,7 @@ export class BookmarkOrchestrator extends GenericListOrchestrator<BookmarkItem> 
     try {
       localStorage.setItem(this.featureFlagKey, enabled.toString());
     } catch (error) {
-      console.error('Failed to save NIP-51 private bookmarks flag:', error);
+      this.systemLogger.error('BookmarkOrchestrator', `Failed to save NIP-51 private bookmarks flag: ${error}`);
     }
   }
 
@@ -644,7 +644,7 @@ export class BookmarkOrchestrator extends GenericListOrchestrator<BookmarkItem> 
       }
 
       this.systemLogger.info('BookmarkOrchestrator',
-        `Sync complete: ${added} new items, ${categories.length} categories`
+        `Sync complete: ${added} new items, ${categoriesWithItems.size} categories`
       );
 
       return { added, total: merged.length };

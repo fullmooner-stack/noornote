@@ -5,15 +5,16 @@
  *
  * Storage Locations:
  * - Browser: localStorage key 'noornote_bookmarks_browser' (BookmarkItem[])
- * - File: ~/.noornote/bookmarks-public.json + bookmarks-private.json
- * - Relays: kind:10003 (public) + kind:30003 (private) events
+ * - File: ~/.noornote/{npub}/bookmarks.json
+ * - Relays: kind:30003 (Bookmark Sets) events
  */
 
 import { BaseListStorageAdapter } from './BaseListStorageAdapter';
-import { BookmarkFileStorage, type BookmarkItem, type BookmarkFolder, type FolderAssignment, type RootOrderItem } from '../../storage/BookmarkFileStorage';
+import { BookmarkFileStorage, type BookmarkItem } from '../../storage/BookmarkFileStorage';
 import type { FetchFromRelaysResult } from '../ListStorageAdapter';
 import { BookmarkOrchestrator } from '../../orchestration/BookmarkOrchestrator';
 import { AuthService } from '../../AuthService';
+import { SystemLogger } from '../../../components/system/SystemLogger';
 
 // localStorage keys for folder data (same as BookmarkFolderService)
 const STORAGE_KEY_FOLDERS = 'noornote_bookmark_folders';
@@ -24,6 +25,7 @@ export class BookmarkStorageAdapter extends BaseListStorageAdapter<BookmarkItem>
   private fileStorage: BookmarkFileStorage;
   private bookmarkOrchestrator: BookmarkOrchestrator;
   private authService: AuthService;
+  private logger = SystemLogger.getInstance();
 
   constructor() {
     super();
@@ -57,7 +59,7 @@ export class BookmarkStorageAdapter extends BaseListStorageAdapter<BookmarkItem>
       // and extracts items with their category field
       return await this.fileStorage.getAllBookmarks();
     } catch (error) {
-      console.error('[BookmarkStorageAdapter] Failed to read from file storage:', error);
+      this.logger.error('BookmarkStorageAdapter', `Failed to read from file storage: ${error}`);
       throw error;
     }
   }
@@ -71,7 +73,7 @@ export class BookmarkStorageAdapter extends BaseListStorageAdapter<BookmarkItem>
       // Use orchestrator to save in BookmarkSetData format (with categories)
       await this.bookmarkOrchestrator.saveToFile();
     } catch (error) {
-      console.error('[BookmarkStorageAdapter] Failed to write to file storage:', error);
+      this.logger.error('BookmarkStorageAdapter', `Failed to write to file storage: ${error}`);
       throw error;
     }
   }
@@ -93,34 +95,7 @@ export class BookmarkStorageAdapter extends BaseListStorageAdapter<BookmarkItem>
         localStorage.setItem(STORAGE_KEY_ROOT_ORDER, JSON.stringify(publicData.rootOrder));
       }
     } catch (error) {
-      console.error('[BookmarkStorageAdapter] Failed to restore folder data:', error);
-    }
-  }
-
-  private getFoldersFromLocalStorage(): BookmarkFolder[] {
-    try {
-      const data = localStorage.getItem(STORAGE_KEY_FOLDERS);
-      return data ? JSON.parse(data) : [];
-    } catch {
-      return [];
-    }
-  }
-
-  private getAssignmentsFromLocalStorage(): FolderAssignment[] {
-    try {
-      const data = localStorage.getItem(STORAGE_KEY_ASSIGNMENTS);
-      return data ? JSON.parse(data) : [];
-    } catch {
-      return [];
-    }
-  }
-
-  private getRootOrderFromLocalStorage(): RootOrderItem[] {
-    try {
-      const data = localStorage.getItem(STORAGE_KEY_ROOT_ORDER);
-      return data ? JSON.parse(data) : [];
-    } catch {
-      return [];
+      this.logger.error('BookmarkStorageAdapter', `Failed to restore folder data: ${error}`);
     }
   }
 
@@ -138,7 +113,7 @@ export class BookmarkStorageAdapter extends BaseListStorageAdapter<BookmarkItem>
 
       return await this.bookmarkOrchestrator.fetchBookmarksFromRelays(currentUser.pubkey);
     } catch (error) {
-      console.error('[BookmarkStorageAdapter] Failed to fetch from relays:', error);
+      this.logger.error('BookmarkStorageAdapter', `Failed to fetch from relays: ${error}`);
       throw error;
     }
   }
@@ -158,7 +133,7 @@ export class BookmarkStorageAdapter extends BaseListStorageAdapter<BookmarkItem>
       // Then publish via orchestrator (reads from files)
       await this.bookmarkOrchestrator.publishToRelays();
     } catch (error) {
-      console.error('[BookmarkStorageAdapter] Failed to publish to relays:', error);
+      this.logger.error('BookmarkStorageAdapter', `Failed to publish to relays: ${error}`);
       throw error;
     }
   }

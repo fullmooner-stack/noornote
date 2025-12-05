@@ -17,7 +17,6 @@ import { AuthService } from '../../../services/AuthService';
 import { ToastService } from '../../../services/ToastService';
 import { BookmarkOrchestrator } from '../../../services/orchestration/BookmarkOrchestrator';
 import { BookmarkFolderService } from '../../../services/BookmarkFolderService';
-import { UserProfileService } from '../../../services/UserProfileService';
 import { NostrTransport } from '../../../services/transport/NostrTransport';
 import { RelayConfig } from '../../../services/RelayConfig';
 import { ListSyncManager } from '../../../services/sync/ListSyncManager';
@@ -45,7 +44,6 @@ export class BookmarkSecondaryManager {
   private authService: AuthService;
   private bookmarkOrch: BookmarkOrchestrator;
   private folderService: BookmarkFolderService;
-  private userProfileService: UserProfileService;
   private transport: NostrTransport;
   private relayConfig: RelayConfig;
   private listSyncManager: ListSyncManager<BookmarkItem>;
@@ -60,13 +58,15 @@ export class BookmarkSecondaryManager {
   private draggedItemId: string | null = null;
   private draggedItemType: 'bookmark' | 'folder' | null = null;
 
+  // Event handler for cleanup
+  private closeDropdownHandler: ((e: Event) => void) | null = null;
+
   constructor(containerElement: HTMLElement) {
     this.containerElement = containerElement;
     this.eventBus = EventBus.getInstance();
     this.authService = AuthService.getInstance();
     this.bookmarkOrch = BookmarkOrchestrator.getInstance();
     this.folderService = BookmarkFolderService.getInstance();
-    this.userProfileService = UserProfileService.getInstance();
     this.transport = NostrTransport.getInstance();
     this.relayConfig = RelayConfig.getInstance();
 
@@ -1032,20 +1032,24 @@ export class BookmarkSecondaryManager {
     // New dropdown toggle
     const newBtn = container.querySelector('.bookmark-header__new-btn');
     const dropdown = container.querySelector('.bookmark-header__new-dropdown');
-    const dropdownMenu = container.querySelector('.bookmark-header__dropdown-menu');
 
     newBtn?.addEventListener('click', (e) => {
       e.stopPropagation();
       dropdown?.classList.toggle('bookmark-header__new-dropdown--open');
     });
 
+    // Remove previous closeDropdown listener if exists
+    if (this.closeDropdownHandler) {
+      document.removeEventListener('click', this.closeDropdownHandler);
+    }
+
     // Close dropdown when clicking outside
-    const closeDropdown = (e: Event) => {
+    this.closeDropdownHandler = (e: Event) => {
       if (!dropdown?.contains(e.target as Node)) {
         dropdown?.classList.remove('bookmark-header__new-dropdown--open');
       }
     };
-    document.addEventListener('click', closeDropdown);
+    document.addEventListener('click', this.closeDropdownHandler);
 
     // Dropdown actions
     const folderItem = container.querySelector('[data-action="new-folder"]');
@@ -1251,6 +1255,10 @@ export class BookmarkSecondaryManager {
   }
 
   public destroy(): void {
-    // Cleanup if needed
+    // Remove global click listener
+    if (this.closeDropdownHandler) {
+      document.removeEventListener('click', this.closeDropdownHandler);
+      this.closeDropdownHandler = null;
+    }
   }
 }
