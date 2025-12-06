@@ -19,6 +19,7 @@ import { setupUserMentionHandlers } from '../../helpers/UserMentionHelper';
 import { InfiniteScroll } from '../ui/InfiniteScroll';
 import { ToastService } from '../../services/ToastService';
 import { setupTabClickHandlers, switchTabWithContent } from '../../helpers/TabsHelper';
+import { escapeHtml } from '../../helpers/escapeHtml';
 
 const BATCH_SIZE = 15;
 
@@ -41,6 +42,7 @@ export class MessagesView extends View {
   private outsideClickHandler: () => void;
   private activeTab: TabFilter = 'known';
   private unreadCounts: { known: number; unknown: number } = { known: 0, unknown: 0 };
+  private subscriptionIds: string[] = [];
 
   constructor() {
     super();
@@ -64,14 +66,18 @@ export class MessagesView extends View {
     this.loadInitialData();
 
     // Listen for new messages - refresh from start
-    this.eventBus.on('dm:new-message', () => {
-      this.refreshConversations();
-    });
+    this.subscriptionIds.push(
+      this.eventBus.on('dm:new-message', () => {
+        this.refreshConversations();
+      })
+    );
 
     // Listen for badge updates - refresh from start
-    this.eventBus.on('dm:badge-update', () => {
-      this.refreshConversations();
-    });
+    this.subscriptionIds.push(
+      this.eventBus.on('dm:badge-update', () => {
+        this.refreshConversations();
+      })
+    );
   }
 
   /**
@@ -419,11 +425,11 @@ export class MessagesView extends View {
         ${avatarHtml}
         <div class="conversation-item__content">
           <div class="conversation-item__header">
-            <span class="user-mention conversation-item__name" data-pubkey="${conversation.pubkey}">${this.escapeHtml(displayName)}</span>
+            <span class="user-mention conversation-item__name" data-pubkey="${conversation.pubkey}">${escapeHtml(displayName)}</span>
             <span class="conversation-item__time">${timeAgo}</span>
           </div>
           <div class="conversation-item__preview">
-            ${this.escapeHtml(conversation.lastMessagePreview)}
+            ${escapeHtml(conversation.lastMessagePreview)}
           </div>
         </div>
       </div>
@@ -485,15 +491,6 @@ export class MessagesView extends View {
     if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
     if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
     return new Date(timestamp * 1000).toLocaleDateString();
-  }
-
-  /**
-   * Escape HTML to prevent XSS
-   */
-  private escapeHtml(text: string): string {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
   }
 
   /**
@@ -582,7 +579,7 @@ export class MessagesView extends View {
   public destroy(): void {
     this.closeMenu();
     this.infiniteScroll.destroy();
-    this.eventBus.off('dm:new-message');
-    this.eventBus.off('dm:badge-update');
+    this.subscriptionIds.forEach(id => this.eventBus.off(id));
+    this.subscriptionIds = [];
   }
 }

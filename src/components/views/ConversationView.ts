@@ -20,6 +20,7 @@ import { FeedOrchestrator } from '../../services/orchestration/FeedOrchestrator'
 import { NotificationsOrchestrator } from '../../services/orchestration/NotificationsOrchestrator';
 import { ToastService } from '../../services/ToastService';
 import { AuthGuard } from '../../services/AuthGuard';
+import { escapeHtml } from '../../helpers/escapeHtml';
 
 export class ConversationView extends View {
   private container: HTMLElement;
@@ -37,6 +38,7 @@ export class ConversationView extends View {
   private menuOpen: boolean = false;
   private menuElement: HTMLElement | null = null;
   private outsideClickHandler: () => void;
+  private subscriptionId: string | null = null;
 
   constructor(partnerPubkey: string) {
     super();
@@ -56,7 +58,7 @@ export class ConversationView extends View {
     this.loadConversation();
 
     // Listen for new messages in this conversation
-    this.eventBus.on('dm:new-message', (data: { message: DMMessage; conversationWith: string }) => {
+    this.subscriptionId = this.eventBus.on('dm:new-message', (data: { message: DMMessage; conversationWith: string }) => {
       if (data.conversationWith === this.partnerPubkey) {
         this.messages.push(data.message);
         this.renderMessages();
@@ -367,7 +369,7 @@ export class ConversationView extends View {
 
     return `
       <div class="message ${isOwn ? 'message--own' : 'message--other'}">
-        <div class="message__content">${this.escapeHtml(message.content)}</div>
+        <div class="message__content">${escapeHtml(message.content)}</div>
         <div class="message__meta">
           <span class="message__time">${time}</span>
         </div>
@@ -457,15 +459,6 @@ export class ConversationView extends View {
   }
 
   /**
-   * Escape HTML to prevent XSS
-   */
-  private escapeHtml(text: string): string {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
-  /**
    * Get container element for mounting
    */
   public getElement(): HTMLElement {
@@ -481,6 +474,9 @@ export class ConversationView extends View {
       this.menuElement.remove();
       this.menuElement = null;
     }
-    this.eventBus.off('dm:new-message');
+    if (this.subscriptionId) {
+      this.eventBus.off(this.subscriptionId);
+      this.subscriptionId = null;
+    }
   }
 }
