@@ -1,0 +1,144 @@
+/**
+ * Dropdown Menu Molecule
+ * Reusable 3-dot menu dropdown styles
+ * Used by: NoteMenu, MessagesView, etc.
+ */
+
+@use '../abstracts/variables' as *;
+@use 'sass:color';
+
+// Trigger button (3-dot icon)
+.dropdown-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: $radius-sm;
+  color: $color-5;
+  opacity: 0.6;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: color.adjust($color-2, $lightness: 5%);
+    opacity: 1;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+  }
+}
+
+// Dropdown container
+.dropdown-menu {
+  position: fixed;
+  min-width: 180px;
+  padding: calc($gap / 2);
+  background: $color-2;
+  border: 1px solid color.adjust($color-2, $lightness: 10%);
+  border-radius: $radius-md;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+}
+
+// Menu item
+.dropdown-menu-item {
+  display: flex;
+  align-items: center;
+  gap: calc($gap * 0.75);
+  width: 100%;
+  padding: calc($gap * 0.75) $gap;
+  background: transparent;
+  border: none;
+  border-radius: $radius-sm;
+  color: $color-5;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+  }
+
+  &:hover {
+    background: color.adjust($color-2, $lightness: 10%);
+
+    svg {
+      opacity: 1;
+    }
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  // Danger variant
+  &--danger {
+    color: $color-error;
+
+    svg {
+      color: $color-error;
+    }
+
+    &:hover {
+      background: color.adjust($color-error, $alpha: -0.9);
+    }
+  }
+
+  // Warning variant
+  &--warning {
+    color: $color-warning;
+
+    svg {
+      color: $color-warning;
+    }
+
+    &:hover {
+      background: color.adjust($color-warning, $alpha: -0.9);
+    }
+  }
+}
+
+// Divider
+.dropdown-menu-divider {
+  height: 1px;
+  margin: calc($gap / 2) 0;
+  background: color.adjust($color-2, $lightness: 10%);
+}
+
+// Section header
+.dropdown-menu-header {
+  padding: calc($gap / 2) $gap calc($gap / 4) $gap;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba($color-5, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+// Responsive
+@media (max-width: $breakpoint-sm) {
+  .dropdown-menu {
+    min-width: 160px;
+  }
+
+  .dropdown-menu-item {
+    padding: calc($gap * 0.625) calc($gap * 0.875);
+    font-size: 14px;
+  }
+}

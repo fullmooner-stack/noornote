@@ -180,10 +180,9 @@ export class SystemLogger {
       }
     };
 
-    console.debug = (...args) => {
-      originalConsole.debug(...args);
-      this.log('debug', 'Console', args.join(' '));
-    };
+    // Note: console.debug is NOT forwarded to SystemLogger
+    // Use console.debug for DevTools-only debug output
+    // Use this.debug() for SystemLogger output
   }
 
   /**

@@ -555,20 +555,6 @@ export class DMService {
   }
 
   /**
-   * Get current inbox relays for display purposes (NIP-17)
-   */
-  public async getCurrentInboxRelays(): Promise<string[]> {
-    return this.getMyInboxRelays();
-  }
-
-  /**
-   * Get current read relays for display purposes (Legacy NIP-04)
-   */
-  public getReadRelays(): string[] {
-    return this.relayConfig.getReadRelays();
-  }
-
-  /**
    * Default fallback inbox relays (nostr1.com infrastructure)
    */
   private readonly FALLBACK_INBOX_RELAYS = [
@@ -685,6 +671,22 @@ export class DMService {
    */
   public async markAsRead(partnerPubkey: string) {
     await this.dmStore.markAsRead(partnerPubkey);
+    this.eventBus.emit('dm:badge-update');
+  }
+
+  /**
+   * Mark all conversations as read
+   */
+  public async markAllAsRead(): Promise<void> {
+    await this.dmStore.markAllAsRead();
+    this.eventBus.emit('dm:badge-update');
+  }
+
+  /**
+   * Mark all conversations as unread
+   */
+  public async markAllAsUnread(): Promise<void> {
+    await this.dmStore.markAllAsUnread();
     this.eventBus.emit('dm:badge-update');
   }
 

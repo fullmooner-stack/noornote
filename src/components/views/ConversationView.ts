@@ -218,22 +218,11 @@ export class ConversationView extends View {
   private renderMessage(message: DMMessage): string {
     const isOwn = message.isMine;
     const time = this.formatTime(message.createdAt);
-    const isLegacy = message.format === 'legacy' || !message.format; // Treat missing format as legacy
-
-    // Legacy indicator for received messages (not our own)
-    const legacyIndicator = isLegacy && !isOwn ? `
-      <div class="message__legacy-badge" title="NIP-04 (legacy encryption)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
-          <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-        </svg>
-      </div>
-    ` : '';
 
     return `
-      <div class="message ${isOwn ? 'message--own' : 'message--other'} ${isLegacy ? 'message--legacy' : ''}">
+      <div class="message ${isOwn ? 'message--own' : 'message--other'}">
         <div class="message__content">${this.escapeHtml(message.content)}</div>
         <div class="message__meta">
-          ${legacyIndicator}
           <span class="message__time">${time}</span>
         </div>
       </div>
@@ -299,23 +288,26 @@ export class ConversationView extends View {
   }
 
   /**
-   * Format timestamp as time
+   * Format timestamp as time (US format with year, line break before time)
    */
   private formatTime(timestamp: number): string {
     const date = new Date(timestamp * 1000);
     const now = new Date();
     const isToday = date.toDateString() === now.toDateString();
 
+    const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
     if (isToday) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return timeStr;
     }
 
-    return date.toLocaleDateString([], {
+    const dateStr = date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      year: 'numeric'
     });
+
+    return `${dateStr}<br>${timeStr}`;
   }
 
   /**

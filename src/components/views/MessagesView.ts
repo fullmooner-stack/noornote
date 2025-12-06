@@ -17,6 +17,7 @@ import { SystemLogger } from '../system/SystemLogger';
 import { AuthService } from '../../services/AuthService';
 import { setupUserMentionHandlers } from '../../helpers/UserMentionHelper';
 import { InfiniteScroll } from '../ui/InfiniteScroll';
+import { ToastService } from '../../services/ToastService';
 
 const BATCH_SIZE = 15;
 
@@ -33,8 +34,8 @@ export class MessagesView extends View {
   private currentOffset: number = 0;
   private hasMoreConversations: boolean = true;
   private infiniteScroll: InfiniteScroll;
-  private inboxRelays: string[] = [];
-  private readRelays: string[] = [];
+  private menuOpen: boolean = false;
+  private outsideClickHandler: () => void;
 
   constructor() {
     super();
@@ -50,6 +51,7 @@ export class MessagesView extends View {
     this.infiniteScroll = new InfiniteScroll(() => this.handleLoadMore(), {
       loadingMessage: 'Loading more conversations...'
     });
+    this.outsideClickHandler = () => this.closeMenu();
 
     this.render();
     this.setupInfiniteScroll();
@@ -73,12 +75,35 @@ export class MessagesView extends View {
     this.container.innerHTML = `
       <div class="messages-view__header">
         <h1>Messages</h1>
-        <button class="btn btn--medium messages-view__compose-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-            <path d="M12 5v14M5 12h14"/>
-          </svg>
-          New Message
-        </button>
+        <div class="messages-view__actions">
+          <button class="btn btn--medium messages-view__compose-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            New Message
+          </button>
+          <button class="dropdown-menu-trigger messages-view__menu-trigger" aria-label="Message options">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <circle cx="8" cy="2" r="1.5" />
+              <circle cx="8" cy="8" r="1.5" />
+              <circle cx="8" cy="14" r="1.5" />
+            </svg>
+          </button>
+          <div class="dropdown-menu messages-view__menu" style="display: none;">
+            <button class="dropdown-menu-item" data-action="mark-all-read">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M2 8l4 4 8-8"/>
+              </svg>
+              Mark all read
+            </button>
+            <button class="dropdown-menu-item" data-action="mark-all-unread">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="8" cy="8" r="6"/>
+              </svg>
+              Mark all unread
+            </button>
+          </div>
+        </div>
       </div>
       <div class="messages-view__content">
         <div class="messages-view__list">
@@ -90,6 +115,28 @@ export class MessagesView extends View {
     // Setup compose button
     const composeBtn = this.container.querySelector('.messages-view__compose-btn');
     composeBtn?.addEventListener('click', () => this.openComposeModal());
+
+    // Setup menu trigger
+    const menuTrigger = this.container.querySelector('.messages-view__menu-trigger');
+    menuTrigger?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.toggleMenu();
+    });
+
+    // Setup menu items
+    const menu = this.container.querySelector('.messages-view__menu');
+    menu?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const target = e.target as HTMLElement;
+      const menuItem = target.closest('.dropdown-menu-item') as HTMLElement;
+      if (menuItem) {
+        const action = menuItem.dataset.action;
+        if (action) {
+          this.handleMenuAction(action);
+          this.closeMenu();
+        }
+      }
+    });
   }
 
   /**
@@ -143,12 +190,6 @@ export class MessagesView extends View {
     try {
       // Ensure DM service is started (idempotent)
       await this.dmService.start();
-
-      // Fetch relay info on initial load
-      if (isInitialLoad) {
-        this.inboxRelays = await this.dmService.getCurrentInboxRelays();
-        this.readRelays = this.dmService.getReadRelays();
-      }
 
       // Show loading indicator for subsequent loads
       if (!isInitialLoad) {
@@ -259,34 +300,22 @@ export class MessagesView extends View {
     const timeAgo = this.formatTimeAgo(conversation.lastMessageAt);
 
     // Avatar: use image if available, otherwise letter placeholder
+    // Wrap in user-mention for hover card support
     const avatarHtml = avatarUrl
-      ? `<img class="conversation-item__avatar-img" src="${avatarUrl}" alt="" />`
-      : `<div class="conversation-item__avatar-placeholder">${displayName.charAt(0).toUpperCase()}</div>`;
+      ? `<div class="user-mention conversation-item__avatar" data-pubkey="${conversation.pubkey}"><img class="conversation-item__avatar-img" src="${avatarUrl}" alt="" /></div>`
+      : `<div class="user-mention conversation-item__avatar-placeholder" data-pubkey="${conversation.pubkey}">${displayName.charAt(0).toUpperCase()}</div>`;
 
-    // Format relay URLs for display (strip wss:// prefix, max 3 each)
-    const inboxDisplay = this.inboxRelays
-      .slice(0, 3)
-      .map(r => r.replace('wss://', ''))
-      .join(', ');
-    const readDisplay = this.readRelays
-      .slice(0, 3)
-      .map(r => r.replace('wss://', ''))
-      .join(', ');
-
-    // Use user-mention pattern for hover card support
+    // Only avatar and name trigger hover card
     item.innerHTML = `
-      <div class="user-mention conversation-item__user" data-pubkey="${conversation.pubkey}">
+      <div class="conversation-item__user">
         ${avatarHtml}
         <div class="conversation-item__content">
           <div class="conversation-item__header">
-            <span class="conversation-item__name">${this.escapeHtml(displayName)}</span>
+            <span class="user-mention conversation-item__name" data-pubkey="${conversation.pubkey}">${this.escapeHtml(displayName)}</span>
             <span class="conversation-item__time">${timeAgo}</span>
           </div>
           <div class="conversation-item__preview">
             ${this.escapeHtml(conversation.lastMessagePreview)}
-          </div>
-          <div class="conversation-item__relays">
-            NIP-17: ${inboxDisplay}${this.inboxRelays.length > 3 ? '...' : ''} | Legacy: ${readDisplay}${this.readRelays.length > 3 ? '...' : ''}
           </div>
         </div>
       </div>
@@ -361,6 +390,79 @@ export class MessagesView extends View {
   }
 
   /**
+   * Toggle menu visibility
+   */
+  private toggleMenu(): void {
+    if (this.menuOpen) {
+      this.closeMenu();
+    } else {
+      this.openMenu();
+    }
+  }
+
+  /**
+   * Open menu
+   */
+  private openMenu(): void {
+    const menu = this.container.querySelector('.messages-view__menu') as HTMLElement;
+    if (!menu) return;
+
+    menu.style.display = 'block';
+    this.menuOpen = true;
+    this.positionMenu();
+
+    // Add outside click listener
+    setTimeout(() => {
+      document.addEventListener('click', this.outsideClickHandler);
+    }, 0);
+  }
+
+  /**
+   * Close menu
+   */
+  private closeMenu(): void {
+    const menu = this.container.querySelector('.messages-view__menu') as HTMLElement;
+    if (menu) {
+      menu.style.display = 'none';
+    }
+    this.menuOpen = false;
+    document.removeEventListener('click', this.outsideClickHandler);
+  }
+
+  /**
+   * Position menu below trigger
+   */
+  private positionMenu(): void {
+    const trigger = this.container.querySelector('.messages-view__menu-trigger') as HTMLElement;
+    const menu = this.container.querySelector('.messages-view__menu') as HTMLElement;
+    if (!trigger || !menu) return;
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const menuRect = menu.getBoundingClientRect();
+
+    // Position below trigger, aligned to right
+    menu.style.position = 'fixed';
+    menu.style.top = `${triggerRect.bottom + 4}px`;
+    menu.style.left = `${triggerRect.right - menuRect.width}px`;
+  }
+
+  /**
+   * Handle menu actions
+   */
+  private async handleMenuAction(action: string): Promise<void> {
+    switch (action) {
+      case 'mark-all-read':
+        await this.dmService.markAllAsRead();
+        ToastService.show('All messages marked as read', 'success');
+        break;
+      case 'mark-all-unread':
+        await this.dmService.markAllAsUnread();
+        ToastService.show('All messages marked as unread', 'success');
+        break;
+    }
+  }
+
+  /**
    * Get container element for mounting
    */
   public getElement(): HTMLElement {
@@ -371,6 +473,7 @@ export class MessagesView extends View {
    * Cleanup on unmount
    */
   public destroy(): void {
+    this.closeMenu();
     this.infiniteScroll.destroy();
     this.eventBus.off('dm:new-message');
     this.eventBus.off('dm:badge-update');

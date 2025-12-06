@@ -284,6 +284,62 @@ export class DMStore {
   }
 
   /**
+   * Mark all conversations as read
+   */
+  public async markAllAsRead(): Promise<void> {
+    await this.init();
+
+    return new Promise((resolve, reject) => {
+      const tx = this.db!.transaction(CONVERSATIONS_STORE, 'readwrite');
+      const store = tx.objectStore(CONVERSATIONS_STORE);
+      const request = store.openCursor();
+
+      request.onsuccess = () => {
+        const cursor = request.result;
+        if (cursor) {
+          const conversation = cursor.value as DMConversation;
+          if (conversation.unreadCount > 0) {
+            conversation.unreadCount = 0;
+            cursor.update(conversation);
+          }
+          cursor.continue();
+        }
+      };
+
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  /**
+   * Mark all conversations as unread (set unread count to 1)
+   */
+  public async markAllAsUnread(): Promise<void> {
+    await this.init();
+
+    return new Promise((resolve, reject) => {
+      const tx = this.db!.transaction(CONVERSATIONS_STORE, 'readwrite');
+      const store = tx.objectStore(CONVERSATIONS_STORE);
+      const request = store.openCursor();
+
+      request.onsuccess = () => {
+        const cursor = request.result;
+        if (cursor) {
+          const conversation = cursor.value as DMConversation;
+          if (conversation.unreadCount === 0) {
+            conversation.unreadCount = 1;
+            cursor.update(conversation);
+          }
+          cursor.continue();
+        }
+      };
+
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  /**
    * Get total unread count across all conversations
    */
   public async getTotalUnreadCount(): Promise<number> {

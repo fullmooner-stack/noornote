@@ -19,15 +19,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: $gap calc($gap * 1.5);
+    padding: 0 0 $gap 0;
     border-bottom: 1px solid $color-2;
+  }
 
-    h1 {
-      font-size: 20px;
-      font-weight: 600;
-      color: $color-6;
-      margin: 0;
-    }
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: calc($gap / 2);
   }
 
   &__compose-btn {
@@ -39,6 +38,10 @@
       width: 18px;
       height: 18px;
     }
+  }
+
+  &__menu-trigger {
+    margin-left: 0;
   }
 
   &__content {
@@ -112,12 +115,17 @@
     min-width: 0;
   }
 
+  &__avatar {
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
   &__avatar-img {
     width: 48px;
     height: 48px;
     border-radius: 50%;
     object-fit: cover;
-    flex-shrink: 0;
+    display: block;
   }
 
   &__avatar-placeholder {
@@ -132,6 +140,7 @@
     font-weight: 600;
     font-size: 18px;
     flex-shrink: 0;
+    cursor: pointer;
   }
 
   &__content {
@@ -153,6 +162,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    cursor: pointer;
   }
 
   &__time {
@@ -168,16 +178,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-
-  &__relays {
-    font-size: 11px;
-    color: $color-3;
-    opacity: 0.7;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-top: 2px;
   }
 
   &__badge {
@@ -264,7 +264,7 @@
 
   &__name {
     font-weight: 500;
-    color: $color-6;
+    color: $color-5;
     font-size: 15px;
   }
 
@@ -369,17 +369,12 @@
   &--other {
     align-self: flex-start;
     background: $color-2;
-    color: $color-6;
+    color: $color-5;
     border-bottom-left-radius: 4px;
 
     .message__time {
       color: $color-3;
     }
-  }
-
-  &--legacy.message--other {
-    // Subtle indicator for legacy messages
-    border-left: 2px solid #ffa94d;
   }
 
   &__content {
@@ -399,18 +394,6 @@
 
   &__time {
     font-size: 11px;
-  }
-
-  &__legacy-badge {
-    display: flex;
-    align-items: center;
-    color: #ffa94d;
-    cursor: help;
-
-    svg {
-      width: 12px;
-      height: 12px;
-    }
   }
 }
 
