@@ -171,29 +171,28 @@ export class DMStore {
     return new Promise((resolve, reject) => {
       const tx = this.db!.transaction(MESSAGES_STORE, 'readonly');
       const store = tx.objectStore(MESSAGES_STORE);
-      const index = store.index('conversationWith');
-      const messages: DMMessage[] = [];
-
-      const request = index.openCursor(IDBKeyRange.only(partnerPubkey), 'prev');
+      const request = store.getAll();
 
       request.onsuccess = () => {
-        const cursor = request.result;
-        if (!cursor || messages.length >= limit) {
-          // Sort by createdAt ascending (oldest first for display)
-          resolve(messages.sort((a, b) => a.createdAt - b.createdAt));
-          return;
+        const allMessages = request.result as DMMessage[];
+
+        // Filter by conversationWith
+        let result = allMessages.filter(m => m.conversationWith === partnerPubkey);
+
+        // Apply before filter if specified
+        if (before) {
+          result = result.filter(m => m.createdAt < before);
         }
 
-        const message = cursor.value as DMMessage;
+        // Sort by createdAt ascending (oldest first for display)
+        result = result.sort((a, b) => a.createdAt - b.createdAt);
 
-        // Skip if before timestamp specified and message is newer
-        if (before && message.createdAt >= before) {
-          cursor.continue();
-          return;
+        // Apply limit (take newest)
+        if (result.length > limit) {
+          result = result.slice(-limit);
         }
 
-        messages.push(message);
-        cursor.continue();
+        resolve(result);
       };
 
       request.onerror = () => reject(request.error);

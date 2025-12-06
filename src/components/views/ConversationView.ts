@@ -157,8 +157,6 @@ export class ConversationView extends View {
       // Load messages
       this.messages = await this.dmService.getMessages(this.partnerPubkey);
 
-      this.systemLogger.info('ConversationView', `Loaded ${this.messages.length} messages`);
-
       // Render messages
       this.renderMessages();
       this.scrollToBottom();

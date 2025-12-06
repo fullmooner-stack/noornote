@@ -21,7 +21,7 @@ import { RelayConfig } from '../RelayConfig';
 import { DMStore, type DMMessage } from './DMStore';
 import { EventBus } from '../EventBus';
 import { SystemLogger } from '../../components/system/SystemLogger';
-import { generateSecretKey, getPublicKey } from '../../services/NostrToolsAdapter';
+import { generateSecretKey, getPublicKey, calculateEventHash } from '../../services/NostrToolsAdapter';
 
 // NIP-17 Kind constants
 const KIND_PRIVATE_MESSAGE = 14;
@@ -278,8 +278,6 @@ export class DMService {
       // Emit event for UI updates
       this.eventBus.emit('dm:new-message', { message, conversationWith });
       this.eventBus.emit('dm:badge-update');
-
-      this.systemLogger.info('DMService', `Stored NIP-17 message from ${rumor.pubkey.slice(0, 8)}`);
     } catch (error) {
       this.systemLogger.error('DMService', 'Error processing gift wrap:', error);
     }
@@ -415,22 +413,32 @@ export class DMService {
     try {
       this.systemLogger.info('DMService', `Sending DM to ${recipientPubkey.slice(0, 8)}...`);
 
-      // Step 1: Create rumor (kind:14, UNSIGNED)
+      // Step 1: Create rumor (kind:14, UNSIGNED but with calculated id)
       const now = Math.floor(Date.now() / 1000);
-      const rumor: Partial<NostrEvent> = {
+      const tags: string[][] = [['p', recipientPubkey]];
+
+      if (replyTo) {
+        tags.push(['e', replyTo, '', 'reply']);
+      }
+
+      const rumorBase = {
         kind: KIND_PRIVATE_MESSAGE,
         pubkey: currentUser.pubkey,
         created_at: now,
         content,
-        tags: [['p', recipientPubkey]]
+        tags
       };
 
-      if (replyTo) {
-        rumor.tags!.push(['e', replyTo, '', 'reply']);
-      }
+      // Calculate id for rumor (NIP-17 requires id but no signature)
+      const rumorId = calculateEventHash(rumorBase);
+      const rumor: NostrEvent = {
+        ...rumorBase,
+        id: rumorId,
+        sig: '' // No signature for rumor
+      };
 
       // Step 2: Create gift wrap for recipient
-      const recipientWrap = await this.createGiftWrap(rumor as NostrEvent, recipientPubkey);
+      const recipientWrap = await this.createGiftWrap(rumor, recipientPubkey);
 
       if (!recipientWrap) {
         throw new Error('Failed to create gift wrap for recipient');
@@ -468,7 +476,8 @@ export class DMService {
 
       await this.dmStore.saveMessage(message);
 
-      this.eventBus.emit('dm:message-sent', { message, conversationWith: recipientPubkey });
+      // Emit dm:new-message so ConversationView updates
+      this.eventBus.emit('dm:new-message', { message, conversationWith: recipientPubkey });
 
       return true;
     } catch (error) {
@@ -504,7 +513,11 @@ export class DMService {
       // Step 2: Create gift wrap (encrypt seal with ephemeral key)
       const ephemeralSecretKey = generateSecretKey();
       const ephemeralPubkey = getPublicKey(ephemeralSecretKey);
-      const ephemeralSigner = new NDKPrivateKeySigner(Buffer.from(ephemeralSecretKey).toString('hex'));
+      // Convert Uint8Array to hex string (browser-compatible, no Buffer)
+      const ephemeralHex = Array.from(ephemeralSecretKey)
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+      const ephemeralSigner = new NDKPrivateKeySigner(ephemeralHex);
 
       const sealJson = JSON.stringify(signedSeal);
 
@@ -530,7 +543,10 @@ export class DMService {
 
       return wrapEvent.rawEvent();
     } catch (error) {
-      this.systemLogger.error('DMService', 'Failed to create gift wrap:', error);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : '';
+      this.systemLogger.error('DMService', `Failed to create gift wrap: ${errorMsg}`);
+      console.error('[DMService] Gift wrap error:', error, errorStack);
       return null;
     }
   }
