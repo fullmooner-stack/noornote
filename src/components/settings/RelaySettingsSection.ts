@@ -588,6 +588,9 @@ export class RelaySettingsSection extends SettingsSection {
       // Publish NIP-65 relay list (kind:10002) to network
       await this.publishRelayList();
 
+      // Publish NIP-17 DM relay list (kind:10050) to network
+      await this.publishDMRelayList();
+
       this.showMessage(contentContainer, 'Settings saved successfully!', 'success');
     } catch (error) {
       this.showMessage(contentContainer, 'Failed to save settings: ' + error, 'error');
@@ -635,6 +638,59 @@ export class RelaySettingsSection extends SettingsSection {
     } catch (error) {
       console.error('Failed to publish relay list:', error);
       throw error; // Re-throw to be caught by handleSave
+    }
+  }
+
+  /**
+   * Publish DM relay list to network as NIP-17 (kind:10050)
+   * Only publishes if there are relays with 'inbox' type
+   */
+  private async publishDMRelayList(): Promise<void> {
+    try {
+      const currentUser = this.authService.getCurrentUser();
+      if (!currentUser) {
+        console.warn('No user logged in, skipping DM relay list publish');
+        return;
+      }
+
+      // Get relays marked as inbox
+      const inboxRelays = this.tempRelays.filter(r => r.types.includes('inbox'));
+
+      if (inboxRelays.length === 0) {
+        console.log('No DM inbox relays configured, skipping kind:10050 publish');
+        return;
+      }
+
+      // Create relay tags for kind:10050 - format: ["relay", "wss://relay.example.com"]
+      const relayTags = inboxRelays.map(r => ['relay', r.url]);
+
+      const unsignedEvent = {
+        kind: 10050,
+        created_at: Math.floor(Date.now() / 1000),
+        tags: relayTags,
+        content: '',
+        pubkey: currentUser.pubkey
+      };
+
+      // Sign event
+      const signedEvent = await this.authService.signEvent(unsignedEvent);
+
+      // Publish to current write relays
+      const publishRelays = this.relayConfig.getWriteRelays();
+      if (publishRelays.length === 0) {
+        console.warn('No write relays available for publishing DM relay list');
+        return;
+      }
+
+      // Import NostrTransport for publishing
+      const { NostrTransport } = await import('../../services/transport/NostrTransport');
+      const transport = NostrTransport.getInstance();
+      await transport.publish(publishRelays, signedEvent);
+
+      console.log(`DM relay list (kind:10050) published with ${inboxRelays.length} relays`);
+    } catch (error) {
+      console.error('Failed to publish DM relay list:', error);
+      // Don't throw - DM relay list is optional, main relay list is more important
     }
   }
 

@@ -1,0 +1,434 @@
+/**
+ * DM Views Styles
+ * Styling for MessagesView and ConversationView (NIP-17)
+ */
+
+@use '../abstracts/variables' as *;
+@use '../abstracts/mixins' as *;
+
+/* ================================
+   Messages View (Conversations List)
+   ================================ */
+
+.messages-view {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $gap calc($gap * 1.5);
+    border-bottom: 1px solid $color-2;
+
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: $color-6;
+      margin: 0;
+    }
+  }
+
+  &__compose-btn {
+    display: flex;
+    align-items: center;
+    gap: calc($gap / 2);
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  &__content {
+    flex: 1;
+    // Note: Scrolling handled by parent .primary-content
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__loading,
+  &__empty,
+  &__error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: calc($gap * 3);
+    text-align: center;
+    color: $color-4;
+
+    svg {
+      margin-bottom: $gap;
+      opacity: 0.5;
+    }
+
+    p {
+      margin: 0;
+      &.text-muted {
+        color: $color-3;
+        font-size: 14px;
+        margin-top: calc($gap / 2);
+      }
+    }
+  }
+}
+
+/* Conversation Item */
+.conversation-item {
+  display: flex;
+  align-items: center;
+  gap: $gap;
+  padding: $gap calc($gap * 1.5);
+  cursor: pointer;
+  border-bottom: 1px solid $color-2;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: rgba($color-4, 0.05);
+  }
+
+  &--unread {
+    background: rgba($color-4, 0.08);
+
+    .conversation-item__name {
+      font-weight: 600;
+    }
+
+    .conversation-item__preview {
+      color: $color-5;
+    }
+  }
+
+  &__user {
+    display: flex;
+    align-items: center;
+    gap: $gap;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__avatar-img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  &__avatar-placeholder {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $color-4;
+    color: $color-1;
+    font-weight: 600;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  &__content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+  }
+
+  &__name {
+    font-weight: 500;
+    color: $color-6;
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__time {
+    font-size: 12px;
+    color: $color-3;
+    flex-shrink: 0;
+    margin-left: $gap;
+  }
+
+  &__preview {
+    font-size: 14px;
+    color: $color-3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__relays {
+    font-size: 11px;
+    color: $color-3;
+    opacity: 0.7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+  }
+
+  &__badge {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: $color-4;
+    color: $color-1;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+}
+
+/* ================================
+   Conversation View (Message Thread)
+   ================================ */
+
+.conversation-view {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: $gap;
+    padding: $gap calc($gap * 1.5);
+    border-bottom: 1px solid $color-2;
+  }
+
+  &__back-btn {
+    background: none;
+    border: none;
+    padding: calc($gap / 2);
+    margin: calc($gap / -2);
+    cursor: pointer;
+    color: $color-4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background: rgba($color-4, 0.1);
+    }
+  }
+
+  &__user {
+    display: flex;
+    align-items: center;
+    gap: calc($gap / 2);
+  }
+
+  &__avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .avatar-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: $color-4;
+      color: $color-1;
+      font-weight: 600;
+      font-size: 14px;
+    }
+  }
+
+  &__name {
+    font-weight: 500;
+    color: $color-6;
+    font-size: 15px;
+  }
+
+  &__messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: $gap calc($gap * 1.5);
+    display: flex;
+    flex-direction: column;
+    gap: calc($gap / 2);
+  }
+
+  &__loading,
+  &__empty,
+  &__error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    color: $color-3;
+
+    p {
+      margin: 0;
+      &.text-muted {
+        font-size: 14px;
+        margin-top: calc($gap / 2);
+      }
+    }
+  }
+
+  &__input {
+    display: flex;
+    gap: calc($gap / 2);
+    padding: $gap calc($gap * 1.5);
+    border-top: 1px solid $color-2;
+    background: $color-1;
+  }
+
+  &__textarea {
+    flex: 1;
+    resize: none;
+    border: 1px solid $color-2;
+    border-radius: 20px;
+    padding: calc($gap * 0.75) $gap;
+    font-size: 14px;
+    line-height: 1.4;
+    background: $color-1;
+    color: $color-6;
+    min-height: 40px;
+    max-height: 120px;
+
+    &::placeholder {
+      color: $color-3;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: $color-4;
+    }
+  }
+
+  &__send-btn {
+    padding: calc($gap / 2);
+    min-width: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+
+/* Message Bubble */
+.conversation-view .message {
+  max-width: 75%;
+  padding: calc($gap * 0.75) $gap;
+  border-radius: 16px;
+  position: relative;
+
+  &--own {
+    align-self: flex-end;
+    background: $color-4;
+    color: $color-1;
+    border-bottom-right-radius: 4px;
+
+    .message__time {
+      color: rgba($color-1, 0.7);
+    }
+  }
+
+  &--other {
+    align-self: flex-start;
+    background: $color-2;
+    color: $color-6;
+    border-bottom-left-radius: 4px;
+
+    .message__time {
+      color: $color-3;
+    }
+  }
+
+  &--legacy.message--other {
+    // Subtle indicator for legacy messages
+    border-left: 2px solid #ffa94d;
+  }
+
+  &__content {
+    font-size: 14px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    margin-top: 4px;
+  }
+
+  &__time {
+    font-size: 11px;
+  }
+
+  &__legacy-badge {
+    display: flex;
+    align-items: center;
+    color: #ffa94d;
+    cursor: help;
+
+    svg {
+      width: 12px;
+      height: 12px;
+    }
+  }
+}
+
+/* ================================
+   DM Badge in Sidebar
+   ================================ */
+
+.dm-badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: $color-4;
+  color: $color-1;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+}

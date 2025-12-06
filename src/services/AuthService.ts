@@ -780,6 +780,136 @@ export class AuthService {
   }
 
   /**
+   * NIP-44 encrypt plaintext for a recipient
+   * Uses nsec, browser extension, key signer, or NIP-46 bunker depending on auth method
+   */
+  public async nip44Encrypt(plaintext: string, recipientPubkey: string): Promise<string> {
+    if (this.isReadOnly) {
+      throw new Error('Cannot encrypt in read-only mode (npub login)');
+    }
+
+    try {
+      if (this.authMethod === 'nsec' && this.nsec) {
+        // Use nostr-tools for direct encryption
+        const { nip44Encrypt } = await import('./NostrToolsAdapter');
+        return nip44Encrypt(plaintext, recipientPubkey, this.nsec);
+      } else if (this.authMethod === 'extension' && this.extension?.nip44) {
+        return await this.extension.nip44.encrypt(recipientPubkey, plaintext);
+      } else if (this.authMethod === 'key-signer' && this.keySignerManager) {
+        const keySigner = this.keySignerManager.getClient();
+        if (!keySigner) {
+          throw new Error('KeySigner client not available');
+        }
+        return await keySigner.nip44Encrypt(plaintext, recipientPubkey);
+      } else if (this.authMethod === 'nip46' && this.nip46Manager) {
+        return await this.nip46Manager.nip44Encrypt(plaintext, recipientPubkey);
+      } else {
+        throw new Error('No encryption method available');
+      }
+    } catch (error) {
+      console.error('NIP-44 encryption error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * NIP-44 decrypt ciphertext from a sender
+   * Uses nsec, browser extension, key signer, or NIP-46 bunker depending on auth method
+   */
+  public async nip44Decrypt(ciphertext: string, senderPubkey: string): Promise<string> {
+    if (this.isReadOnly) {
+      throw new Error('Cannot decrypt in read-only mode (npub login)');
+    }
+
+    try {
+      if (this.authMethod === 'nsec' && this.nsec) {
+        // Use nostr-tools for direct decryption
+        const { nip44Decrypt } = await import('./NostrToolsAdapter');
+        return nip44Decrypt(ciphertext, senderPubkey, this.nsec);
+      } else if (this.authMethod === 'extension' && this.extension?.nip44) {
+        return await this.extension.nip44.decrypt(senderPubkey, ciphertext);
+      } else if (this.authMethod === 'key-signer' && this.keySignerManager) {
+        const keySigner = this.keySignerManager.getClient();
+        if (!keySigner) {
+          throw new Error('KeySigner client not available');
+        }
+        return await keySigner.nip44Decrypt(ciphertext, senderPubkey);
+      } else if (this.authMethod === 'nip46' && this.nip46Manager) {
+        return await this.nip46Manager.nip44Decrypt(ciphertext, senderPubkey);
+      } else {
+        throw new Error('No decryption method available');
+      }
+    } catch (error) {
+      console.error('NIP-44 decryption error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * NIP-04 encrypt plaintext for a recipient (legacy)
+   * Uses nsec, browser extension, key signer, or NIP-46 bunker depending on auth method
+   */
+  public async nip04Encrypt(plaintext: string, recipientPubkey: string): Promise<string> {
+    if (this.isReadOnly) {
+      throw new Error('Cannot encrypt in read-only mode (npub login)');
+    }
+
+    try {
+      if (this.authMethod === 'nsec' && this.nsec) {
+        const { nip04 } = await import('./NostrToolsAdapter');
+        return await nip04.encrypt(this.nsec, recipientPubkey, plaintext);
+      } else if (this.authMethod === 'extension' && this.extension?.nip04) {
+        return await this.extension.nip04.encrypt(recipientPubkey, plaintext);
+      } else if (this.authMethod === 'key-signer' && this.keySignerManager) {
+        const keySigner = this.keySignerManager.getClient();
+        if (!keySigner) {
+          throw new Error('KeySigner client not available');
+        }
+        return await keySigner.nip04Encrypt(plaintext, recipientPubkey);
+      } else if (this.authMethod === 'nip46' && this.nip46Manager) {
+        return await this.nip46Manager.nip04Encrypt(plaintext, recipientPubkey);
+      } else {
+        throw new Error('No encryption method available');
+      }
+    } catch (error) {
+      console.error('NIP-04 encryption error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * NIP-04 decrypt ciphertext from a sender (legacy)
+   * Uses nsec, browser extension, key signer, or NIP-46 bunker depending on auth method
+   */
+  public async nip04Decrypt(ciphertext: string, senderPubkey: string): Promise<string> {
+    if (this.isReadOnly) {
+      throw new Error('Cannot decrypt in read-only mode (npub login)');
+    }
+
+    try {
+      if (this.authMethod === 'nsec' && this.nsec) {
+        const { nip04 } = await import('./NostrToolsAdapter');
+        return await nip04.decrypt(this.nsec, senderPubkey, ciphertext);
+      } else if (this.authMethod === 'extension' && this.extension?.nip04) {
+        return await this.extension.nip04.decrypt(senderPubkey, ciphertext);
+      } else if (this.authMethod === 'key-signer' && this.keySignerManager) {
+        const keySigner = this.keySignerManager.getClient();
+        if (!keySigner) {
+          throw new Error('KeySigner client not available');
+        }
+        return await keySigner.nip04Decrypt(ciphertext, senderPubkey);
+      } else if (this.authMethod === 'nip46' && this.nip46Manager) {
+        return await this.nip46Manager.nip04Decrypt(ciphertext, senderPubkey);
+      } else {
+        throw new Error('No decryption method available');
+      }
+    } catch (error) {
+      console.error('NIP-04 decryption error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Check if user has a valid session
    */
   public hasValidSession(): boolean {

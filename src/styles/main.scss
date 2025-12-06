@@ -76,6 +76,7 @@
 @use 'components/mutuals';
 @use 'components/bookmark-cards';
 @use 'components/offline-overlay';
+@use 'components/dm-views';
 
 // 4. Molecules - Combinations of atoms
 @use 'molecules/buttons';

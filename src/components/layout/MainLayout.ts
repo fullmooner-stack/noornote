@@ -22,6 +22,7 @@ import { BookmarkSecondaryManager } from './managers/BookmarkSecondaryManager';
 import { FollowListSecondaryManager } from './managers/FollowListSecondaryManager';
 import { MuteListSecondaryManager } from './managers/MuteListSecondaryManager';
 import { NotificationsBadgeManager } from './managers/NotificationsBadgeManager';
+import { DMBadgeManager } from './managers/DMBadgeManager';
 import { ListViewPartial, type ListType } from './partials/ListViewPartial';
 import { ListsMenuPartial } from './partials/ListsMenuPartial';
 import { deactivateAllTabs, switchTabWithContent } from '../../helpers/TabsHelper';
@@ -46,6 +47,7 @@ export class MainLayout {
   private followManager: FollowListSecondaryManager | null = null;
   private muteManager: MuteListSecondaryManager | null = null;
   private badgeManager: NotificationsBadgeManager | null = null;
+  private dmBadgeManager: DMBadgeManager | null = null;
   private listsMenu: ListsMenuPartial | null = null;
   private currentListView: ListViewPartial | null = null;
 
@@ -123,6 +125,12 @@ export class MainLayout {
     const badgeElement = this.element.querySelector('.notifications-badge') as HTMLElement;
     if (badgeElement) {
       this.badgeManager = new NotificationsBadgeManager(badgeElement);
+    }
+
+    // Initialize DMBadgeManager
+    const dmBadgeElement = this.element.querySelector('.dm-badge') as HTMLElement;
+    if (dmBadgeElement) {
+      this.dmBadgeManager = new DMBadgeManager(dmBadgeElement);
     }
 
     // Initialize Lists Menu (Sidebar Accordion)
@@ -472,6 +480,7 @@ export class MainLayout {
                   <polyline points="22,6 12,13 2,6"></polyline>
                 </svg>
                 Messages
+                <span class="dm-badge"></span>
               </a>
             </li>
             <li>

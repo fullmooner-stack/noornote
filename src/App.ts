@@ -221,6 +221,30 @@ export class App {
       true
     );
 
+    // Messages View (NIP-17 DMs) - requires authentication
+    this.router.register(
+      '/messages',
+      () => {
+        this.appState.setState('view', {
+          currentView: 'messages'
+        });
+        this.mountPrimaryContent('messages');
+        this.mountSecondaryContent('debug-log');
+      },
+      'mv',
+      true
+    );
+
+    // Conversation View (single DM thread) - requires authentication
+    this.router.register('/messages/:pubkey', (params) => {
+      this.appState.setState('view', {
+        currentView: 'conversation',
+        params: { pubkey: params.pubkey }
+      });
+      this.mountPrimaryContent('conversation', params.pubkey);
+      this.mountSecondaryContent('debug-log');
+    }, 'cv', true);
+
     // Write Article View (requires authentication)
     this.router.register(
       '/write-article',
@@ -362,6 +386,24 @@ export class App {
         const { MuteListView } = await import('./components/views/MuteListView');
         const muteListView = new MuteListView();
         primaryContent.appendChild(await muteListView.render());
+        break;
+      }
+
+      case 'messages': {
+        // MessagesView: DM conversations list
+        const { MessagesView } = await import('./components/views/MessagesView');
+        const messagesView = new MessagesView();
+        primaryContent.appendChild(messagesView.getElement());
+        break;
+      }
+
+      case 'conversation': {
+        // ConversationView: Single DM thread
+        if (param) {
+          const { ConversationView } = await import('./components/views/ConversationView');
+          const conversationView = new ConversationView(param);
+          primaryContent.appendChild(conversationView.getElement());
+        }
         break;
       }
     }

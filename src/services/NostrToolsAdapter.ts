@@ -18,7 +18,8 @@ import { hexToBytes, bytesToHex } from '@noble/hashes/utils';
 
 // Low-level crypto functions from nostr-tools (NDK's peer dependency)
 // NDK uses these internally but doesn't expose them in public API
-import { getPublicKey, finalizeEvent, verifyEvent, nip04, getEventHash } from 'nostr-tools';
+import { getPublicKey, finalizeEvent, verifyEvent, nip04, getEventHash, generateSecretKey } from 'nostr-tools';
+import * as nip44 from 'nostr-tools/nip44';
 
 // ============= TYPE EXPORTS =============
 
@@ -145,3 +146,41 @@ export { finalizeEvent };
  * Used by NWCService for encrypted wallet communication
  */
 export { nip04 };
+
+/**
+ * Re-export generateSecretKey for creating ephemeral keys
+ * Used by DMService for Gift Wrap
+ */
+export { generateSecretKey };
+
+/**
+ * Re-export getPublicKey for deriving public keys
+ * Used by DMService for ephemeral keys
+ */
+export { getPublicKey };
+
+// ============= NIP-44 ENCRYPTION =============
+
+/**
+ * NIP-44 encrypt plaintext for a recipient
+ * @param plaintext - Text to encrypt
+ * @param recipientPubkey - Recipient's public key (hex)
+ * @param privateKey - Sender's private key (hex)
+ * @returns Encrypted payload
+ */
+export function nip44Encrypt(plaintext: string, recipientPubkey: string, privateKey: string): string {
+  const conversationKey = nip44.getConversationKey(hexToBytes(privateKey), recipientPubkey);
+  return nip44.encrypt(plaintext, conversationKey);
+}
+
+/**
+ * NIP-44 decrypt ciphertext from a sender
+ * @param ciphertext - Encrypted payload
+ * @param senderPubkey - Sender's public key (hex)
+ * @param privateKey - Recipient's private key (hex)
+ * @returns Decrypted plaintext
+ */
+export function nip44Decrypt(ciphertext: string, senderPubkey: string, privateKey: string): string {
+  const conversationKey = nip44.getConversationKey(hexToBytes(privateKey), senderPubkey);
+  return nip44.decrypt(ciphertext, conversationKey);
+}
