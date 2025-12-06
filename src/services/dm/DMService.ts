@@ -476,7 +476,9 @@ export class DMService {
         this.systemLogger.info('DMService', 'Self-copy published');
       }
 
-      // Step 6: Store message locally
+      // Step 6: Store message locally with selfWrap.id as wrapId
+      // This ensures that when the self-copy comes back from the relay,
+      // hasMessage(selfWrap.id) returns true and it's skipped as duplicate
       const message: DMMessage = {
         id: `local-${Date.now()}`,
         pubkey: currentUser.pubkey,
@@ -485,7 +487,7 @@ export class DMService {
         conversationWith: recipientPubkey,
         replyTo,
         isMine: true,
-        wrapId: recipientWrap.id,
+        wrapId: selfWrap?.id || recipientWrap.id,
         format: 'nip17' // We always send NIP-17
       };
 
