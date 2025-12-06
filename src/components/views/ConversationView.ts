@@ -15,6 +15,11 @@ import { EventBus } from '../../services/EventBus';
 import { Router } from '../../services/Router';
 import { SystemLogger } from '../system/SystemLogger';
 import { AuthService } from '../../services/AuthService';
+import { MuteOrchestrator } from '../../services/orchestration/MuteOrchestrator';
+import { FeedOrchestrator } from '../../services/orchestration/FeedOrchestrator';
+import { NotificationsOrchestrator } from '../../services/orchestration/NotificationsOrchestrator';
+import { ToastService } from '../../services/ToastService';
+import { AuthGuard } from '../../services/AuthGuard';
 
 export class ConversationView extends View {
   private container: HTMLElement;
@@ -29,6 +34,9 @@ export class ConversationView extends View {
   private isLoading: boolean = true;
   private isSending: boolean = false;
   private partnerProfile: { displayName: string; avatarUrl: string } | null = null;
+  private menuOpen: boolean = false;
+  private menuElement: HTMLElement | null = null;
+  private outsideClickHandler: () => void;
 
   constructor(partnerPubkey: string) {
     super();
@@ -42,6 +50,7 @@ export class ConversationView extends View {
     this.router = Router.getInstance();
     this.systemLogger = SystemLogger.getInstance();
     this.authService = AuthService.getInstance();
+    this.outsideClickHandler = () => this.closeMenu();
 
     this.render();
     this.loadConversation();
@@ -71,6 +80,13 @@ export class ConversationView extends View {
           <div class="conversation-view__avatar"></div>
           <span class="conversation-view__name">Loading...</span>
         </div>
+        <button class="note-menu-trigger conversation-view__menu-trigger" aria-label="User options">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <circle cx="8" cy="2" r="1.5" />
+            <circle cx="8" cy="8" r="1.5" />
+            <circle cx="8" cy="14" r="1.5" />
+          </svg>
+        </button>
       </div>
       <div class="conversation-view__messages">
         <div class="conversation-view__loading">Loading messages...</div>
@@ -103,6 +119,13 @@ export class ConversationView extends View {
       this.router.navigate('/messages');
     });
 
+    // Menu trigger
+    const menuTrigger = this.container.querySelector('.conversation-view__menu-trigger');
+    menuTrigger?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.toggleMenu();
+    });
+
     // Textarea auto-resize and send button enable
     const textarea = this.container.querySelector('.conversation-view__textarea') as HTMLTextAreaElement;
     const sendBtn = this.container.querySelector('.conversation-view__send-btn') as HTMLButtonElement;
@@ -132,6 +155,131 @@ export class ConversationView extends View {
         this.sendMessage();
       }
     });
+  }
+
+  /**
+   * Toggle menu visibility
+   */
+  private toggleMenu(): void {
+    if (this.menuOpen) {
+      this.closeMenu();
+    } else {
+      this.openMenu();
+    }
+  }
+
+  /**
+   * Open mute menu
+   */
+  private openMenu(): void {
+    // Create menu if it doesn't exist
+    if (!this.menuElement) {
+      this.menuElement = this.createMenu();
+      document.body.appendChild(this.menuElement);
+    }
+
+    // Position menu
+    const trigger = this.container.querySelector('.conversation-view__menu-trigger');
+    if (trigger) {
+      const rect = trigger.getBoundingClientRect();
+      this.menuElement.style.top = `${rect.bottom + 4}px`;
+      this.menuElement.style.left = `${rect.right - 200}px`; // Align to right edge
+    }
+
+    this.menuElement.style.display = 'block';
+    this.menuOpen = true;
+
+    // Add outside click listener
+    setTimeout(() => {
+      document.addEventListener('click', this.outsideClickHandler);
+    }, 0);
+  }
+
+  /**
+   * Close mute menu
+   */
+  private closeMenu(): void {
+    if (this.menuElement) {
+      this.menuElement.style.display = 'none';
+    }
+    this.menuOpen = false;
+    document.removeEventListener('click', this.outsideClickHandler);
+  }
+
+  /**
+   * Create the mute menu dropdown
+   */
+  private createMenu(): HTMLElement {
+    const menu = document.createElement('div');
+    menu.className = 'note-menu-dropdown';
+    menu.style.display = 'none';
+
+    const muteIcon = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 2l12 12M6.5 6.5A3 3 0 0 0 10 10m-2-2v4a2 2 0 1 1-4 0V6a2 2 0 0 1 2-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+
+    menu.innerHTML = `
+      <button class="note-menu-item note-menu-item--danger" data-action="mute-privately">
+        ${muteIcon}
+        Mute user privately
+      </button>
+      <button class="note-menu-item note-menu-item--danger" data-action="mute-publicly">
+        ${muteIcon}
+        Mute user publicly
+      </button>
+    `;
+
+    // Setup menu item click handlers
+    menu.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const target = e.target as HTMLElement;
+      const item = target.closest('.note-menu-item') as HTMLElement;
+      if (!item) return;
+
+      const action = item.dataset.action;
+      this.closeMenu();
+
+      if (action === 'mute-privately') {
+        this.muteUser(true);
+      } else if (action === 'mute-publicly') {
+        this.muteUser(false);
+      }
+    });
+
+    return menu;
+  }
+
+  /**
+   * Mute the conversation partner
+   */
+  private async muteUser(isPrivate: boolean): Promise<void> {
+    if (!AuthGuard.requireAuth('mute user')) {
+      return;
+    }
+
+    const muteOrch = MuteOrchestrator.getInstance();
+
+    try {
+      await muteOrch.muteUser(this.partnerPubkey, isPrivate);
+      ToastService.show(`User muted ${isPrivate ? 'privately' : 'publicly'}`, 'success');
+
+      // Refresh muted users in orchestrators
+      const feedOrch = FeedOrchestrator.getInstance();
+      const notifOrch = NotificationsOrchestrator.getInstance();
+      await Promise.all([
+        feedOrch.refreshMutedUsers(),
+        notifOrch.refreshMutedUsers()
+      ]);
+
+      // Notify that mute list was updated
+      this.eventBus.emit('mute:updated', {});
+
+      // Navigate back to messages list
+      this.router.navigate('/messages');
+    } catch (error) {
+      this.systemLogger.error('ConversationView', `Failed to mute user: ${error}`);
+      ToastService.show('Failed to mute user', 'error');
+    }
   }
 
   /**
@@ -328,6 +476,11 @@ export class ConversationView extends View {
    * Cleanup on unmount
    */
   public destroy(): void {
+    this.closeMenu();
+    if (this.menuElement) {
+      this.menuElement.remove();
+      this.menuElement = null;
+    }
     this.eventBus.off('dm:new-message');
   }
 }

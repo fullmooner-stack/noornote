@@ -273,6 +273,10 @@
     font-size: 15px;
   }
 
+  &__menu-trigger {
+    margin-left: auto;
+  }
+
   &__messages {
     flex: 1;
     overflow-y: auto;

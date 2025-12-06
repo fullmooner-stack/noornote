@@ -22,6 +22,7 @@ import { DMStore, type DMMessage, type DMConversation } from './DMStore';
 import { EventBus } from '../EventBus';
 import { SystemLogger } from '../../components/system/SystemLogger';
 import { FollowCheckService } from '../FollowCheckService';
+import { MuteOrchestrator } from '../orchestration/MuteOrchestrator';
 import { generateSecretKey, getPublicKey, calculateEventHash } from '../../services/NostrToolsAdapter';
 
 // NIP-17 Kind constants
@@ -42,8 +43,13 @@ export class DMService {
   private eventBus: EventBus;
   private systemLogger: SystemLogger;
   private followCheckService: FollowCheckService;
+  private muteOrchestrator: MuteOrchestrator;
   private subscriptionId: string | null = null;
   private userPubkey: string | null = null;
+
+  // Cache for muted pubkeys (refreshed on mute:updated event)
+  private mutedPubkeys: Set<string> = new Set();
+  private mutedPubkeysLoaded: boolean = false;
 
   private constructor() {
     this.transport = NostrTransport.getInstance();
@@ -53,6 +59,12 @@ export class DMService {
     this.eventBus = EventBus.getInstance();
     this.systemLogger = SystemLogger.getInstance();
     this.followCheckService = FollowCheckService.getInstance();
+    this.muteOrchestrator = MuteOrchestrator.getInstance();
+
+    // Listen for mute updates to refresh cache
+    this.eventBus.on('mute:updated', () => {
+      this.refreshMutedPubkeys();
+    });
   }
 
   public static getInstance(): DMService {
@@ -665,10 +677,21 @@ export class DMService {
   }
 
   /**
-   * Get total unread count
+   * Get total unread count (excludes muted users)
    */
   public async getUnreadCount(): Promise<number> {
-    return this.dmStore.getTotalUnreadCount();
+    await this.loadMutedPubkeys();
+
+    const conversations = await this.dmStore.getConversations();
+    let total = 0;
+
+    for (const conv of conversations) {
+      if (!this.isMutedSync(conv.pubkey)) {
+        total += conv.unreadCount;
+      }
+    }
+
+    return total;
   }
 
   /**
@@ -711,15 +734,22 @@ export class DMService {
 
   /**
    * Get unread counts split by known (followed) and unknown users
+   * Excludes muted users from counts
    */
   public async getUnreadCountsSplit(): Promise<{ known: number; unknown: number; total: number }> {
     await this.followCheckService.init();
+    await this.loadMutedPubkeys();
 
     const conversations = await this.dmStore.getConversations();
     let known = 0;
     let unknown = 0;
 
     for (const conv of conversations) {
+      // Skip muted users
+      if (this.isMutedSync(conv.pubkey)) {
+        continue;
+      }
+
       if (conv.unreadCount > 0) {
         if (this.followCheckService.isFollowingSync(conv.pubkey)) {
           known += conv.unreadCount;
@@ -734,6 +764,7 @@ export class DMService {
 
   /**
    * Get conversations split by known/unknown status
+   * Excludes muted users
    * @param filter - 'known' | 'unknown' | 'all'
    */
   public async getConversationsFiltered(
@@ -742,18 +773,23 @@ export class DMService {
     offset: number = 0
   ): Promise<DMConversation[]> {
     await this.followCheckService.init();
+    await this.loadMutedPubkeys();
 
     // Get all conversations first
     const allConversations = await this.dmStore.getConversations();
 
-    // Filter by known/unknown
+    // Filter out muted users first, then by known/unknown
     let filtered: DMConversation[];
     if (filter === 'all') {
-      filtered = allConversations;
+      filtered = allConversations.filter(c => !this.isMutedSync(c.pubkey));
     } else if (filter === 'known') {
-      filtered = allConversations.filter(c => this.followCheckService.isFollowingSync(c.pubkey));
+      filtered = allConversations.filter(c =>
+        !this.isMutedSync(c.pubkey) && this.followCheckService.isFollowingSync(c.pubkey)
+      );
     } else {
-      filtered = allConversations.filter(c => !this.followCheckService.isFollowingSync(c.pubkey));
+      filtered = allConversations.filter(c =>
+        !this.isMutedSync(c.pubkey) && !this.followCheckService.isFollowingSync(c.pubkey)
+      );
     }
 
     // Apply offset and limit
@@ -780,5 +816,44 @@ export class DMService {
   public async clear(): Promise<void> {
     await this.dmStore.clear();
     this.followCheckService.clear();
+    this.mutedPubkeys.clear();
+    this.mutedPubkeysLoaded = false;
+  }
+
+  /**
+   * Load muted pubkeys into cache
+   */
+  private async loadMutedPubkeys(): Promise<void> {
+    if (this.mutedPubkeysLoaded) return;
+
+    try {
+      const browserItems = this.muteOrchestrator.getBrowserItems();
+      this.mutedPubkeys.clear();
+
+      for (const item of browserItems) {
+        if (item.type === 'user') {
+          this.mutedPubkeys.add(item.id);
+        }
+      }
+
+      this.mutedPubkeysLoaded = true;
+    } catch (error) {
+      this.systemLogger.error('DMService', 'Failed to load muted pubkeys:', error);
+    }
+  }
+
+  /**
+   * Refresh muted pubkeys cache (called on mute:updated event)
+   */
+  private async refreshMutedPubkeys(): Promise<void> {
+    this.mutedPubkeysLoaded = false;
+    await this.loadMutedPubkeys();
+  }
+
+  /**
+   * Check if a pubkey is muted (sync, uses cache)
+   */
+  private isMutedSync(pubkey: string): boolean {
+    return this.mutedPubkeys.has(pubkey);
   }
 }
