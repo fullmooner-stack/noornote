@@ -51,6 +51,13 @@ export class DMService {
   private mutedPubkeys: Set<string> = new Set();
   private mutedPubkeysLoaded: boolean = false;
 
+  // Batch event emitting - collect events during fetch, emit once at end
+  private isFetchingHistorical: boolean = false;
+  private pendingBadgeUpdate: boolean = false;
+
+  // Progress tracking for UI
+  private fetchProgress: { current: number; total: number } = { current: 0, total: 0 };
+
   private constructor() {
     this.transport = NostrTransport.getInstance();
     this.authService = AuthService.getInstance();
@@ -97,20 +104,24 @@ export class DMService {
         return;
       }
 
-      // User changed or fresh start - clear old data first
-      // This handles both: explicit user switch AND restart after logout
-      if (this.userPubkey !== currentUser.pubkey) {
+      // Initialize store first (needed for user check)
+      await this.dmStore.init();
+
+      // Check if this is a REAL user change (not just app restart)
+      // Only clear if we have a DIFFERENT user stored, not if userPubkey is null
+      const storedUserPubkey = await this.dmStore.getStoredUserPubkey();
+      if (storedUserPubkey && storedUserPubkey !== currentUser.pubkey) {
+        // Different user - clear old data
         this.stop();
         await this.clear();
-        this.systemLogger.info('DMService', 'Cleared DM data for fresh start');
+        this.systemLogger.info('DMService', 'Cleared DM data for user switch');
       }
 
+      // Store current user pubkey for future checks
+      await this.dmStore.setStoredUserPubkey(currentUser.pubkey);
       this.userPubkey = currentUser.pubkey;
 
       this.systemLogger.info('DMService', `Starting DM service for ${currentUser.npub.slice(0, 12)}...`);
-
-      // Initialize store
-      await this.dmStore.init();
 
       // Fetch historical messages first (don't block on errors)
       try {
@@ -147,12 +158,27 @@ export class DMService {
   }
 
   /**
+   * Get current fetch progress (for UI progress bar)
+   */
+  public getFetchProgress(): { current: number; total: number; isLoading: boolean } {
+    return {
+      ...this.fetchProgress,
+      isLoading: this.isFetchingHistorical
+    };
+  }
+
+  /**
    * Fetch historical DMs from relays (NIP-17 + Legacy NIP-04)
    * - NIP-17 from inbox relays
    * - Legacy NIP-04 from read relays (they're on normal relays, not inbox)
    */
   private async fetchHistoricalMessages(): Promise<void> {
     if (!this.userPubkey) return;
+
+    // Enter batch mode - suppress individual events
+    this.isFetchingHistorical = true;
+    this.pendingBadgeUpdate = false;
+    this.fetchProgress = { current: 0, total: 0 };
 
     try {
       // NIP-17 uses inbox relays
@@ -168,10 +194,6 @@ export class DMService {
       this.systemLogger.info('DMService', `Fetching NIP-17 DMs from ${inboxRelays.length} inbox relays: ${inboxRelays.slice(0, 3).join(', ')}${inboxRelays.length > 3 ? '...' : ''}`);
       const nip17Events = await this.transport.fetch(inboxRelays, [nip17Filter], 15000);
       this.systemLogger.info('DMService', `Fetched ${nip17Events.length} NIP-17 events`);
-
-      for (const event of nip17Events) {
-        await this.processGiftWrap(event);
-      }
 
       // Legacy NIP-04 uses READ relays (they're on normal relays, not specialized inbox)
       const readRelays = this.relayConfig.getReadRelays();
@@ -195,11 +217,47 @@ export class DMService {
       const legacyEvents = await this.transport.fetch(readRelays, legacyFilters, 15000);
       this.systemLogger.info('DMService', `Fetched ${legacyEvents.length} legacy DM events`);
 
+      // Set total for progress tracking
+      const totalEvents = nip17Events.length + legacyEvents.length;
+      this.fetchProgress.total = totalEvents;
+
+      // Emit initial progress
+      this.eventBus.emit('dm:fetch-progress', { current: 0, total: totalEvents });
+
+      // Process NIP-17 events
+      for (const event of nip17Events) {
+        await this.processGiftWrap(event);
+        this.fetchProgress.current++;
+        // Emit progress every 10 events to avoid flooding
+        if (this.fetchProgress.current % 10 === 0) {
+          this.eventBus.emit('dm:fetch-progress', { ...this.fetchProgress });
+        }
+      }
+
+      // Process legacy events
       for (const event of legacyEvents) {
         await this.processLegacyDM(event);
+        this.fetchProgress.current++;
+        if (this.fetchProgress.current % 10 === 0) {
+          this.eventBus.emit('dm:fetch-progress', { ...this.fetchProgress });
+        }
       }
+
     } catch (error) {
       this.systemLogger.error('DMService', 'Failed to fetch historical messages:', error);
+    } finally {
+      // Exit batch mode - emit single consolidated event
+      this.isFetchingHistorical = false;
+
+      // Emit completion
+      this.eventBus.emit('dm:fetch-progress', { current: this.fetchProgress.total, total: this.fetchProgress.total });
+      this.eventBus.emit('dm:fetch-complete');
+
+      // If any messages were processed, emit a single badge update
+      if (this.pendingBadgeUpdate) {
+        this.eventBus.emit('dm:badge-update');
+        this.pendingBadgeUpdate = false;
+      }
     }
   }
 
@@ -299,9 +357,13 @@ export class DMService {
       // Store message
       await this.dmStore.saveMessage(message);
 
-      // Emit event for UI updates
-      this.eventBus.emit('dm:new-message', { message, conversationWith });
-      this.eventBus.emit('dm:badge-update');
+      // Emit events - batch during historical fetch, immediate for live
+      if (this.isFetchingHistorical) {
+        this.pendingBadgeUpdate = true;
+      } else {
+        this.eventBus.emit('dm:new-message', { message, conversationWith });
+        this.eventBus.emit('dm:badge-update');
+      }
     } catch (error) {
       this.systemLogger.error('DMService', 'Error processing gift wrap:', error);
     }
@@ -341,7 +403,10 @@ export class DMService {
         decryptedContent = await this.authService.nip04Decrypt(event.content, decryptPubkey);
       } catch (decryptError) {
         // Decryption failed - could be corrupted or not meant for us
-        this.systemLogger.warn('DMService', `Failed to decrypt legacy DM ${event.id.slice(0, 8)}`);
+        // Only log during live subscription, not during batch fetch
+        if (!this.isFetchingHistorical) {
+          this.systemLogger.warn('DMService', `Failed to decrypt legacy DM ${event.id.slice(0, 8)}`);
+        }
         return;
       }
 
@@ -360,11 +425,13 @@ export class DMService {
       // Store message
       await this.dmStore.saveMessage(message);
 
-      // Emit event for UI updates
-      this.eventBus.emit('dm:new-message', { message, conversationWith });
-      this.eventBus.emit('dm:badge-update');
-
-      this.systemLogger.info('DMService', `Stored legacy DM from ${event.pubkey.slice(0, 8)}`);
+      // Emit events - batch during historical fetch, immediate for live
+      if (this.isFetchingHistorical) {
+        this.pendingBadgeUpdate = true;
+      } else {
+        this.eventBus.emit('dm:new-message', { message, conversationWith });
+        this.eventBus.emit('dm:badge-update');
+      }
     } catch (error) {
       this.systemLogger.error('DMService', 'Error processing legacy DM:', error);
     }

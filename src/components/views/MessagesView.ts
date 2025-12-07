@@ -20,6 +20,7 @@ import { InfiniteScroll } from '../ui/InfiniteScroll';
 import { ToastService } from '../../services/ToastService';
 import { setupTabClickHandlers, switchTabWithContent } from '../../helpers/TabsHelper';
 import { escapeHtml } from '../../helpers/escapeHtml';
+import { ProgressBarHelper } from '../../helpers/ProgressBarHelper';
 
 const BATCH_SIZE = 15;
 
@@ -43,6 +44,8 @@ export class MessagesView extends View {
   private activeTab: TabFilter = 'known';
   private unreadCounts: { known: number; unknown: number } = { known: 0, unknown: 0 };
   private subscriptionIds: string[] = [];
+  private progressBar: ProgressBarHelper | null = null;
+  private isFetchingDMs: boolean = false;
 
   constructor() {
     super();
@@ -65,17 +68,38 @@ export class MessagesView extends View {
     this.setupInfiniteScroll();
     this.loadInitialData();
 
-    // Listen for new messages - refresh from start
+    // Listen for fetch progress updates (for progress bar)
     this.subscriptionIds.push(
-      this.eventBus.on('dm:new-message', () => {
-        this.refreshConversations();
+      this.eventBus.on('dm:fetch-progress', (data: { current: number; total: number }) => {
+        this.handleFetchProgress(data);
       })
     );
 
-    // Listen for badge updates - refresh from start
+    // Listen for fetch completion - then load conversations
+    this.subscriptionIds.push(
+      this.eventBus.on('dm:fetch-complete', () => {
+        this.handleFetchComplete();
+      })
+    );
+
+    // Listen for badge updates (mark all read/unread) - only update badges, not full refresh
     this.subscriptionIds.push(
       this.eventBus.on('dm:badge-update', () => {
-        this.refreshConversations();
+        // Only refresh if we're not currently fetching
+        if (!this.isFetchingDMs) {
+          this.updateBadgeCounts();
+          this.refreshConversationsQuiet();
+        }
+      })
+    );
+
+    // Listen for new messages during live subscription (after initial fetch)
+    this.subscriptionIds.push(
+      this.eventBus.on('dm:new-message', () => {
+        // Only refresh if we're not currently fetching
+        if (!this.isFetchingDMs) {
+          this.refreshConversationsQuiet();
+        }
       })
     );
   }
@@ -85,7 +109,7 @@ export class MessagesView extends View {
    */
   private render(): void {
     this.container.innerHTML = `
-      <div class="messages-view__header">
+      <div class="messages-view__header progress-bar-container">
         <h1>Messages</h1>
         <div class="messages-view__actions">
           <button class="btn btn--medium messages-view__compose-btn">
@@ -132,16 +156,22 @@ export class MessagesView extends View {
       <div class="messages-view__content">
         <div class="tab-content tab-content--active" data-tab-content="known">
           <div class="messages-view__list" data-list="known">
-            <div class="messages-view__loading">Loading conversations...</div>
+            <div class="messages-view__loading">Loading messages...</div>
           </div>
         </div>
         <div class="tab-content" data-tab-content="unknown">
           <div class="messages-view__list" data-list="unknown">
-            <div class="messages-view__loading">Loading conversations...</div>
+            <div class="messages-view__loading">Loading messages...</div>
           </div>
         </div>
       </div>
     `;
+
+    // Initialize progress bar on header
+    const header = this.container.querySelector('.messages-view__header') as HTMLElement;
+    if (header) {
+      this.progressBar = new ProgressBarHelper(header);
+    }
   }
 
   /**
@@ -212,11 +242,39 @@ export class MessagesView extends View {
   }
 
   /**
-   * Load initial data (unread counts + first tab)
+   * Load initial data - start DM service (which fetches messages)
    */
   private async loadInitialData(): Promise<void> {
-    // Ensure DM service is started
+    this.isFetchingDMs = true;
+    this.progressBar?.start();
+
+    // Start DM service - this triggers fetchHistoricalMessages
+    // which emits dm:fetch-progress and dm:fetch-complete events
     await this.dmService.start();
+  }
+
+  /**
+   * Handle fetch progress updates
+   */
+  private handleFetchProgress(data: { current: number; total: number }): void {
+    if (data.total > 0) {
+      const percent = (data.current / data.total) * 100;
+      this.progressBar?.update(percent);
+
+      // Update loading text with progress
+      const loadingEl = this.container.querySelector(`[data-list="${this.activeTab}"] .messages-view__loading`);
+      if (loadingEl) {
+        loadingEl.textContent = `Loading messages... ${data.current}/${data.total}`;
+      }
+    }
+  }
+
+  /**
+   * Handle fetch completion - load and display conversations
+   */
+  private async handleFetchComplete(): Promise<void> {
+    this.isFetchingDMs = false;
+    this.progressBar?.complete();
 
     // Update badge counts
     await this.updateBadgeCounts();
@@ -264,9 +322,9 @@ export class MessagesView extends View {
   }
 
   /**
-   * Refresh conversations from start (for new messages/badge updates)
+   * Refresh conversations without showing loading state (for live updates)
    */
-  private async refreshConversations(): Promise<void> {
+  private async refreshConversationsQuiet(): Promise<void> {
     // Update badge counts
     await this.updateBadgeCounts();
 
@@ -275,13 +333,7 @@ export class MessagesView extends View {
     this.hasMoreConversations = true;
     this.conversations = [];
 
-    // Clear list
-    const list = this.container.querySelector(`[data-list="${this.activeTab}"]`);
-    if (list) {
-      list.innerHTML = '<div class="messages-view__loading">Loading conversations...</div>';
-    }
-
-    // Reload
+    // Reload without clearing UI first (prevents flicker)
     await this.loadConversationsBatch();
   }
 
@@ -296,7 +348,7 @@ export class MessagesView extends View {
     const list = this.container.querySelector(`[data-list="${this.activeTab}"]`);
 
     try {
-      // Show loading indicator for subsequent loads
+      // Show loading indicator for subsequent loads (not initial)
       if (!isInitialLoad) {
         this.infiniteScroll.showLoading();
       }
@@ -391,6 +443,7 @@ export class MessagesView extends View {
   private async renderConversationItem(conversation: DMConversation): Promise<HTMLElement> {
     const item = document.createElement('div');
     item.className = 'conversation-item';
+    item.dataset.pubkey = conversation.pubkey;
     if (conversation.unreadCount > 0) {
       item.classList.add('conversation-item--unread');
     }
@@ -579,6 +632,7 @@ export class MessagesView extends View {
   public destroy(): void {
     this.closeMenu();
     this.infiniteScroll.destroy();
+    this.progressBar?.reset();
     this.subscriptionIds.forEach(id => this.eventBus.off(id));
     this.subscriptionIds = [];
   }

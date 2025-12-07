@@ -48,9 +48,13 @@ export interface DMConversation {
 }
 
 const DB_NAME = 'noornote_dm';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Bumped for metadata store
 const MESSAGES_STORE = 'messages';
 const CONVERSATIONS_STORE = 'conversations';
+const METADATA_STORE = 'metadata';
+
+// Metadata keys
+const META_USER_PUBKEY = 'userPubkey';
 
 export class DMStore {
   private static instance: DMStore;
@@ -107,11 +111,51 @@ export class DMStore {
           conversationsStore.createIndex('lastMessageAt', 'lastMessageAt', { unique: false });
         }
 
+        // Metadata store (for user pubkey tracking)
+        if (!db.objectStoreNames.contains(METADATA_STORE)) {
+          db.createObjectStore(METADATA_STORE, { keyPath: 'key' });
+        }
+
         this.systemLogger.info('DMStore', 'IndexedDB schema created/upgraded');
       };
     });
 
     return this.initPromise;
+  }
+
+  /**
+   * Get stored user pubkey (to detect user change on app restart)
+   */
+  public async getStoredUserPubkey(): Promise<string | null> {
+    await this.init();
+
+    return new Promise((resolve, reject) => {
+      const tx = this.db!.transaction(METADATA_STORE, 'readonly');
+      const store = tx.objectStore(METADATA_STORE);
+      const request = store.get(META_USER_PUBKEY);
+
+      request.onsuccess = () => {
+        const result = request.result;
+        resolve(result?.value || null);
+      };
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * Set stored user pubkey
+   */
+  public async setStoredUserPubkey(pubkey: string): Promise<void> {
+    await this.init();
+
+    return new Promise((resolve, reject) => {
+      const tx = this.db!.transaction(METADATA_STORE, 'readwrite');
+      const store = tx.objectStore(METADATA_STORE);
+      store.put({ key: META_USER_PUBKEY, value: pubkey });
+
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
   }
 
   /**
@@ -402,15 +446,16 @@ export class DMStore {
   }
 
   /**
-   * Clear all DM data (for logout)
+   * Clear all DM data (for logout) - preserves metadata
    */
   public async clear(): Promise<void> {
     await this.init();
 
     return new Promise((resolve, reject) => {
-      const tx = this.db!.transaction([MESSAGES_STORE, CONVERSATIONS_STORE], 'readwrite');
+      const tx = this.db!.transaction([MESSAGES_STORE, CONVERSATIONS_STORE, METADATA_STORE], 'readwrite');
       tx.objectStore(MESSAGES_STORE).clear();
       tx.objectStore(CONVERSATIONS_STORE).clear();
+      tx.objectStore(METADATA_STORE).clear();
 
       tx.oncomplete = () => {
         this.systemLogger.info('DMStore', 'All DM data cleared');
