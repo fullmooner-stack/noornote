@@ -89,6 +89,7 @@
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease;
+    padding: 0 calc($gap / 2);
   }
 
   &__actions {
@@ -196,7 +197,6 @@
 .relay-add-form {
   display: flex;
   gap: $gap;
-  padding: calc($gap / 2);
   margin-bottom: $gap * 2;
   border-top: 1px solid $color-2;
 
@@ -442,7 +442,6 @@
 // Media Settings
 // ========================================
 .media-settings {
-  padding: calc($gap / 2);
 }
 
 .media-subsection {
@@ -585,7 +584,6 @@
 // Follow Lists Settings
 // ========================================
 .follow-lists-settings {
-  padding: calc($gap / 2);
 }
 
 .follow-lists-info {
@@ -881,7 +879,6 @@
   display: flex;
   flex-direction: column;
   gap: $gap;
-  padding: $gap;
   background: rgba($color-2, 0.3);
   border-radius: $radius-sm;
 }
@@ -996,7 +993,7 @@
 .key-signer-settings {
   display: flex;
   flex-direction: column;
-  gap: $gap * 2;
+  gap: $gap;
 }
 
 .key-signer-status {
@@ -1036,7 +1033,7 @@
 .key-signer-autostart {
   display: flex;
   flex-direction: column;
-  gap: $gap * 2;
+  gap: $gap;
 }
 
 .setting-row {
@@ -1085,7 +1082,6 @@
 // Cache Settings Section
 // ========================================
 .cache-settings {
-  padding: calc($gap / 2);
 
   .section-help {
     font-size: 14px;
