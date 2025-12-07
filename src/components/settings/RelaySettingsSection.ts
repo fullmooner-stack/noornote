@@ -15,6 +15,7 @@ import { ToastService } from '../../services/ToastService';
 import { Switch } from '../ui/Switch';
 import { RelayHealthMonitor } from '../../services/RelayHealthMonitor';
 import { EventBus } from '../../services/EventBus';
+import { SystemLogger } from '../system/SystemLogger';
 
 interface LocalRelaySettings {
   enabled: boolean;
@@ -646,10 +647,12 @@ export class RelaySettingsSection extends SettingsSection {
    * Only publishes if there are relays with 'inbox' type
    */
   private async publishDMRelayList(): Promise<void> {
+    const systemLogger = SystemLogger.getInstance();
+
     try {
       const currentUser = this.authService.getCurrentUser();
       if (!currentUser) {
-        console.warn('No user logged in, skipping DM relay list publish');
+        systemLogger.warn('RelaySettings', 'No user logged in, skipping DM relay list publish');
         return;
       }
 
@@ -657,7 +660,7 @@ export class RelaySettingsSection extends SettingsSection {
       const inboxRelays = this.tempRelays.filter(r => r.types.includes('inbox'));
 
       if (inboxRelays.length === 0) {
-        console.log('No DM inbox relays configured, skipping kind:10050 publish');
+        systemLogger.info('RelaySettings', 'No DM inbox relays configured, skipping kind:10050 publish');
         return;
       }
 
@@ -678,7 +681,7 @@ export class RelaySettingsSection extends SettingsSection {
       // Publish to current write relays
       const publishRelays = this.relayConfig.getWriteRelays();
       if (publishRelays.length === 0) {
-        console.warn('No write relays available for publishing DM relay list');
+        systemLogger.warn('RelaySettings', 'No write relays available for publishing DM relay list');
         return;
       }
 
@@ -687,9 +690,10 @@ export class RelaySettingsSection extends SettingsSection {
       const transport = NostrTransport.getInstance();
       await transport.publish(publishRelays, signedEvent);
 
-      console.log(`DM relay list (kind:10050) published with ${inboxRelays.length} relays`);
+      const relayUrls = inboxRelays.map(r => r.url).join(', ');
+      systemLogger.info('RelaySettings', `Published kind:10050 DM relay list with ${inboxRelays.length} relays: ${relayUrls}`);
     } catch (error) {
-      console.error('Failed to publish DM relay list:', error);
+      systemLogger.error('RelaySettings', 'Failed to publish DM relay list:', error);
       // Don't throw - DM relay list is optional, main relay list is more important
     }
   }

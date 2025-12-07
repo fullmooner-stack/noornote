@@ -590,6 +590,15 @@ export class App {
     } catch {
       // Notifications orchestrator start failed
     }
+
+    // Start DM service (fetches historical DMs and starts live subscription)
+    try {
+      const { DMService } = await import('./services/dm/DMService');
+      const dmService = DMService.getInstance();
+      await dmService.start();
+    } catch {
+      // DM service start failed
+    }
   }
 }
 

@@ -215,9 +215,6 @@ export class ZapModal {
       this.setLoadingState(sendBtn, false);
 
       if (result.success) {
-        // Save zap defaults to localStorage for future use
-        this.saveZapDefaults(amount, comment);
-
         // Close modal
         this.modalService.hide();
 
@@ -273,18 +270,5 @@ export class ZapModal {
       amount: 21,
       comment: ''
     };
-  }
-
-  /**
-   * Save zap defaults to Keychain/localStorage (persists amount + comment)
-   */
-  private async saveZapDefaults(amount: number, comment: string): Promise<void> {
-    try {
-      const { KeychainStorage } = await import('../../services/KeychainStorage');
-      await KeychainStorage.saveZapDefaults(amount, comment);
-      this.systemLogger.info('ZapModal', `✅ Saved zap defaults: ${amount} sats, comment: "${comment}"`);
-    } catch (error) {
-      this.systemLogger.warn('ZapModal', 'Failed to save zap defaults:', error);
-    }
   }
 }
