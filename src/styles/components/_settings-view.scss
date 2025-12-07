@@ -41,25 +41,27 @@
   border-radius: $radius-sm;
   overflow: hidden;
   transition: all 0.2s ease;
+  padding: 0 0 calc($gap);
 
-  &-info {
+  // BEM elements
+  &__info {
     flex: 1;
   }
 
-  &-title {
+  &__title {
     font-size: 18px;
     font-weight: 600;
     color: $color-5;
     margin-bottom: calc($gap / 4);
   }
 
-  &-description {
+  &__description {
     font-size: 14px;
     color: rgba($color-5, 0.6);
     line-height: 1.4;
   }
 
-  &-toggle {
+  &__toggle {
     background: none;
     border: none;
     color: $color-5;
@@ -68,43 +70,64 @@
     transition: transform 0.2s ease;
   }
 
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: calc($gap / 2);
+    margin-bottom: $gap;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: $color-2;
+    }
+  }
+
+  &__content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+
+  &__actions {
+    margin-top: $gap;
+    padding: 0 calc($gap / 2);
+    text-align: right;
+  }
+
+  &__action-feedback {
+    padding: calc($gap / 2) 0 0 0;
+    color: $color-6;
+    transition: opacity 0.3s ease;
+    font-size: 14px;
+    min-height: 1.5em;
+    text-align: right;
+
+    &--success {
+      color: #4ade80;
+    }
+
+    &--error {
+      color: #f87171;
+    }
+  }
+
   // Open state
   &.open {
-    .section-header {
+    .settings-section__header {
       background-color: $color-2;
     }
 
-    .settings-section-toggle {
+    .settings-section__toggle {
       transform: rotate(180deg);
     }
 
-    .section-content {
+    .settings-section__content {
       max-height: 3000px; // Large enough for content
     }
   }
-}
-
-// Section Header (clickable)
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: calc($gap / 2);
-  margin-bottom: $gap;
-  cursor: pointer;
-  user-select: none;
-  transition: background 0.2s ease;
-
-  &:hover {
-    background: $color-2;
-  }
-}
-
-// Section Content (collapsible)
-.section-content {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease;
 }
 
 // ========================================
@@ -532,13 +555,7 @@
   }
 }
 
-.media-server-save {
-  margin-top: $gap * 2;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: calc($gap / 2);
-}
+// .media-server-save moved to .settings-section__actions
 
 // ========================================
 // Sensitive Media Subsection
@@ -562,13 +579,7 @@
   margin-bottom: $gap;
 }
 
-.sensitive-media-save {
-  margin-top: $gap * 2;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: calc($gap / 2);
-}
+// .sensitive-media-save moved to .settings-section__actions
 
 // ========================================
 // Follow Lists Settings
@@ -645,39 +656,7 @@
   gap: calc($gap / 2);
 }
 
-// ========================================
-// Save Section
-// ========================================
-.relay-save-section {
-  margin-top: $gap * 2;
-  padding: calc($gap / 2);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: calc($gap / 2);
-}
-
-// Button styles moved to molecules/_buttons.scss
-
-.save-message {
-  font-size: 14px;
-  padding: calc($gap / 2) $gap;
-  border-radius: $radius-sm;
-  font-weight: 500;
-  transition: opacity 0.3s ease;
-
-  &.success {
-    color: #4ade80;
-    background: rgba(74, 222, 128, 0.1);
-    border: 1px solid rgba(74, 222, 128, 0.3);
-  }
-
-  &.error {
-    color: #f87171;
-    background: rgba(248, 113, 113, 0.1);
-    border: 1px solid rgba(248, 113, 113, 0.3);
-  }
-}
+// Save Section styles moved to .settings-section__actions and .settings-section__action-feedback
 
 // ========================================
 // Cache Settings Panel
@@ -958,12 +937,7 @@
   max-width: 300px;
 }
 
-.zap-save {
-  display: flex;
-  align-items: center;
-  gap: $gap;
-  margin-top: $gap;
-}
+// .zap-save moved to .settings-section__actions
 
 // ========================================
 // Responsive
@@ -999,10 +973,6 @@
   .cache-settings-actions {
     flex-direction: column;
     align-items: stretch;
-
-    .save-message {
-      margin-left: 0;
-    }
   }
 }
 
@@ -1097,10 +1067,7 @@
   line-height: 1.4;
 }
 
-.key-signer-actions {
-  display: flex;
-  gap: $gap;
-}
+// .key-signer-actions moved to .settings-section__actions
 
 .key-signer-info {
   padding: $gap;

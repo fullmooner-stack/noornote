@@ -128,7 +128,7 @@ export class ReportModal {
       </div>
 
       <div class="report-modal__actions">
-        <button class="btn btn--secondary btn--cancel" type="button">Cancel</button>
+        <button class="btn btn--cancel" type="button">Cancel</button>
         <button class="btn btn--danger btn--submit" type="button" disabled>Submit Report</button>
       </div>
 

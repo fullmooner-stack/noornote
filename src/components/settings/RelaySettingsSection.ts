@@ -202,7 +202,7 @@ export class RelaySettingsSection extends SettingsSection {
           ${this.tempRelays.map(relay => this.renderRelayItem(relay)).join('')}
         </div>
 
-        <!-- Local backup relay -->
+        <!-- Local backup relay - HIDDEN: Development feature, not for end users
         <div class="local-relay-section">
           <h3 class="local-relay-title">Local Relay (Optional)</h3>
           <p class="local-relay-description">
@@ -213,7 +213,6 @@ export class RelaySettingsSection extends SettingsSection {
 
           <div class="local-relay-controls">
             <div class="local-relay-enable" id="local-relay-switch-container">
-              <!-- Switch will be mounted here -->
             </div>
 
             <div class="local-relay-mode">
@@ -243,11 +242,12 @@ export class RelaySettingsSection extends SettingsSection {
             </div>
           </div>
         </div>
+        -->
 
         <!-- Save button -->
-        <div class="relay-save-section">
+        <div class="settings-section__actions">
           <button class="btn btn--medium" id="save-relay-settings-btn">Save Settings</button>
-          <div class="save-message" id="save-message"></div>
+          <div class="settings-section__action-feedback" id="save-message"></div>
         </div>
       </div>
     `;
@@ -706,11 +706,11 @@ export class RelaySettingsSection extends SettingsSection {
     if (!messageEl) return;
 
     messageEl.textContent = message;
-    messageEl.className = `save-message save-message--${type}`;
+    messageEl.className = `settings-section__action-feedback settings-section__action-feedback--${type}`;
 
     setTimeout(() => {
       messageEl.textContent = '';
-      messageEl.className = 'save-message';
+      messageEl.className = 'settings-section__action-feedback';
     }, 5000);
   }
 

@@ -12,7 +12,6 @@ import { SyncStatusBadge } from '../shared/SyncStatusBadge';
 import { PlatformService } from '../../services/PlatformService';
 
 // Section imports
-import { AppearanceSection } from '../settings/AppearanceSection';
 import { RelaySettingsSection } from '../settings/RelaySettingsSection';
 import { KeySignerSection } from '../settings/KeySignerSection';
 import { MediaServerSection } from '../settings/MediaServerSection';
@@ -26,7 +25,6 @@ export class SettingsView extends View {
   private syncStatusBadge: SyncStatusBadge | null = null;
 
   // Sections
-  private appearanceSection: AppearanceSection;
   private relaySettingsSection: RelaySettingsSection;
   private keySignerSection: KeySignerSection | null = null;
   private mediaServerSection: MediaServerSection;
@@ -45,7 +43,6 @@ export class SettingsView extends View {
     }
 
     // Initialize sections
-    this.appearanceSection = new AppearanceSection();
     this.relaySettingsSection = new RelaySettingsSection();
     if (this.keySignerClient) {
       this.keySignerSection = new KeySignerSection(this.keySignerClient);
@@ -66,12 +63,6 @@ export class SettingsView extends View {
       <div class="settings-container">
         <h1 class="settings-title">Settings</h1>
         <div id="sync-status-badge-container" class="sync-status-container"></div>
-
-        ${this.appearanceSection.renderAccordionSection(
-          'General',
-          'General application settings and preferences.',
-          false
-        )}
 
         ${this.relaySettingsSection.renderAccordionSection(
           'Relays settings',
@@ -115,7 +106,6 @@ export class SettingsView extends View {
     this.bindAccordionListeners();
 
     // Mount section content
-    this.appearanceSection.mount(this.container);
     this.relaySettingsSection.mount(this.container);
     if (this.keySignerSection) {
       this.keySignerSection.mount(this.container);
@@ -137,7 +127,7 @@ export class SettingsView extends View {
    * Bind accordion toggle listeners
    */
   private bindAccordionListeners(): void {
-    const headers = this.container.querySelectorAll('.section-header');
+    const headers = this.container.querySelectorAll('.settings-section__header');
     headers.forEach(header => {
       header.addEventListener('click', (e) => {
         const section = (e.currentTarget as HTMLElement).closest('.settings-section');

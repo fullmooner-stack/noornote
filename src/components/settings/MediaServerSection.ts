@@ -158,13 +158,13 @@ export class MediaServerSection extends SettingsSection {
 
     return `
       <div class="media-server-settings">
-        <div class="media-server-info">
+        <div class="form__info">
           <p>Choose where to upload images, videos, and other media files. Noornote supports both Blossom and NIP-96 protocols.</p>
         </div>
 
-        <div class="media-server-selector">
-          <label for="media-server-url">Media Server URL:</label>
-          <select id="media-server-url" class="media-server-dropdown">
+        <div class="form__row form__row--oneline">
+          <label for="media-server-url">Media Server:</label>
+          <select id="media-server-url">
             ${popularServers.map(server => `
               <option value="${server.url}" ${this.mediaServerSettings.url === server.url ? 'selected' : ''}>
                 ${server.name}
@@ -187,7 +187,7 @@ export class MediaServerSection extends SettingsSection {
           />
         </div>
 
-        <div class="media-server-protocol">
+        <div class="form__row">
           <label>Protocol:</label>
           <div class="protocol-switch">
             <button
@@ -203,12 +203,12 @@ export class MediaServerSection extends SettingsSection {
               NIP-96
             </button>
           </div>
-          <p class="protocol-note">Most servers auto-detect. Use Blossom for newer servers, NIP-96 for legacy.</p>
+          <p class="form__note">Most servers auto-detect. Use Blossom for newer servers, NIP-96 for legacy.</p>
         </div>
 
-        <div class="media-server-save">
+        <div class="settings-section__actions">
           <button class="btn btn--medium" id="save-media-server-btn">Save Settings</button>
-          <div class="save-message" id="media-save-message"></div>
+          <div class="settings-section__action-feedback" id="media-save-message"></div>
         </div>
       </div>
     `;
@@ -220,7 +220,7 @@ export class MediaServerSection extends SettingsSection {
   private renderSensitiveMedia(): string {
     return `
       <div class="sensitive-media-settings">
-        <div class="sensitive-media-info">
+        <div class="form__info">
           <p>Control how sensitive content (NSFW) is displayed. When disabled, NSFW images and videos will be blurred.</p>
         </div>
 
@@ -228,9 +228,9 @@ export class MediaServerSection extends SettingsSection {
           <!-- Switch will be mounted here -->
         </div>
 
-        <div class="sensitive-media-save">
+        <div class="settings-section__actions">
           <button class="btn btn--medium" id="save-sensitive-media-btn">Save Settings</button>
-          <div class="save-message" id="sensitive-save-message"></div>
+          <div class="settings-section__action-feedback" id="sensitive-save-message"></div>
         </div>
       </div>
     `;
@@ -358,11 +358,11 @@ export class MediaServerSection extends SettingsSection {
     if (!messageEl) return;
 
     messageEl.textContent = message;
-    messageEl.className = `save-message ${type}`;
+    messageEl.className = `settings-section__action-feedback settings-section__action-feedback--${type}`;
 
     setTimeout(() => {
       messageEl.textContent = '';
-      messageEl.className = 'save-message';
+      messageEl.className = 'settings-section__action-feedback';
     }, 5000);
   }
 
@@ -374,11 +374,11 @@ export class MediaServerSection extends SettingsSection {
     if (!messageEl) return;
 
     messageEl.textContent = message;
-    messageEl.className = `save-message ${type}`;
+    messageEl.className = `settings-section__action-feedback settings-section__action-feedback--${type}`;
 
     setTimeout(() => {
       messageEl.textContent = '';
-      messageEl.className = 'save-message';
+      messageEl.className = 'settings-section__action-feedback';
     }, 5000);
   }
 

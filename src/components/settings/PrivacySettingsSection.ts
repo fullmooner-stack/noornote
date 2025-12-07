@@ -69,7 +69,7 @@ export class PrivacySettingsSection extends SettingsSection {
       <div class="privacy-subsection">
         <h3 class="subsection-title">Follow Lists</h3>
         <div class="follow-lists-settings">
-          <div class="follow-lists-info">
+          <div class="form__info">
             <p>Private follow lists (NIP-51) allow you to follow users without publicly revealing who you follow. Your follow list is encrypted and only you can see it.</p>
             <p class="follow-lists-warning">⚠️ <strong>Beta Feature:</strong> Not all Nostr clients support NIP-51 yet. If you use other clients that don't support NIP-51, you won't be able to see notes from your private follows.</p>
           </div>
@@ -78,9 +78,10 @@ export class PrivacySettingsSection extends SettingsSection {
             <!-- Switch will be mounted here -->
           </div>
 
+          <!-- HIDDEN: Migration tools - not ready for end users
           <div class="follow-lists-migration ${isEnabled ? '' : 'hidden'}" id="migration-section">
             <h4 class="migration-title">Migration Tools</h4>
-            <p class="migration-description">Move your follows between public (kind:3 tags) and private (encrypted content) lists.</p>
+            <div class="form__info">Move your follows between public (kind:3 tags) and private (encrypted content) lists.</div>
 
             <div class="migration-buttons">
               <button class="btn btn--medium" id="migrate-to-private-btn">
@@ -100,9 +101,10 @@ export class PrivacySettingsSection extends SettingsSection {
               </button>
             </div>
           </div>
+          -->
 
-          <div class="follow-lists-links">
-            <a href="#follows">View Follows</a>
+          <div class="settings-section__actions">
+            <button class="btn btn--medium" id="view-follows-btn">View Follows</button>
           </div>
         </div>
       </div>
@@ -115,9 +117,9 @@ export class PrivacySettingsSection extends SettingsSection {
   private renderBookmarks(): string {
     return `
       <div class="privacy-subsection">
-        <h3 class="subsection-title">Bookmarks</h3>
+        <h3 class="subsection-title">Bookmark List</h3>
         <div class="bookmarks-settings">
-          <div class="bookmarks-info">
+          <div class="form__info">
             <p>Private bookmarks (NIP-51) allow you to bookmark notes without publicly revealing what you bookmarked. Your bookmarks are encrypted and only you can see them.</p>
             <p class="bookmarks-warning">⚠️ <strong>Beta Feature:</strong> Not all Nostr clients support NIP-51 yet. If you use other clients that don't support NIP-51, you won't be able to see your private bookmarks.</p>
           </div>
@@ -126,8 +128,8 @@ export class PrivacySettingsSection extends SettingsSection {
             <!-- Switch will be mounted here -->
           </div>
 
-          <div class="bookmarks-links">
-            <a href="#bookmarks">View Bookmarks</a>
+          <div class="settings-section__actions">
+            <button class="btn btn--medium" id="view-bookmarks-btn">View Bookmarks</button>
           </div>
         </div>
       </div>
@@ -143,9 +145,9 @@ export class PrivacySettingsSection extends SettingsSection {
 
     return `
       <div class="privacy-subsection">
-        <h3 class="subsection-title">Mutes</h3>
+        <h3 class="subsection-title">Mute List</h3>
         <div class="mutes-settings">
-          <div class="mutes-info">
+          <div class="form__info">
             <p>Private mutes (NIP-51) allow you to mute users without publicly revealing who you muted. Your mute list is encrypted and only you can see it.</p>
             <p class="mutes-warning">⚠️ <strong>Beta Feature:</strong> Not all Nostr clients support NIP-51 yet. If you use other clients that don't support NIP-51, you won't be able to see your private mutes.</p>
           </div>
@@ -154,6 +156,7 @@ export class PrivacySettingsSection extends SettingsSection {
             <!-- Switch will be mounted here -->
           </div>
 
+          <!-- HIDDEN: Encryption method selection - not ready for end users
           <div class="mutes-encryption-method ${isPrivateMutesEnabled ? '' : 'hidden'}" id="mutes-encryption-method">
             <h4 class="encryption-method-title" style="font-size: 0.9rem; margin: 1rem 0 0.5rem 0; color: var(--text-secondary);">Encryption Method</h4>
             <div class="encryption-method-options" style="display: flex; flex-direction: column; gap: 0.75rem; margin-left: 0.5rem;">
@@ -193,9 +196,10 @@ export class PrivacySettingsSection extends SettingsSection {
               💡 Choose NIP-04 if you want to view your mutes in Jumble or other clients.
             </p>
           </div>
+          -->
 
-          <div class="mutes-links">
-            <a href="#mutes">View Muted Users</a>
+          <div class="settings-section__actions">
+            <button class="btn btn--medium" id="view-mutes-btn">View Muted Users</button>
           </div>
         </div>
       </div>
@@ -251,10 +255,9 @@ export class PrivacySettingsSection extends SettingsSection {
     migrateToPrivateBtn?.addEventListener('click', () => this.handleMigrateToPrivate());
     migrateToPublicBtn?.addEventListener('click', () => this.handleMigrateToPublic());
 
-    // Bind link to open Follows list in MainLayout
-    const followListLink = contentContainer.querySelector('.follow-lists-links a');
-    followListLink?.addEventListener('click', (e) => {
-      e.preventDefault();
+    // Bind button to open Follows list in MainLayout
+    const viewFollowsBtn = contentContainer.querySelector('#view-follows-btn');
+    viewFollowsBtn?.addEventListener('click', () => {
       EventBus.getInstance().emit('list:open', { listType: 'follows' });
     });
   }
@@ -282,10 +285,9 @@ export class PrivacySettingsSection extends SettingsSection {
     switchContainer.innerHTML = this.privateBookmarksSwitch.render();
     this.privateBookmarksSwitch.setupEventListeners(switchContainer as HTMLElement);
 
-    // Bind link to open Bookmarks list in MainLayout
-    const bookmarkListLink = contentContainer.querySelector('.bookmarks-links a');
-    bookmarkListLink?.addEventListener('click', (e) => {
-      e.preventDefault();
+    // Bind button to open Bookmarks list in MainLayout
+    const viewBookmarksBtn = contentContainer.querySelector('#view-bookmarks-btn');
+    viewBookmarksBtn?.addEventListener('click', () => {
       EventBus.getInstance().emit('list:open', { listType: 'bookmarks' });
     });
   }
@@ -339,10 +341,9 @@ export class PrivacySettingsSection extends SettingsSection {
       });
     });
 
-    // Bind link to open Mutes list in MainLayout
-    const muteListLink = contentContainer.querySelector('.mutes-links a');
-    muteListLink?.addEventListener('click', (e) => {
-      e.preventDefault();
+    // Bind button to open Mutes list in MainLayout
+    const viewMutesBtn = contentContainer.querySelector('#view-mutes-btn');
+    viewMutesBtn?.addEventListener('click', () => {
       EventBus.getInstance().emit('list:open', { listType: 'mutes' });
     });
   }

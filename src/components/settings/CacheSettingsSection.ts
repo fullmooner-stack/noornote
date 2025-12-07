@@ -10,6 +10,7 @@ import { SettingsSection } from './SettingsSection';
 import { ToastService } from '../../services/ToastService';
 import { ErrorService } from '../../services/ErrorService';
 import { ModalService } from '../../services/ModalService';
+import { NotificationsCacheService } from '../../services/NotificationsCacheService';
 
 interface NDKCacheConfig {
   profileCacheSize: number;
@@ -72,28 +73,43 @@ export class CacheSettingsSection extends SettingsSection {
     if (!contentContainer) return;
 
     const config = this.getConfig();
-    contentContainer.innerHTML = this.renderContent(config);
+    const notificationsCacheService = NotificationsCacheService.getInstance();
+    const notificationsCacheLimit = notificationsCacheService.getLimit();
+
+    contentContainer.innerHTML = this.renderContent(config, notificationsCacheLimit);
     this.bindListeners(contentContainer);
   }
 
   /**
    * Render cache settings content
    */
-  private renderContent(config: NDKCacheConfig): string {
+  private renderContent(config: NDKCacheConfig, notificationsCacheLimit: number): string {
     return `
       <div class="cache-settings">
-        <h3>NDK Cache Configuration</h3>
-        <p class="section-help">Configure NDK cache sizes. Changes require app reload to take effect.</p>
+        <h3 class="subsection-title">Notifications Cache</h3>
+        <div class="form__row form__row--oneline">
+          <label for="notifications-cache-size">Cache Size</label>
+          <input
+            type="number"
+            id="notifications-cache-size"
+            value="${notificationsCacheLimit}"
+            min="10"
+            max="1000"
+            step="10"
+          />
+        </div>
+        <p class="form__note">Maximum notifications to keep in localStorage (10-1000).</p>
 
-        <div class="setting-item">
-          <label for="profile-cache-size" class="setting-item-label">
-            <span class="setting-label">Profile Cache Size</span>
-            <span class="setting-help">Maximum number of user profiles to keep in memory</span>
-          </label>
+        <h3 class="subsection-title">NDK Cache Configuration</h3>
+        <div class="form__info">
+          <p>Configure NDK cache sizes. Changes require app reload to take effect.</p>
+        </div>
+
+        <div class="form__row form__row--oneline">
+          <label for="profile-cache-size">Profile Cache Size</label>
           <input
             type="number"
             id="profile-cache-size"
-            class="setting-input"
             value="${config.profileCacheSize}"
             min="1000"
             max="500000"
@@ -101,15 +117,11 @@ export class CacheSettingsSection extends SettingsSection {
           />
         </div>
 
-        <div class="setting-item">
-          <label for="event-cache-size" class="setting-item-label">
-            <span class="setting-label">Event Cache Size</span>
-            <span class="setting-help">Maximum number of events to keep in memory</span>
-          </label>
+        <div class="form__row form__row--oneline">
+          <label for="event-cache-size">Event Cache Size</label>
           <input
             type="number"
             id="event-cache-size"
-            class="setting-input"
             value="${config.eventCacheSize}"
             min="1000"
             max="200000"
@@ -117,15 +129,11 @@ export class CacheSettingsSection extends SettingsSection {
           />
         </div>
 
-        <div class="setting-item">
-          <label for="event-tags-cache-size" class="setting-item-label">
-            <span class="setting-label">Event Tags Cache Size</span>
-            <span class="setting-help">Maximum number of event tag indexes to keep in memory</span>
-          </label>
+        <div class="form__row form__row--oneline">
+          <label for="event-tags-cache-size">Event Tags Cache Size</label>
           <input
             type="number"
             id="event-tags-cache-size"
-            class="setting-input"
             value="${config.eventTagsCacheSize}"
             min="1000"
             max="500000"
@@ -133,15 +141,11 @@ export class CacheSettingsSection extends SettingsSection {
           />
         </div>
 
-        <div class="setting-item">
-          <label for="zapper-cache-size" class="setting-item-label">
-            <span class="setting-label">Zapper Cache Size</span>
-            <span class="setting-help">Maximum number of Lightning addresses to keep cached</span>
-          </label>
+        <div class="form__row form__row--oneline">
+          <label for="zapper-cache-size">Zapper Cache Size</label>
           <input
             type="number"
             id="zapper-cache-size"
-            class="setting-input"
             value="${config.zapperCacheSize}"
             min="50"
             max="5000"
@@ -149,15 +153,11 @@ export class CacheSettingsSection extends SettingsSection {
           />
         </div>
 
-        <div class="setting-item">
-          <label for="nip05-cache-size" class="setting-item-label">
-            <span class="setting-label">NIP-05 Cache Size</span>
-            <span class="setting-help">Maximum number of NIP-05 verifications to keep cached</span>
-          </label>
+        <div class="form__row form__row--oneline">
+          <label for="nip05-cache-size">NIP-05 Cache Size</label>
           <input
             type="number"
             id="nip05-cache-size"
-            class="setting-input"
             value="${config.nip05CacheSize}"
             min="100"
             max="10000"
@@ -165,55 +165,54 @@ export class CacheSettingsSection extends SettingsSection {
           />
         </div>
 
-        <div class="setting-item">
-          <label class="setting-item-label setting-item-label--checkbox">
-            <input
-              type="checkbox"
-              id="save-sig"
-              class="setting-checkbox"
-              ${config.saveSig ? 'checked' : ''}
-            />
-            <span class="setting-label">Save Event Signatures</span>
-            <span class="setting-help">Store event signatures in cache (increases storage usage)</span>
-          </label>
+        <div class="form__row form__row--oneline">
+          <label for="save-sig">Save Event Signatures</label>
+          <input
+            type="checkbox"
+            id="save-sig"
+            ${config.saveSig ? 'checked' : ''}
+          />
+        </div>
+        <p class="form__note">Store signatures in cache (increases storage usage).</p>
+
+        <div class="settings-section__actions">
+          <button class="btn btn--medium" id="save-cache-config-btn">Save Configuration</button>
+          <div id="cache-config-message" class="settings-section__action-feedback"></div>
         </div>
 
-        <button class="btn btn--medium" id="save-cache-config-btn">Save Configuration</button>
-        <div id="cache-config-message" class="save-message"></div>
-
-        <hr class="settings-divider" />
-
-        <h3>Clear Cache Data</h3>
-        <p class="section-help">Select which cache tables to clear. This action cannot be undone.</p>
+        <h3 class="subsection-title">Clear Cache Data</h3>
+        <div class="form__info">
+          <p>Select which cache tables to clear. This action cannot be undone.</p>
+        </div>
 
         <div class="cache-tables-group">
           <label class="cache-table-item">
             <input type="checkbox" class="cache-table-checkbox" value="events" />
-            <span class="cache-table-label">Events</span>
+            <span>Events</span>
           </label>
           <label class="cache-table-item">
             <input type="checkbox" class="cache-table-checkbox" value="profiles" />
-            <span class="cache-table-label">Profiles</span>
+            <span>Profiles</span>
           </label>
           <label class="cache-table-item">
             <input type="checkbox" class="cache-table-checkbox" value="eventTags" />
-            <span class="cache-table-label">Event Tags</span>
+            <span>Event Tags</span>
           </label>
           <label class="cache-table-item">
             <input type="checkbox" class="cache-table-checkbox" value="nip05" />
-            <span class="cache-table-label">NIP-05</span>
+            <span>NIP-05</span>
           </label>
           <label class="cache-table-item">
             <input type="checkbox" class="cache-table-checkbox" value="lnurl" />
-            <span class="cache-table-label">Lightning Addresses</span>
+            <span>Lightning Addresses</span>
           </label>
           <label class="cache-table-item">
             <input type="checkbox" class="cache-table-checkbox" value="relayStatus" />
-            <span class="cache-table-label">Relay Status</span>
+            <span>Relay Status</span>
           </label>
         </div>
 
-        <div class="cache-clear-buttons">
+        <div class="settings-section__actions">
           <button class="btn btn--medium btn--danger" id="clear-selected-btn">Clear Selected</button>
           <button class="btn btn--medium btn--danger" id="clear-all-btn">Clear All & Reload</button>
         </div>
@@ -242,6 +241,18 @@ export class CacheSettingsSection extends SettingsSection {
    * Handle save configuration
    */
   private handleSaveConfig(contentContainer: HTMLElement): void {
+    // Notifications cache size
+    const notificationsCacheSize = parseInt(
+      (contentContainer.querySelector('#notifications-cache-size') as HTMLInputElement).value,
+      10
+    );
+
+    if (isNaN(notificationsCacheSize) || notificationsCacheSize < 10 || notificationsCacheSize > 1000) {
+      this.showMessage(contentContainer, 'Invalid notifications cache size (must be between 10-1000)', 'error');
+      return;
+    }
+
+    // NDK cache sizes
     const profileCacheSize = parseInt(
       (contentContainer.querySelector('#profile-cache-size') as HTMLInputElement).value,
       10
@@ -276,6 +287,11 @@ export class CacheSettingsSection extends SettingsSection {
       return;
     }
 
+    // Save notifications cache size
+    const notificationsCacheService = NotificationsCacheService.getInstance();
+    notificationsCacheService.setLimit(notificationsCacheSize);
+
+    // Save NDK cache config
     const config: NDKCacheConfig = {
       profileCacheSize,
       eventCacheSize,
@@ -288,7 +304,7 @@ export class CacheSettingsSection extends SettingsSection {
     this.saveConfig(config);
     this.showMessage(
       contentContainer,
-      'Configuration saved! Reload the app for changes to take effect.',
+      'Configuration saved! Reload the app for NDK cache changes to take effect.',
       'success'
     );
   }
@@ -436,11 +452,11 @@ export class CacheSettingsSection extends SettingsSection {
     if (!messageEl) return;
 
     messageEl.textContent = message;
-    messageEl.className = `save-message save-message--${type}`;
+    messageEl.className = `settings-section__action-feedback settings-section__action-feedback--${type}`;
 
     setTimeout(() => {
       messageEl.textContent = '';
-      messageEl.className = 'save-message';
+      messageEl.className = 'settings-section__action-feedback';
     }, 5000);
   }
 

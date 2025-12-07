@@ -166,47 +166,45 @@ export class NWCSettingsSection extends SettingsSection {
                 <span class="wallet-connected-text">Lightning Wallet Connected</span>
                 ${lightningAddress ? `<span class="wallet-ln-address">${lightningAddress}</span>` : ''}
               </div>
-              <button class="btn btn--small btn--secondary" id="nwc-disconnect-btn">Disconnect</button>
+              <button class="btn btn--small" id="nwc-disconnect-btn">Disconnect</button>
             </div>
           </div>
 
           <div class="zap-defaults">
             <h3 class="subsection-title">Quick Zap Defaults</h3>
-            <p class="zap-subsection-desc">Configure default amount and comment for quick zaps (single click).</p>
+            <div class="form__info">Configure default amount and comment for quick zaps (single click).</div>
 
-            <div class="zap-default-amount">
+            <div class="form__row form__row--oneline">
               <label for="zap-default-amount">Default Amount (sats):</label>
               <input
                 type="number"
                 id="zap-default-amount"
-                class="zap-amount-input"
                 min="1"
                 value="${this.zapDefaults.amount}"
               />
             </div>
 
-            <div class="zap-default-comment">
+            <div class="form__row form__row--oneline">
               <label for="zap-default-comment">Default Comment (optional):</label>
               <input
                 type="text"
                 id="zap-default-comment"
-                class="zap-comment-input"
                 placeholder="Great post!"
                 value="${this.zapDefaults.comment}"
                 maxlength="200"
               />
             </div>
 
-            <div class="zap-fiat-currency">
+            <div class="form__row form__row--oneline">
               <label for="fiat-currency-select">Zap Balance Fiat Currency:</label>
-              <select id="fiat-currency-select" class="fiat-currency-select">
+              <select id="fiat-currency-select">
                 ${this.renderCurrencyOptions()}
               </select>
             </div>
 
-            <div class="zap-save">
+            <div class="settings-section__actions">
               <button class="btn btn--medium" id="save-zap-defaults-btn">Save Defaults</button>
-              <div class="save-message" id="zap-save-message"></div>
+              <div class="settings-section__action-feedback" id="zap-save-message"></div>
             </div>
           </div>
         </div>
@@ -298,11 +296,11 @@ export class NWCSettingsSection extends SettingsSection {
     if (!messageEl) return;
 
     messageEl.textContent = message;
-    messageEl.className = type === 'success' ? 'save-message success' : 'save-message error';
+    messageEl.className = `settings-section__action-feedback settings-section__action-feedback--${type}`;
 
     setTimeout(() => {
       messageEl.textContent = '';
-      messageEl.className = 'save-message';
+      messageEl.className = 'settings-section__action-feedback';
     }, 5000);
   }
 

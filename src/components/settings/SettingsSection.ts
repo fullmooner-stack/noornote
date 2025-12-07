@@ -33,18 +33,18 @@ export abstract class SettingsSection {
   ): string {
     return `
       <section class="settings-section ${isOpen ? 'open' : ''}" data-section="${this.sectionId}">
-        <div class="section-header">
-          <div class="settings-section-info">
-            <h2 class="settings-section-title">${title}</h2>
-            <p class="settings-section-description">${description}</p>
+        <div class="settings-section__header">
+          <div class="settings-section__info">
+            <h2 class="settings-section__title">${title}</h2>
+            <p class="settings-section__description">${description}</p>
           </div>
-          <button class="settings-section-toggle" aria-label="Toggle section">
+          <button class="settings-section__toggle" aria-label="Toggle section">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
           </button>
         </div>
-        <div class="section-content" id="${this.sectionId}-content">
+        <div class="settings-section__content" id="${this.sectionId}-content">
           <!-- Content will be mounted here -->
         </div>
       </section>

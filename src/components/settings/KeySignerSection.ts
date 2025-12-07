@@ -59,8 +59,8 @@ export class KeySignerSection extends SettingsSection {
               <div id="autostart-switch-container"></div>
             </div>
 
-            <div class="key-signer-actions">
-              <button class="btn btn--medium btn--secondary" id="stop-daemon-btn">Stop Key Signer & Logout</button>
+            <div class="settings-section__actions">
+              <button class="btn btn--medium" id="stop-daemon-btn">Stop Key Signer & Logout</button>
             </div>
           </div>
         ` : `

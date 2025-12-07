@@ -84,7 +84,75 @@
 }
 
 // ========================================
-// Form Group (label + input)
+// Labels (global)
+// ========================================
+label {
+  cursor: pointer;
+}
+
+// ========================================
+// Form Info (description text)
+// ========================================
+.form__info {
+  margin-bottom: $gap;
+  padding: calc($gap / 2) 0;
+  border-top: 1px solid $color-3;
+}
+
+// ========================================
+// Form Note (help text below inputs)
+// ========================================
+.form__note {
+  margin-top: calc($gap / 2);
+  font-size: 13px;
+  color: rgba($color-5, 0.5);
+  font-style: italic;
+}
+
+// ========================================
+// Form Row (unified form structure)
+// ========================================
+.form__row {
+  margin-bottom: $gap;
+
+  label {
+    display: block;
+    margin-bottom: calc($gap / 2);
+    color: $color-4;
+    white-space: nowrap;
+  }
+
+  &--oneline {
+    display: flex;
+    align-items: center;
+    gap: $gap;
+
+    label {
+      display: inline-block;
+      margin-bottom: 0;
+    }
+  }
+
+  select,
+  input,
+  textarea,
+  .input-element {
+    width: 100%;
+    padding: calc($gap / 2) $gap;
+    color: $color-5;
+    background: $color-1;
+    border: 1px solid $color-3;
+    border-radius: $radius-sm;
+
+    &:focus {
+      outline: none;
+      border-color: $color-4;
+    }
+  }
+}
+
+// ========================================
+// Form Group (legacy, label + input)
 // ========================================
 .form-group {
   margin-bottom: $gap;
