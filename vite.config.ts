@@ -42,6 +42,21 @@ export default defineConfig({
         entryFileNames: 'assets/js/[name]-[hash].js',
         assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
       },
+      // Suppress warnings for intentional mixed dynamic/static imports
+      // These are used for code-splitting, lazy loading, and circular dependency avoidance
+      onwarn(warning, warn) {
+        // Suppress "is dynamically imported by ... but also statically imported" warnings
+        if (warning.code === 'PLUGIN_WARNING' &&
+            warning.message?.includes('dynamically imported') &&
+            warning.message?.includes('statically imported')) {
+          return;
+        }
+        // Suppress eval warnings from external packages (tseep)
+        if (warning.code === 'EVAL' && warning.id?.includes('node_modules')) {
+          return;
+        }
+        warn(warning);
+      },
     },
 
     // Performance budgets (500KB gzipped target)
