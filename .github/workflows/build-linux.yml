@@ -1,10 +1,11 @@
 name: Build Linux
 
 on:
-  workflow_dispatch:  # Manual trigger for testing
+  workflow_dispatch:  # Manual trigger
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
+      - development
 
 jobs:
   build-noorsigner:
