@@ -257,7 +257,6 @@ export class AuthService {
       this.saveSession();
 
       // Emit login event for NIP-65 relay list fetching
-      console.log('[AuthService] Emitting user:login event for npub (read-only):', { npub, pubkey });
       this.eventBus.emit('user:login', { npub, pubkey });
 
       return {
@@ -312,7 +311,6 @@ export class AuthService {
       this.saveSession();
 
       // Emit login event for NIP-65 relay list fetching
-      console.log('[AuthService] Emitting user:login event for nsec:', { npub, pubkey });
       this.eventBus.emit('user:login', { npub, pubkey });
 
       return {
@@ -397,12 +395,10 @@ export class AuthService {
         // NO saveSession() - daemon is single source of truth
         this.saveToAccountStorage();
 
-        console.log('[AuthService] Auto-logged in with KeySigner:', result.npub);
         this.eventBus.emit('user:login', { npub: result.npub, pubkey: result.pubkey });
       }
     } catch (error) {
       // Silent fail - user can manually login
-      console.debug('[AuthService] KeySigner auto-login failed:', error);
     }
   }
 
@@ -428,8 +424,6 @@ export class AuthService {
     }
 
     try {
-      console.log('[AuthService] authenticateWithKeySigner() called');
-
       const result = await this.keySignerManager.authenticate();
 
       if (result.success && result.npub && result.pubkey) {
@@ -956,7 +950,6 @@ export class AuthService {
         if (sessionData.npub && sessionData.pubkey && sessionData.timestamp && sessionData.authMethod) {
           // IGNORE key-signer sessions - daemon is single source of truth
           if (sessionData.authMethod === 'key-signer') {
-            console.log('[AuthService] Ignoring localStorage key-signer session (daemon is source of truth)');
             localStorage.removeItem(this.storageKey);
             return;
           }
@@ -1024,7 +1017,6 @@ export class AuthService {
 
     // NEVER save key-signer sessions to localStorage
     if (this.authMethod === 'key-signer') {
-      console.log('[AuthService] Skipping localStorage save for key-signer (daemon is source of truth)');
       return;
     }
 

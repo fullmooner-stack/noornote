@@ -26,6 +26,7 @@ const GLOBAL_CATEGORIES = [
   'Router',
   'UserService',
   'Auth',
+  'KeySigner',
   'USM',
   'Console',
   'NostrTransport',

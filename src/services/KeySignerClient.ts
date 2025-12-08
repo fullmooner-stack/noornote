@@ -542,14 +542,10 @@ export class KeySignerClient {
         password,
       };
 
-      console.log('[KeySigner] switchAccount request:', { id: request.id, method: request.method, npub });
-
       const responseStr = await invoke('key_signer_request', {
         request: JSON.stringify(request),
       }) as string;
       const response: SwitchAccountResponse = JSON.parse(responseStr);
-
-      console.log('[KeySigner] switchAccount response:', response);
 
       if (response.error) {
         throw new Error(response.error);
@@ -565,8 +561,6 @@ export class KeySignerClient {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('[KeySigner] switchAccount error:', errorMessage);
-      // Re-throw to preserve the original error message (e.g., "invalid password")
       throw new Error(errorMessage);
     }
   }

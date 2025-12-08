@@ -9,10 +9,12 @@
 import { KeySignerClient } from '../KeySignerClient';
 import { EventBus } from '../EventBus';
 import { PlatformService } from '../PlatformService';
+import { SystemLogger } from '../../components/system/SystemLogger';
 
 export class KeySignerConnectionManager {
   private keySigner: KeySignerClient | null = null;
   private eventBus: EventBus;
+  private logger: SystemLogger;
   private daemonPollingInterval: NodeJS.Timeout | null = null;
   private readonly DAEMON_POLL_INTERVAL = 5000; // Poll every 5 seconds
   private daemonFailureCount = 0;
@@ -23,6 +25,7 @@ export class KeySignerConnectionManager {
 
   constructor() {
     this.eventBus = EventBus.getInstance();
+    this.logger = SystemLogger.getInstance();
     this.setupWindowFocusListeners();
   }
 
@@ -41,7 +44,6 @@ export class KeySignerConnectionManager {
 
     window.addEventListener('focus', () => {
       this.windowFocused = true;
-      // console.log('[KeySignerConnectionManager] Window focused - resuming daemon polling');
 
       if (this.keySigner && !this.daemonPollingInterval) {
         this.startDaemonPolling();
@@ -50,8 +52,6 @@ export class KeySignerConnectionManager {
 
     window.addEventListener('blur', () => {
       this.windowFocused = false;
-      // console.log('[KeySignerConnectionManager] Window blurred - pausing daemon polling');
-      // Note: Don't stop polling, just pause via windowFocused flag (checked in polling loop)
     });
   }
 
@@ -64,19 +64,19 @@ export class KeySignerConnectionManager {
     }
 
     try {
-      console.log('[KeySignerConnectionManager] Attempting auto-login with KeySigner...');
+      this.logger.info('KeySigner', 'Attempting auto-login...');
       this.keySigner = KeySignerClient.getInstance();
 
       const isRunning = await this.keySigner.isRunning();
       if (!isRunning) {
-        console.log('[KeySignerConnectionManager] Daemon not running, auto-login skipped');
+        this.logger.info('KeySigner', 'Daemon not running, auto-login skipped');
         this.keySigner = null;
         return { success: false, error: 'Daemon not running' };
       }
 
       const pubkey = await this.keySigner.getPubkey();
       if (pubkey) {
-        console.log('[KeySignerConnectionManager] Auto-login successful with KeySigner');
+        this.logger.success('KeySigner', 'Auto-login successful');
         const { hexToNpub } = await import('../../helpers/nip19');
         const npub = await hexToNpub(pubkey);
 
@@ -88,7 +88,7 @@ export class KeySignerConnectionManager {
       this.keySigner = null;
       return { success: false, error: 'No pubkey available' };
     } catch (error) {
-      console.error('[KeySignerConnectionManager] Auto-login failed:', error);
+      this.logger.error('KeySigner', `Auto-login failed: ${error}`);
       this.keySigner = null;
       return { success: false, error: String(error) };
     }
@@ -105,17 +105,15 @@ export class KeySignerConnectionManager {
     try {
       this.keySigner = KeySignerClient.getInstance();
 
-      console.log('[KeySignerConnectionManager] Checking if daemon is running...');
+      this.logger.info('KeySigner', 'Checking if daemon is running...');
       const isRunning = await this.keySigner.isRunning();
 
       if (!isRunning) {
-        // Daemon not running - try to launch it
-        console.log('[KeySignerConnectionManager] Daemon not running, launching...');
+        this.logger.info('KeySigner', 'Daemon not running, launching...');
         await this.keySigner.launchDaemon();
 
-        // Wait for daemon to become available
-        const maxWaitTime = 60000; // 60 seconds
-        const pollInterval = 1000; // 1 second
+        const maxWaitTime = 60000;
+        const pollInterval = 1000;
         const startTime = Date.now();
 
         while (Date.now() - startTime < maxWaitTime) {
@@ -123,12 +121,11 @@ export class KeySignerConnectionManager {
 
           const isNowRunning = await this.keySigner.isRunning();
           if (isNowRunning) {
-            console.log('[KeySignerConnectionManager] Daemon is now running');
+            this.logger.success('KeySigner', 'Daemon is now running');
             break;
           }
         }
 
-        // Check if daemon started
         const finalCheck = await this.keySigner.isRunning();
         if (!finalCheck) {
           this.keySigner = null;
@@ -139,17 +136,16 @@ export class KeySignerConnectionManager {
         }
       }
 
-      // Create abort controller for cancellation
       this.keySignerAbortController = new AbortController();
 
-      console.log('[KeySignerConnectionManager] Daemon is running, getting pubkey...');
+      this.logger.info('KeySigner', 'Getting pubkey...');
       const pubkey = await this.keySigner.getPubkey();
 
       if (!pubkey) {
         throw new Error('Failed to get pubkey from KeySigner');
       }
 
-      console.log('[KeySignerConnectionManager] Got pubkey from KeySigner:', pubkey.slice(0, 8) + '...');
+      this.logger.success('KeySigner', `Got pubkey: ${pubkey.slice(0, 8)}...`);
 
       const { hexToNpub } = await import('../../helpers/nip19');
       const npub = await hexToNpub(pubkey);
@@ -158,10 +154,10 @@ export class KeySignerConnectionManager {
 
       return { success: true, npub, pubkey };
     } catch (error: any) {
-      console.error('[KeySignerConnectionManager] Authentication failed:', error);
+      this.logger.error('KeySigner', `Authentication failed: ${error}`);
 
       if (error.name === 'AbortError') {
-        console.log('[KeySignerConnectionManager] KeySigner login cancelled by user');
+        this.logger.info('KeySigner', 'Login cancelled by user');
         return { success: false, error: 'Login cancelled' };
       }
 
@@ -177,7 +173,7 @@ export class KeySignerConnectionManager {
    */
   public async cancelLogin(): Promise<void> {
     if (this.keySignerAbortController) {
-      console.log('[KeySignerConnectionManager] Cancelling KeySigner login...');
+      this.logger.info('KeySigner', 'Cancelling login...');
       this.keySignerAbortController.abort();
       this.keySignerAbortController = null;
     }
@@ -193,7 +189,7 @@ export class KeySignerConnectionManager {
   public startDaemonPolling(): void {
     if (this.daemonPollingInterval || !this.keySigner) return;
 
-    console.log('[KeySignerConnectionManager] Starting daemon health polling...');
+    this.logger.info('KeySigner', 'Starting daemon health polling');
     this.daemonFailureCount = 0;
 
     this.daemonPollingInterval = setInterval(async () => {
@@ -206,10 +202,10 @@ export class KeySignerConnectionManager {
 
         if (!isRunning) {
           this.daemonFailureCount++;
-          console.warn(`[KeySignerConnectionManager] Daemon check failed (${this.daemonFailureCount}/${this.MAX_DAEMON_FAILURES})`);
+          this.logger.warn('KeySigner', `Daemon check failed (${this.daemonFailureCount}/${this.MAX_DAEMON_FAILURES})`);
 
           if (this.daemonFailureCount >= this.MAX_DAEMON_FAILURES) {
-            console.error('[KeySignerConnectionManager] Daemon connection lost after grace period - logging out');
+            this.logger.error('KeySigner', 'Daemon connection lost - logging out');
             this.stopDaemonPolling();
             this.onDaemonLost?.();
 
@@ -218,7 +214,7 @@ export class KeySignerConnectionManager {
           }
         } else {
           if (this.daemonFailureCount > 0) {
-            console.log('[KeySignerConnectionManager] Connection restored');
+            this.logger.success('KeySigner', 'Connection restored');
             this.daemonFailureCount = 0;
           }
         }
@@ -228,10 +224,10 @@ export class KeySignerConnectionManager {
 
         if (isTransientError) {
           this.daemonFailureCount++;
-          console.warn(`[KeySignerConnectionManager] Transient connection error (${this.daemonFailureCount}/${this.MAX_DAEMON_FAILURES}):`, error.message);
+          this.logger.warn('KeySigner', `Transient error (${this.daemonFailureCount}/${this.MAX_DAEMON_FAILURES}): ${error.message}`);
 
           if (this.daemonFailureCount >= this.MAX_DAEMON_FAILURES) {
-            console.error('[KeySignerConnectionManager] Too many transient errors - logging out');
+            this.logger.error('KeySigner', 'Too many transient errors - logging out');
             this.stopDaemonPolling();
             this.onDaemonLost?.();
 
@@ -239,7 +235,7 @@ export class KeySignerConnectionManager {
             ToastService.show('KeySigner connection unstable - logged out', 'error');
           }
         } else {
-          console.error('[KeySignerConnectionManager] Daemon polling error:', error);
+          this.logger.error('KeySigner', `Daemon polling error: ${error}`);
         }
       }
     }, this.DAEMON_POLL_INTERVAL);
@@ -250,7 +246,7 @@ export class KeySignerConnectionManager {
    */
   public stopDaemonPolling(): void {
     if (this.daemonPollingInterval) {
-      console.log('[KeySignerConnectionManager] Stopping daemon health polling');
+      this.logger.info('KeySigner', 'Stopping daemon health polling');
       clearInterval(this.daemonPollingInterval);
       this.daemonPollingInterval = null;
       this.daemonFailureCount = 0;
@@ -280,23 +276,22 @@ export class KeySignerConnectionManager {
           onConfirm: async () => {
             try {
               await this.keySigner!.stopDaemon();
-              console.log('[KeySignerConnectionManager] Daemon stopped successfully');
+              this.logger.success('KeySigner', 'Daemon stopped successfully');
               resolve(true);
             } catch (error) {
-              console.error('[KeySignerConnectionManager] Failed to stop daemon:', error);
+              this.logger.error('KeySigner', `Failed to stop daemon: ${error}`);
               const { ToastService } = await import('../ToastService');
               ToastService.show('Failed to stop daemon', 'error');
               resolve(false);
             }
           },
           onCancel: () => {
-            console.log('[KeySignerConnectionManager] User chose to keep daemon running');
             resolve(false);
           }
         });
       });
     } catch (error) {
-      console.error('[KeySignerConnectionManager] Error checking daemon status:', error);
+      this.logger.error('KeySigner', `Error checking daemon status: ${error}`);
       return false;
     }
   }
