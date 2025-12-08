@@ -665,7 +665,7 @@ export class ArticleEditorView extends View {
    * Handle back navigation
    */
   private handleBack(): void {
-    // TODO: Confirm if unsaved changes
+    // See docs/todos/article-editor-unsaved-changes.md
     this.router.navigate('/');
   }
 

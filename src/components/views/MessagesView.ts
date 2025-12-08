@@ -514,7 +514,7 @@ export class MessagesView extends View {
    * Open compose modal for new message
    */
   private openComposeModal(): void {
-    // TODO: Implement compose modal
+    // See docs/todos/dm-compose-modal.md
     this.systemLogger.info('MessagesView', 'Compose modal not yet implemented');
   }
 
