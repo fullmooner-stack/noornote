@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - arch: amd64
@@ -68,15 +69,15 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
-      - name: Build Tauri App (includes NoorSigner)
-        run: npm run tauri build
+      - name: Build Tauri App (deb + rpm only)
+        run: npm run tauri build -- --bundles deb,rpm
 
       - name: List build outputs
         run: |
           echo "=== .deb files ==="
-          find src-tauri/target/release/bundle -name "*.deb" -exec ls -lh {} \;
-          echo "=== AppImage files ==="
-          find src-tauri/target/release/bundle -name "*.AppImage" -exec ls -lh {} \;
+          find src-tauri/target/release/bundle -name "*.deb" -exec ls -lh {} \; 2>/dev/null || true
+          echo "=== .rpm files ==="
+          find src-tauri/target/release/bundle -name "*.rpm" -exec ls -lh {} \; 2>/dev/null || true
 
       - name: Upload .deb
         uses: actions/upload-artifact@v4
@@ -84,11 +85,11 @@ jobs:
           name: noornote-linux-${{ matrix.arch }}-deb
           path: src-tauri/target/release/bundle/deb/*.deb
 
-      - name: Upload AppImage
+      - name: Upload .rpm
         uses: actions/upload-artifact@v4
         with:
-          name: noornote-linux-${{ matrix.arch }}-appimage
-          path: src-tauri/target/release/bundle/appimage/*.AppImage
+          name: noornote-linux-${{ matrix.arch }}-rpm
+          path: src-tauri/target/release/bundle/rpm/*.rpm
 
   release:
     needs: [build]
@@ -103,10 +104,10 @@ jobs:
           name: noornote-linux-amd64-deb
           path: release/
 
-      - name: Download amd64 AppImage
+      - name: Download amd64 .rpm
         uses: actions/download-artifact@v4
         with:
-          name: noornote-linux-amd64-appimage
+          name: noornote-linux-amd64-rpm
           path: release/
 
       - name: Download arm64 .deb
@@ -115,10 +116,10 @@ jobs:
           name: noornote-linux-arm64-deb
           path: release/
 
-      - name: Download arm64 AppImage
+      - name: Download arm64 .rpm
         uses: actions/download-artifact@v4
         with:
-          name: noornote-linux-arm64-appimage
+          name: noornote-linux-arm64-rpm
           path: release/
 
       - name: List release contents
