@@ -9,9 +9,8 @@
  * Follows are loaded from browserItems (localStorage).
  */
 
-import { NostrTransport } from './transport/NostrTransport';
 import { AuthService } from './AuthService';
-import { RelayConfig } from './RelayConfig';
+import { UserService } from './UserService';
 import { FollowStorageAdapter } from './sync/adapters/FollowStorageAdapter';
 import type { FollowItem } from './orchestration/FollowListOrchestrator';
 
@@ -32,18 +31,16 @@ export interface MutualStats {
 
 export class MutualService {
   private static instance: MutualService;
-  private transport: NostrTransport;
   private authService: AuthService;
-  private relayConfig: RelayConfig;
+  private userService: UserService;
   private followAdapter: FollowStorageAdapter;
 
   // In-memory cache for mutual status (cleared on logout)
   private mutualStatusCache: Map<string, boolean> = new Map();
 
   private constructor() {
-    this.transport = NostrTransport.getInstance();
     this.authService = AuthService.getInstance();
-    this.relayConfig = RelayConfig.getInstance();
+    this.userService = UserService.getInstance();
     this.followAdapter = new FollowStorageAdapter();
   }
 
@@ -81,7 +78,7 @@ export class MutualService {
   /**
    * Check mutual status for a batch of pubkeys
    * Returns items with mutual status attached
-   * Uses in-memory cache + NDK cache for speed
+   * Uses in-memory cache + UserService for data
    */
   public async checkMutualStatusBatch(
     items: FollowItem[]
@@ -89,9 +86,7 @@ export class MutualService {
     const currentUser = this.authService.getCurrentUser();
     if (!currentUser) return items.map(item => ({ ...item, isMutual: false }));
 
-    const relays = this.relayConfig.getAggregatorRelays();
-
-    // Check each item (in parallel, NDK handles caching)
+    // Check each item (in parallel)
     const results = await Promise.all(
       items.map(async (item) => {
         // Check in-memory cache first
@@ -102,8 +97,8 @@ export class MutualService {
           };
         }
 
-        // Fetch from relays (NDK caches Kind:3 events)
-        const isMutual = await this.checkIfMutual(item.pubkey, currentUser.pubkey, relays);
+        // Use UserService to get their follow list (single source of truth)
+        const isMutual = await this.checkIfMutual(item.pubkey, currentUser.pubkey);
 
         // Store in in-memory cache
         this.mutualStatusCache.set(item.pubkey, isMutual);
@@ -156,25 +151,16 @@ export class MutualService {
 
   /**
    * Check if a specific user follows back
+   * Uses UserService as single source of truth for follow lists
    */
   private async checkIfMutual(
     userPubkey: string,
-    currentUserPubkey: string,
-    relays: string[]
+    currentUserPubkey: string
   ): Promise<boolean> {
     try {
-      // Fetch user's follow list (Kind 3) - NDK caches this
-      const followList = await this.transport.fetch(relays, [{
-        kinds: [3],
-        authors: [userPubkey],
-        limit: 1
-      }], 5000);
-
-      if (followList.length === 0) return false;
-
-      // Check if current user is in their follow list
-      const followsTags = followList[0].tags.filter(t => t[0] === 'p');
-      return followsTags.some(t => t[1] === currentUserPubkey);
+      // Use UserService to get their follow list (single source of truth)
+      const theirFollows = await this.userService.getUserFollowing(userPubkey);
+      return theirFollows.includes(currentUserPubkey);
     } catch {
       return false;
     }
