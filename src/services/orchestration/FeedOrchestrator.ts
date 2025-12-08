@@ -13,10 +13,9 @@
  * - Distributes events to registered components (TimelineUI)
  */
 
-import type { Event as NostrEvent, Filter as NostrFilter } from '@nostr-dev-kit/ndk';
+import type { NostrEvent, NDKFilter } from '@nostr-dev-kit/ndk';
 import { Orchestrator } from './Orchestrator';
 import { NostrTransport } from '../transport/NostrTransport';
-import { RelayConfig } from '../RelayConfig';
 import { OutboundRelaysOrchestrator } from './OutboundRelaysOrchestrator';
 import { MuteOrchestrator } from './MuteOrchestrator';
 import { SystemLogger } from '../../components/system/SystemLogger';
@@ -49,7 +48,6 @@ type NewNotesCallback = (info: NewNotesInfo) => void;
 export class FeedOrchestrator extends Orchestrator {
   private static instance: FeedOrchestrator;
   private transport: NostrTransport;
-  private relayConfig: RelayConfig;
   private relayDiscovery: OutboundRelaysOrchestrator;
   private muteOrchestrator: MuteOrchestrator;
   private systemLogger: SystemLogger;
@@ -75,7 +73,6 @@ export class FeedOrchestrator extends Orchestrator {
   private constructor() {
     super('FeedOrchestrator');
     this.transport = NostrTransport.getInstance();
-    this.relayConfig = RelayConfig.getInstance();
     this.relayDiscovery = OutboundRelaysOrchestrator.getInstance();
     this.muteOrchestrator = MuteOrchestrator.getInstance();
     this.systemLogger = SystemLogger.getInstance();
@@ -128,7 +125,7 @@ export class FeedOrchestrator extends Orchestrator {
 
       // ProfileView: Direct fetch with limit only (no time window) - gets newest posts regardless of age
       // TimelineView: Time-windowed fetch (default 1h)
-      const filters: NostrFilter[] = isProfileView
+      const filters: NDKFilter[] = isProfileView
         ? [{
             authors: followingPubkeys,
             kinds: [1, 6, 1068],
@@ -253,7 +250,7 @@ export class FeedOrchestrator extends Orchestrator {
         ? [specificRelay]
         : await this.relayDiscovery.getCombinedRelays(followingPubkeys, isProfileView);
 
-      const filters: NostrFilter[] = [{
+      const filters: NDKFilter[] = [{
         authors: followingPubkeys,
         kinds: [1, 6, 1068],
         until: until - 1,
@@ -353,14 +350,15 @@ export class FeedOrchestrator extends Orchestrator {
   /**
    * Get relay URLs for an event
    */
-  public getEventRelays(eventId: string): string[] {
+  public getEventRelays(_eventId: string): string[] {
+    return [];
   }
 
   /**
    * Fetch events via subscription (used for ProfileView)
    * Waits for EOSE from majority of relays before returning
    */
-  private async fetchViaSubscription(relays: string[], filters: NostrFilter[]): Promise<NostrEvent[]> {
+  private async fetchViaSubscription(relays: string[], filters: NDKFilter[]): Promise<NostrEvent[]> {
     return new Promise(async (resolve) => {
       const events: NostrEvent[] = [];
       const eventIds = new Set<string>();
@@ -382,7 +380,7 @@ export class FeedOrchestrator extends Orchestrator {
 
       // Subscribe with callbacks
       const sub = await this.transport.subscribe(relays, filters, {
-        onEvent: (event: NostrEvent, relay: string) => {
+        onEvent: (event: NostrEvent, _relay: string) => {
           // Deduplicate events
           if (!eventIds.has(event.id)) {
             eventIds.add(event.id);
@@ -445,7 +443,7 @@ export class FeedOrchestrator extends Orchestrator {
 
   // Orchestrator interface implementations (unused for now, but required by base class)
 
-  public onui(data: any): void {
+  public onui(_data: any): void {
     // Handle UI actions (future: real-time subscriptions)
   }
 
@@ -453,7 +451,7 @@ export class FeedOrchestrator extends Orchestrator {
     this.systemLogger.info('FeedOrchestrator', `Relay opened: ${relay}`);
   }
 
-  public onmessage(relay: string, event: NostrEvent): void {
+  public onmessage(_relay: string, event: NostrEvent): void {
     // Handle incoming events from subscriptions - notify callbacks
     this.callbacks.forEach(callback => callback([event]));
   }
@@ -587,9 +585,6 @@ export class FeedOrchestrator extends Orchestrator {
       const events = await this.transport.fetch(relays, filters);
 
       // Cache polled events
-      events.forEach(event => {
-        const relays = (event as any)._relays as string[] | undefined;
-      });
 
       // Filter replies and muted users
       let filteredEvents = this.pollingIncludeReplies ? events : this.filterReplies(events);

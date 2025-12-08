@@ -24,7 +24,6 @@ export class NWCSettingsSection extends SettingsSection {
   private exchangeRateService: ExchangeRateService;
   private zapDefaults: ZapDefaults;
   private fiatCurrencySettings: FiatCurrencySettings;
-  private readonly zapDefaultsStorageKey = 'noornote_zap_defaults';
 
   constructor() {
     super('zaps');

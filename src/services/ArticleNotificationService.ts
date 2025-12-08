@@ -12,7 +12,7 @@ import { NostrTransport } from './transport/NostrTransport';
 import { RelayConfig } from './RelayConfig';
 import { EventBus } from './EventBus';
 import { encodeNaddr } from './NostrToolsAdapter';
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 
 const STORAGE_KEY = 'noornote_article_notifications';
 const POLL_INTERVAL = 60 * 60 * 1000; // 1 hour in milliseconds

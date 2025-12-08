@@ -4,7 +4,7 @@
  * Uses NostrTransport for all relay communication
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { NostrTransport } from './transport/NostrTransport';
 import { RelayConfig } from './RelayConfig';
 import { SystemLogger } from '../components/system/SystemLogger';
@@ -120,14 +120,14 @@ export class UserService {
    * Uses NostrTransport for subscriptions
    */
   public async subscribe(
-    subscriptionId: string,
+    _subscriptionId: string,
     filter: { authors?: string[]; kinds?: number[]; ids?: string[] },
     callback: (event: NostrEvent) => void
   ): Promise<() => void> {
     const relays = this.transport.getReadRelays();
 
     // Silent operation
-    // this.systemLogger.info('UserService', `Creating subscription: ${subscriptionId}`);
+    // this.systemLogger.info('UserService', `Creating subscription: ${_subscriptionId}`);
 
     const filters = [{
       authors: filter.authors,

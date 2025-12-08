@@ -30,7 +30,7 @@ import { renderQuotePreview } from '../../helpers/renderQuotePreview';
 import { StatsUpdateService } from '../../services/StatsUpdateService';
 import { AppState } from '../../services/AppState';
 import { EventBus } from '../../services/EventBus';
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { NoteUI } from '../ui/NoteUI';
 import { ContentValidationManager } from '../post/ContentValidationManager';
 import { EditorStateManager } from '../post/EditorStateManager';
@@ -353,7 +353,7 @@ export class ReplyModal {
     // Setup mention autocomplete
     this.mentionAutocomplete = new MentionAutocomplete({
       textareaSelector: '[data-textarea]',
-      onMentionInserted: (npub, username) => {
+      onMentionInserted: (_npub, username) => {
         this.systemLogger.info('ReplyModal', `Mention inserted: @${username}`);
       }
     });

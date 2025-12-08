@@ -4,7 +4,7 @@
  * Used by: Profile Search, Global Search, Hashtag Search
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { formatTimestamp } from '../../helpers/formatTimestamp';
 import { escapeHtml } from '../../helpers/escapeHtml';
 import { InfiniteScroll } from '../ui/InfiniteScroll';

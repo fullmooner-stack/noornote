@@ -68,7 +68,7 @@ export class MentionAutocomplete {
   /**
    * Handle textarea input - detect @ trigger
    */
-  private handleInput(e: Event): void {
+  private handleInput(_e: Event): void {
     if (!this.textarea) return;
 
     const cursorPos = this.textarea.selectionStart;

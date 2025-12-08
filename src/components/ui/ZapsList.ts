@@ -4,7 +4,7 @@
  * Sorted by amount (largest first), horizontally scrollable
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { UserProfileService } from '../../services/UserProfileService';
 import { escapeHtml } from '../../helpers/escapeHtml';
 import { UserHoverCard } from './UserHoverCard';

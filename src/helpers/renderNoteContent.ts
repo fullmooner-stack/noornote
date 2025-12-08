@@ -11,7 +11,7 @@
  * // => Complete HTML with text, media, and quoted references
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { renderMediaContent, type MediaContent } from './renderMediaContent';
 import { renderQuotedReferencesPlaceholder, type QuotedReference } from './renderQuotedReferencesPlaceholder';
 

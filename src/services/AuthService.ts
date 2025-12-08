@@ -10,7 +10,6 @@ import { hexToNpub } from '../helpers/nip19';
 import {
   getPublicKeyFromPrivate,
   calculateEventHash,
-  signEventWithKey,
   finalizeEventSigning,
   decodeNip19,
   type UnsignedEvent
@@ -18,7 +17,6 @@ import {
 import { KeychainStorage } from './KeychainStorage';
 import { EventBus } from './EventBus';
 import { AccountStorageService, type StoredAccount } from './AccountStorageService';
-import { KeySignerClient } from './KeySignerClient';
 import { KeySignerConnectionManager } from './managers/KeySignerConnectionManager';
 import { Nip46SignerManager } from './managers/Nip46SignerManager';
 import { PlatformService } from './PlatformService';
@@ -397,7 +395,7 @@ export class AuthService {
 
         this.eventBus.emit('user:login', { npub: result.npub, pubkey: result.pubkey });
       }
-    } catch (error) {
+    } catch (_error) {
       // Silent fail - user can manually login
     }
   }

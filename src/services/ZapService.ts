@@ -5,7 +5,7 @@
  * NIP-57: https://github.com/nostr-protocol/nips/blob/master/57.md
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { NWCService } from './NWCService';
 import { AuthService } from './AuthService';
 import { UserProfileService } from './UserProfileService';

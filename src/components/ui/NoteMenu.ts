@@ -340,7 +340,6 @@ export class NoteMenu {
   private positionMenu(): void {
     const triggerRect = this.triggerElement.getBoundingClientRect();
     const menuRect = this.menuElement.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
     // Default: position below and to the right of trigger

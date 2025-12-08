@@ -103,25 +103,24 @@ export function subscribeNostrEvents(
   }
 
   // Subscribe via NostrTransport
-  return (async () => {
-    const transport = NostrTransport.getInstance();
-    const sub = await transport.subscribe(relays, [filter], {
-      onEvent,
-      onEose
-    });
+  const transport = NostrTransport.getInstance();
+  const sub = transport.subscribe(relays, [filter], {
+    onEvent,
+    onEose
+  });
 
-    // Auto-close timer
-    let autoCloseTimer: number | undefined;
-    if (autoCloseAfterMs !== undefined && autoCloseAfterMs > 0) {
-      autoCloseTimer = window.setTimeout(() => {
-        sub.close();
-      }, autoCloseAfterMs);
-    }
+  // Auto-close timer
+  let autoCloseTimer: number | undefined;
+  if (autoCloseAfterMs !== undefined && autoCloseAfterMs > 0) {
+    autoCloseTimer = window.setTimeout(() => {
+      sub.close();
+    }, autoCloseAfterMs);
+  }
 
-    // Return unsubscribe function
-    return () => {
-      if (autoCloseTimer) {
-        clearTimeout(autoCloseTimer);
+  // Return unsubscribe function
+  return () => {
+    if (autoCloseTimer) {
+      clearTimeout(autoCloseTimer);
     }
     sub.close();
   };

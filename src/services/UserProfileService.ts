@@ -10,8 +10,6 @@
  */
 
 import { ProfileOrchestrator } from './orchestration/ProfileOrchestrator';
-import type { Profile } from './orchestration/ProfileOrchestrator';
-import { extractDisplayName } from '../helpers/extractDisplayName';
 
 export interface UserProfile {
   pubkey: string;
@@ -59,7 +57,7 @@ export class UserProfileService {
    * Returns cached username or null if not yet loaded
    * Triggers background fetch if not in cache
    */
-  public getUsername(pubkey: string): string | null {
+  public getUsername(_pubkey: string): string | null {
     // NO CACHE - always return null
     // Use subscribeToProfile() instead
     return null;
@@ -70,7 +68,7 @@ export class UserProfileService {
    * Returns cached picture or null if not yet loaded
    * Triggers background fetch if not in cache
    */
-  public getProfilePicture(pubkey: string): string | null {
+  public getProfilePicture(_pubkey: string): string | null {
     // NO CACHE - always return null
     // Use subscribeToProfile() instead
     return null;

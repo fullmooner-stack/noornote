@@ -15,7 +15,7 @@
  * - InfiniteScroll support: fetch older with `until` parameter
  */
 
-import type { Event as NostrEvent, Filter as NostrFilter } from '@nostr-dev-kit/ndk';
+import type { NostrEvent, NDKFilter } from '@nostr-dev-kit/ndk';
 import { Orchestrator } from './Orchestrator';
 import { NostrTransport } from '../transport/NostrTransport';
 import { MuteOrchestrator } from './MuteOrchestrator';
@@ -140,7 +140,7 @@ export class NotificationsOrchestrator extends Orchestrator {
     const relays = await relayConfig.getReadRelays();
 
     // Filter 1: Direct mentions/tags (#p filter)
-    const ptagFilter: NostrFilter = {
+    const ptagFilter: NDKFilter = {
       '#p': [currentUser.pubkey],
       kinds: [1, 6, 7, 9735], // notes, reposts, reactions, zaps
       since: now // Only new events from now on
@@ -151,8 +151,8 @@ export class NotificationsOrchestrator extends Orchestrator {
       relays,
       [ptagFilter],
       this.ptagSubId,
-      (event: NostrEvent, relay: string) => {
-        this.onmessage(relay, event);
+      (event: NostrEvent, _relay: string) => {
+        this.onmessage(_relay, event);
       }
     );
 
@@ -161,7 +161,7 @@ export class NotificationsOrchestrator extends Orchestrator {
     // Filter 2: Replies to user's events (#e filter)
     const userEventIds = this.getUserEventIds();
     if (userEventIds.length > 0) {
-      const etagFilter: NostrFilter = {
+      const etagFilter: NDKFilter = {
         '#e': userEventIds,
         kinds: [1, 7, 9735], // replies, reactions, zaps to user's events
         since: now // Only new events from now on
@@ -172,8 +172,8 @@ export class NotificationsOrchestrator extends Orchestrator {
         relays,
         [etagFilter],
         this.etagSubId,
-        (event: NostrEvent, relay: string) => {
-          this.onmessage(relay, event);
+        (event: NostrEvent, _relay: string) => {
+          this.onmessage(_relay, event);
         }
       );
 
@@ -206,7 +206,7 @@ export class NotificationsOrchestrator extends Orchestrator {
       this.systemLogger.info('NotificationsOrchestrator', '📥 Fetching last 100 notifications from relays');
 
       // Build filter for last 100 notifications
-      const ptagFilter: NostrFilter = {
+      const ptagFilter: NDKFilter = {
         '#p': [userPubkey],
         kinds: [1, 6, 7, 9735],
         limit: 100
@@ -221,7 +221,7 @@ export class NotificationsOrchestrator extends Orchestrator {
       const userEventIds = this.getUserEventIds();
       let etagNotifications: any[] = [];
       if (userEventIds.length > 0) {
-        const etagFilter: NostrFilter = {
+        const etagFilter: NDKFilter = {
           '#e': userEventIds,
           kinds: [1, 7, 9735],
           limit: 100
@@ -235,16 +235,8 @@ export class NotificationsOrchestrator extends Orchestrator {
       // Process all fetched notifications
       const allNotifications = [...ptagNotifications, ...etagNotifications];
 
-      let skippedCount = 0;
       allNotifications.forEach(event => {
-        const beforeCount = this.notifications.length;
         this.processNotificationEvent(event);
-        const afterCount = this.notifications.length;
-
-        // If notification count didn't increase, it was skipped (self-mention)
-        if (beforeCount === afterCount) {
-          skippedCount++;
-        }
       });
 
       this.systemLogger.info('NotificationsOrchestrator', `📋 Total notifications loaded: ${this.notifications.length}`);
@@ -288,7 +280,7 @@ export class NotificationsOrchestrator extends Orchestrator {
       this.systemLogger.info('NotificationsOrchestrator', `📥 Fetching new notifications (since: ${since})`);
 
       // Build filter for new notifications
-      const ptagFilter: NostrFilter = {
+      const ptagFilter: NDKFilter = {
         '#p': [currentUser.pubkey],
         kinds: [1, 6, 7, 9735],
         since: since
@@ -301,7 +293,7 @@ export class NotificationsOrchestrator extends Orchestrator {
       const userEventIds = this.getUserEventIds();
       let etagNotifications: any[] = [];
       if (userEventIds.length > 0) {
-        const etagFilter: NostrFilter = {
+        const etagFilter: NDKFilter = {
           '#e': userEventIds,
           kinds: [1, 7, 9735],
           since: since
@@ -352,7 +344,7 @@ export class NotificationsOrchestrator extends Orchestrator {
       this.systemLogger.info('NotificationsOrchestrator', `📥 Fetching ${limit} older notifications (until: ${until})`);
 
       // Build filter for older notifications
-      const ptagFilter: NostrFilter = {
+      const ptagFilter: NDKFilter = {
         '#p': [currentUser.pubkey],
         kinds: [1, 6, 7, 9735],
         until: until,
@@ -366,7 +358,7 @@ export class NotificationsOrchestrator extends Orchestrator {
       const userEventIds = this.getUserEventIds();
       let etagNotifications: any[] = [];
       if (userEventIds.length > 0) {
-        const etagFilter: NostrFilter = {
+        const etagFilter: NDKFilter = {
           '#e': userEventIds,
           kinds: [1, 7, 9735],
           until: until,
@@ -716,7 +708,7 @@ export class NotificationsOrchestrator extends Orchestrator {
 
   // ========== Orchestrator Interface ==========
 
-  public onui(data: any): void {
+  public onui(_data: any): void {
     // Not used for notifications (no UI-triggered actions)
   }
 
@@ -724,7 +716,7 @@ export class NotificationsOrchestrator extends Orchestrator {
     this.systemLogger.info('NotificationsOrchestrator', `📡 Connected to ${relay}`);
   }
 
-  public onmessage(relay: string, event: NostrEvent): void {
+  public onmessage(_relay: string, event: NostrEvent): void {
     // Process new notification
     const beforeCount = this.notifications.length;
     this.processNotificationEvent(event);
@@ -830,7 +822,7 @@ export class NotificationsOrchestrator extends Orchestrator {
     }
 
     // Create a synthetic notification entry
-    const notification: NotificationEntry = {
+    const notification: NotificationEvent = {
       type: 'article',
       event: {
         id: data.articleId,

@@ -288,7 +288,7 @@ export class PostNoteModal {
     // Setup mention autocomplete
     this.mentionAutocomplete = new MentionAutocomplete({
       textareaSelector: '[data-textarea]',
-      onMentionInserted: (npub, username) => {
+      onMentionInserted: (_npub, username) => {
         this.systemLogger.info('PostNoteModal', `Mention inserted: @${username}`);
       }
     });

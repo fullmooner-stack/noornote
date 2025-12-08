@@ -11,7 +11,7 @@
 
 import { FollowStorageAdapter } from './sync/adapters/FollowStorageAdapter';
 import { UserProfileService, type UserProfile } from './UserProfileService';
-import { SearchOrchestrator, type ProfileSearchResult } from './orchestration/SearchOrchestrator';
+import { SearchOrchestrator } from './orchestration/SearchOrchestrator';
 import { extractDisplayName } from '../helpers/extractDisplayName';
 
 export interface UserSearchResult {

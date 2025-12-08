@@ -3,9 +3,9 @@
  * Single notification card with icon, author info, action text, and preview
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import type { NotificationType } from '../../services/orchestration/NotificationsOrchestrator';
-import { UserProfileService, UserProfile } from '../../services/UserProfileService';
+import { UserProfileService } from '../../services/UserProfileService';
 import { Router } from '../../services/Router';
 import { hexToNpub } from '../../helpers/nip19';
 import { InteractionStatusLine } from '../ui/InteractionStatusLine';
@@ -30,7 +30,6 @@ export class NotificationItem {
   private authService: AuthService;
   private reactionsOrch: ReactionsOrchestrator;
   private options: NotificationItemOptions;
-  private profile: UserProfile | null = null;
   private userIdentity: UserIdentity | null = null;
   private isl: InteractionStatusLine | null = null;
   private zapsList: ZapsList | null = null;
@@ -152,7 +151,7 @@ export class NotificationItem {
   private getAuthorPubkey(): string {
     // For zaps (kind 9735), the author is in the "P" tag, not event.pubkey
     if (this.options.type === 'zap') {
-      const pTag = this.options.event.tags.find(t => t[0] === 'P');
+      const pTag = this.options.event.tags.find((t: string[]) => t[0] === 'P');
       if (pTag && pTag[1]) {
         return pTag[1];
       }
@@ -249,7 +248,7 @@ export class NotificationItem {
     if (this.options.type !== 'zap') return null;
 
     // Get bolt11 invoice from tags
-    const bolt11Tag = this.options.event.tags.find(t => t[0] === 'bolt11');
+    const bolt11Tag = this.options.event.tags.find((t: string[]) => t[0] === 'bolt11');
     if (!bolt11Tag || !bolt11Tag[1]) return null;
 
     const invoice = bolt11Tag[1];
@@ -330,9 +329,9 @@ export class NotificationItem {
     if (this.options.type === 'reply' || this.options.type === 'mention' || this.options.type === 'thread-reply') {
       try {
         // Find the e-tag that references the replied-to note
-        const eTag = this.options.event.tags.find(t => t[0] === 'e' && t[3] === 'root') ||
-                     this.options.event.tags.find(t => t[0] === 'e' && t[3] === 'reply') ||
-                     this.options.event.tags.find(t => t[0] === 'e');
+        const eTag = this.options.event.tags.find((t: string[]) => t[0] === 'e' && t[3] === 'root') ||
+                     this.options.event.tags.find((t: string[]) => t[0] === 'e' && t[3] === 'reply') ||
+                     this.options.event.tags.find((t: string[]) => t[0] === 'e');
 
         if (eTag && eTag[1]) {
           const originalEvent = await this.fetchOriginalNote(eTag[1]);
@@ -341,7 +340,7 @@ export class NotificationItem {
 
             // Load profiles from 'p' tags
             const profiles = new Map();
-            const pTags = originalEvent.tags?.filter(t => t[0] === 'p') || [];
+            const pTags = originalEvent.tags?.filter((t: string[]) => t[0] === 'p') || [];
             for (const tag of pTags) {
               try {
                 const profile = await this.userProfileService.getUserProfile(tag[1]);
@@ -374,7 +373,7 @@ export class NotificationItem {
     // For reactions, fetch the liked note content
     if (this.options.type === 'reaction') {
       try {
-        const eTag = this.options.event.tags.find(t => t[0] === 'e');
+        const eTag = this.options.event.tags.find((t: string[]) => t[0] === 'e');
         if (!eTag || !eTag[1]) return;
 
         const originalEvent = await this.fetchOriginalNote(eTag[1]);
@@ -403,7 +402,7 @@ export class NotificationItem {
     // For zaps, fetch the zapped note content
     if (this.options.type === 'zap') {
       try {
-        const eTag = this.options.event.tags.find(t => t[0] === 'e');
+        const eTag = this.options.event.tags.find((t: string[]) => t[0] === 'e');
         if (!eTag || !eTag[1]) return;
 
         const originalEvent = await this.fetchOriginalNote(eTag[1]);
@@ -488,7 +487,7 @@ export class NotificationItem {
 
     // For zaps, navigate to zapped event (extract from #e tag)
     if (this.options.type === 'zap') {
-      const eTag = this.options.event.tags.find(t => t[0] === 'e');
+      const eTag = this.options.event.tags.find((t: string[]) => t[0] === 'e');
       if (eTag && eTag[1]) {
         router.navigate(`/note/${eTag[1]}`);
         return;
@@ -497,7 +496,7 @@ export class NotificationItem {
 
     // For reactions, navigate to reacted event
     if (this.options.type === 'reaction') {
-      const eTag = this.options.event.tags.find(t => t[0] === 'e');
+      const eTag = this.options.event.tags.find((t: string[]) => t[0] === 'e');
       if (eTag && eTag[1]) {
         router.navigate(`/note/${eTag[1]}`);
         return;
@@ -513,7 +512,7 @@ export class NotificationItem {
 
     // For articles, navigate to article view with naddr
     if (this.options.type === 'article') {
-      const dTag = this.options.event.tags.find(t => t[0] === 'd');
+      const dTag = this.options.event.tags.find((t: string[]) => t[0] === 'd');
       if (dTag && dTag[1]) {
         router.navigate(`/article/${dTag[1]}`);
         return;

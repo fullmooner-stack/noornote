@@ -189,8 +189,8 @@ export class ImageViewer {
     }
 
     try {
-      const { encodeNevent } = await import('../../helpers/encodeNevent');
-      const { RelayConfig } = await import('../../services/RelayConfig');
+      const { encodeNevent: _encodeNevent } = await import('../../helpers/encodeNevent');
+      const { RelayConfig: _RelayConfig } = await import('../../services/RelayConfig');
       const { UserProfileService } = await import('../../services/UserProfileService');
       const { PostNoteModal } = await import('../post/PostNoteModal');
 

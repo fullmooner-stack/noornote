@@ -14,10 +14,7 @@
  */
 
 import { UserProfileService } from '../../services/UserProfileService';
-import { OutboundRelaysOrchestrator } from '../../services/orchestration/OutboundRelaysOrchestrator';
-import { NostrTransport } from '../../services/transport/NostrTransport';
 import { UserHoverCard } from '../ui/UserHoverCard';
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
 
 export interface UserIdentityConfig {
   pubkey: string;
@@ -31,10 +28,7 @@ export class UserIdentity {
   private element: HTMLElement;
   private config: UserIdentityConfig;
   private userProfileService: UserProfileService;
-  private outboundRelaysFetcher: OutboundRelaysOrchestrator;
-  private nostrTransport: NostrTransport;
   private unsubscribe?: () => void;
-  private fetchAttempted: boolean = false;
 
   constructor(config: UserIdentityConfig) {
     this.config = {
@@ -46,8 +40,6 @@ export class UserIdentity {
     };
 
     this.userProfileService = UserProfileService.getInstance();
-    this.outboundRelaysFetcher = OutboundRelaysOrchestrator.getInstance();
-    this.nostrTransport = NostrTransport.getInstance();
 
     this.element = this.createElement();
     this.loadIdentity();

@@ -4,7 +4,7 @@
  * Used by both NoteUI and SingleNoteView
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { encodeNevent } from './NostrToolsAdapter';
 import { NoteHeader } from '../components/ui/NoteHeader';
 import { NoteUI } from '../components/ui/NoteUI';

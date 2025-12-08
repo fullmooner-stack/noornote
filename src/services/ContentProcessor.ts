@@ -17,7 +17,6 @@ import { npubToUsername } from '../helpers/npubToUsername';
 import { hexToNpub } from '../helpers/nip19';
 import { UserProfileService } from './UserProfileService';
 import type { MediaContent } from '../helpers/renderMediaContent';
-import type { QuotedReference as ExtractedQuotedReference } from '../helpers/extractQuotedReferences';
 
 export interface QuotedReference {
   type: 'event' | 'note' | 'addr';
@@ -149,8 +148,8 @@ export class ContentProcessor {
           this.updateMentionsInDOM(pubkey, realProfile);
         }
       })
-      .catch(error => {
-        console.warn(`Profile load failed for ${pubkey.slice(0, 8)}:`, error);
+      .catch(_error => {
+        console.warn(`Profile load failed for ${pubkey.slice(0, 8)}:`, _error);
       });
 
     return fallbackProfile;

@@ -5,7 +5,7 @@
  * Delegates to QuoteOrchestrator for orchestrator architecture compliance
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { QuoteOrchestrator } from './orchestration/QuoteOrchestrator';
 
 export type QuoteFetchError =

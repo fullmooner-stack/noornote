@@ -129,7 +129,7 @@ export function replaceMediaPlaceholders(
   let currentGroup: number[] = [];
   let lastMatchEnd = 0;
 
-  matches.forEach((match, idx) => {
+  matches.forEach((match, _idx) => {
     const index = parseInt(match[1]);
     const matchStart = match.index!;
     const matchEnd = matchStart + match[0].length;

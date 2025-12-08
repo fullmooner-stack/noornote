@@ -22,8 +22,6 @@ export class KeychainStorage {
   private static readonly SERVICE_NAME = 'noornote';
   private static readonly KEY_NSEC = 'nsec';
   private static readonly KEY_NWC = 'nwc_connection';
-  private static readonly KEY_ZAP_DEFAULTS = 'zap_defaults';
-  private static readonly KEY_FIAT_CURRENCY = 'fiat_currency';
 
   private static dbPromise: Promise<IDBDatabase> | null = null;
 
@@ -116,8 +114,8 @@ export class KeychainStorage {
     if (this.isTauri()) {
       try {
         await setPassword(this.SERVICE_NAME, this.KEY_NSEC, nsec);
-      } catch (error) {
-        console.error('Failed to save nsec to Keychain:', error);
+      } catch (_error) {
+        console.error('Failed to save nsec to Keychain:', _error);
         throw new Error('Failed to save private key to Keychain');
       }
     } else {
@@ -134,7 +132,7 @@ export class KeychainStorage {
     if (this.isTauri()) {
       try {
         return await getPassword(this.SERVICE_NAME, this.KEY_NSEC);
-      } catch (error) {
+      } catch (_error) {
         // Key not found in Keychain
         return null;
       }
@@ -151,7 +149,7 @@ export class KeychainStorage {
     if (this.isTauri()) {
       try {
         await deletePassword(this.SERVICE_NAME, this.KEY_NSEC);
-      } catch (error) {
+      } catch (_error) {
         // Ignore errors (key might not exist)
       }
     } else {
@@ -166,8 +164,8 @@ export class KeychainStorage {
     if (this.isTauri()) {
       try {
         await setPassword(this.SERVICE_NAME, this.KEY_NWC, connectionString);
-      } catch (error) {
-        console.error('Failed to save NWC to Keychain:', error);
+      } catch (_error) {
+        console.error('Failed to save NWC to Keychain:', _error);
         throw new Error('Failed to save NWC connection to Keychain');
       }
     } else {
@@ -183,7 +181,7 @@ export class KeychainStorage {
     if (this.isTauri()) {
       try {
         return await getPassword(this.SERVICE_NAME, this.KEY_NWC);
-      } catch (error) {
+      } catch (_error) {
         return null;
       }
     } else {
@@ -198,7 +196,7 @@ export class KeychainStorage {
     if (this.isTauri()) {
       try {
         await deletePassword(this.SERVICE_NAME, this.KEY_NWC);
-      } catch (error) {
+      } catch (_error) {
         // Ignore errors
       }
     } else {
@@ -213,8 +211,8 @@ export class KeychainStorage {
   static async saveZapDefaults(amount: number, comment: string): Promise<void> {
     try {
       localStorage.setItem('noornote_zap_defaults', JSON.stringify({ amount, comment }));
-    } catch (error) {
-      console.error('Failed to save zap defaults to localStorage:', error);
+    } catch (_error) {
+      console.error('Failed to save zap defaults to localStorage:', _error);
       throw new Error('Failed to save zap defaults');
     }
   }
@@ -227,8 +225,8 @@ export class KeychainStorage {
       const stored = localStorage.getItem('noornote_zap_defaults');
       if (!stored) return null;
       return JSON.parse(stored);
-    } catch (error) {
-      console.error('Failed to load zap defaults from localStorage:', error);
+    } catch (_error) {
+      console.error('Failed to load zap defaults from localStorage:', _error);
       return null;
     }
   }
@@ -239,7 +237,7 @@ export class KeychainStorage {
   static async deleteZapDefaults(): Promise<void> {
     try {
       localStorage.removeItem('noornote_zap_defaults');
-    } catch (error) {
+    } catch (_error) {
       // Ignore errors
     }
   }
@@ -251,8 +249,8 @@ export class KeychainStorage {
   static async saveFiatCurrency(currencyCode: string): Promise<void> {
     try {
       localStorage.setItem('noornote_fiat_currency', currencyCode);
-    } catch (error) {
-      console.error('Failed to save fiat currency to localStorage:', error);
+    } catch (_error) {
+      console.error('Failed to save fiat currency to localStorage:', _error);
       throw new Error('Failed to save fiat currency');
     }
   }
@@ -263,8 +261,8 @@ export class KeychainStorage {
   static async loadFiatCurrency(): Promise<string | null> {
     try {
       return localStorage.getItem('noornote_fiat_currency');
-    } catch (error) {
-      console.error('Failed to load fiat currency from localStorage:', error);
+    } catch (_error) {
+      console.error('Failed to load fiat currency from localStorage:', _error);
       return null;
     }
   }

@@ -5,7 +5,6 @@
  * NIP-88: https://github.com/nostr-protocol/nips/blob/master/88.md
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
 import { AuthService } from './AuthService';
 import { NostrTransport } from './transport/NostrTransport';
 import { SystemLogger } from '../components/system/SystemLogger';
@@ -111,8 +110,8 @@ export class PollVoteService {
       );
 
       return true;
-    } catch (error) {
-      this.systemLogger.error('PollVoteService', `Failed to cast vote: ${error}`);
+    } catch (_error) {
+      this.systemLogger.error('PollVoteService', `Failed to cast vote: ${_error}`);
       return false;
     }
   }

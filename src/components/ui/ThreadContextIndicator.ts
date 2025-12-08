@@ -65,8 +65,8 @@ export class ThreadContextIndicator {
 
       await this.renderThreadContext(context);
 
-    } catch (error) {
-      console.error('Failed to load thread context:', error);
+    } catch (_error) {
+      console.error('Failed to load thread context:', _error);
       this.element.innerHTML = `
         <div class="thread-context-error">Failed to load thread context</div>
       `;
@@ -139,7 +139,7 @@ export class ThreadContextIndicator {
             const mentionProfile = await this.userProfileService.getUserProfile(decoded.data);
             mentionedProfiles.set(decoded.data, mentionProfile);
           }
-        } catch {}
+        } catch (_err) {}
       }));
     }
 
@@ -167,15 +167,6 @@ export class ThreadContextIndicator {
     });
 
     return item;
-  }
-
-  /**
-   * Escape HTML to prevent XSS
-   */
-  private escapeHtml(text: string): string {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
   }
 
   /**

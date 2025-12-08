@@ -43,7 +43,7 @@ export class RestoreListsService {
   public async restoreIfEmpty<T>(
     listSyncManager: ListSyncManager<T>,
     getBrowserItems: () => T[],
-    setBrowserItems: (items: T[]) => void,
+    _setBrowserItems: (items: T[]) => void,
     listName: string,
     beforeFileRestore?: () => Promise<void>
   ): Promise<RestoreResult> {
@@ -69,8 +69,8 @@ export class RestoreListsService {
           return { source: 'file', itemCount: items.length };
         }
       }
-    } catch (error) {
-      console.warn(`[RestoreListsService] ${listName}: Failed to restore from local file:`, error);
+    } catch (_error) {
+      console.warn(`[RestoreListsService] ${listName}: Failed to restore from local file:`, _error);
     }
 
     console.log(`[RestoreListsService] ${listName}: Local file empty, trying relays...`);
@@ -87,8 +87,8 @@ export class RestoreListsService {
           return { source: 'relays', itemCount: items.length };
         }
       }
-    } catch (error) {
-      console.warn(`[RestoreListsService] ${listName}: Failed to fetch from relays:`, error);
+    } catch (_error) {
+      console.warn(`[RestoreListsService] ${listName}: Failed to fetch from relays:`, _error);
     }
 
     // Step 4: List is truly empty

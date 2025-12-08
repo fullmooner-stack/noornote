@@ -35,7 +35,6 @@ export class ZapManager {
   private eventBus: EventBus;
   private userProfileService: UserProfileService;
   private zapButton: HTMLElement | null = null;
-  private hasZapped: boolean = false;
   private zappedAmount: number = 0;
   private canReceiveZaps: boolean = true; // Assume true until checked
 
@@ -67,7 +66,6 @@ export class ZapManager {
       const zapAmount = this.zapService.getUserZapAmount(this.config.noteId);
 
       if (zapAmount > 0) {
-        this.hasZapped = true;
         this.zappedAmount = zapAmount;
         this.updateButtonState(true);
       }
@@ -173,7 +171,6 @@ export class ZapManager {
       this.updateButtonLoading(false);
 
       if (result.success && result.amount) {
-        this.hasZapped = true;
         this.zappedAmount = this.zapService.getUserZapAmount(this.config.noteId);
         this.updateButtonState(true);
 
@@ -205,7 +202,6 @@ export class ZapManager {
       authorPubkey: this.config.authorPubkey,
       articleEventId: this.config.articleEventId,
       onZapSent: (amount: number) => {
-        this.hasZapped = true;
         this.zappedAmount = this.zapService.getUserZapAmount(this.config.noteId);
         this.updateButtonState(true);
 

@@ -5,10 +5,9 @@
  * Allows clicking badges to react with the same emoji
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { ReactionService } from '../../services/ReactionService';
 import { AuthGuard } from '../../services/AuthGuard';
-import { AuthService } from '../../services/AuthService';
 import { RelayConfig } from '../../services/RelayConfig';
 
 interface ReactionGroup {
@@ -22,7 +21,6 @@ export class LikesList {
   private noteId: string;
   private authorPubkey: string;
   private reactionService: ReactionService;
-  private authService: AuthService;
   private relayConfig: RelayConfig;
 
   constructor(reactionEvents: NostrEvent[], noteId: string, authorPubkey: string) {
@@ -30,7 +28,6 @@ export class LikesList {
     this.noteId = noteId;
     this.authorPubkey = authorPubkey;
     this.reactionService = ReactionService.getInstance();
-    this.authService = AuthService.getInstance();
     this.relayConfig = RelayConfig.getInstance();
   }
 

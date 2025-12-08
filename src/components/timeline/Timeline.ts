@@ -4,7 +4,6 @@
  * Uses FeedOrchestrator for data fetching
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
 import { View } from '../views/View';
 import { FeedOrchestrator, type NewNotesInfo } from '../../services/orchestration/FeedOrchestrator';
 import { UserService } from '../../services/UserService';
@@ -396,18 +395,6 @@ export class Timeline extends View {
   }
 
 
-  /**
-   * Add a single event to timeline (for real-time updates)
-   */
-  private addEventToTimeline(event: NostrEvent): void {
-    const added = this.stateManager.addEvent(event);
-    if (!added) return;
-
-    // Re-render if not too many events (performance optimization)
-    if (this.stateManager.getEvents().length < 200) {
-      this.renderer.renderEvents();
-    }
-  }
 
 
   /**

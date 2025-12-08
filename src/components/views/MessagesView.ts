@@ -14,7 +14,6 @@ import { UserProfileService } from '../../services/UserProfileService';
 import { EventBus } from '../../services/EventBus';
 import { Router } from '../../services/Router';
 import { SystemLogger } from '../system/SystemLogger';
-import { AuthService } from '../../services/AuthService';
 import { setupUserMentionHandlers } from '../../helpers/UserMentionHelper';
 import { InfiniteScroll } from '../ui/InfiniteScroll';
 import { ToastService } from '../../services/ToastService';
@@ -33,7 +32,6 @@ export class MessagesView extends View {
   private eventBus: EventBus;
   private router: Router;
   private systemLogger: SystemLogger;
-  private authService: AuthService;
   private conversations: DMConversation[] = [];
   private isLoading: boolean = false;
   private currentOffset: number = 0;
@@ -42,7 +40,6 @@ export class MessagesView extends View {
   private menuOpen: boolean = false;
   private outsideClickHandler: () => void;
   private activeTab: TabFilter = 'known';
-  private unreadCounts: { known: number; unknown: number } = { known: 0, unknown: 0 };
   private subscriptionIds: string[] = [];
   private progressBar: ProgressBarHelper | null = null;
   private isFetchingDMs: boolean = false;
@@ -57,7 +54,6 @@ export class MessagesView extends View {
     this.eventBus = EventBus.getInstance();
     this.router = Router.getInstance();
     this.systemLogger = SystemLogger.getInstance();
-    this.authService = AuthService.getInstance();
     this.infiniteScroll = new InfiniteScroll(() => this.handleLoadMore(), {
       loadingMessage: 'Loading more conversations...'
     });
@@ -288,7 +284,6 @@ export class MessagesView extends View {
    */
   private async updateBadgeCounts(): Promise<void> {
     const counts = await this.dmService.getUnreadCountsSplit();
-    this.unreadCounts = { known: counts.known, unknown: counts.unknown };
 
     // Update known badge
     const knownBadge = this.container.querySelector('[data-badge="known"]') as HTMLElement;
@@ -459,7 +454,7 @@ export class MessagesView extends View {
         displayName = profile.display_name || profile.name || fallbackName;
         avatarUrl = profile.picture || '';
       }
-    } catch {
+    } catch (_err) {
       // Use fallback values
     }
 

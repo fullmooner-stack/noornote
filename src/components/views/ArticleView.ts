@@ -13,7 +13,7 @@ import { LongFormOrchestrator } from '../../services/orchestration/LongFormOrche
 import { ReactionsOrchestrator } from '../../services/orchestration/ReactionsOrchestrator';
 import { AnalyticsModal } from '../analytics/AnalyticsModal';
 import { getAddressableIdentifier } from '../../helpers/getAddressableIdentifier';
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { marked } from 'marked';
 
 export class ArticleView {
@@ -54,8 +54,8 @@ export class ArticleView {
       }
 
       this.renderArticle(event);
-    } catch (error) {
-      console.error('❌ ArticleView: Failed to load article', error);
+    } catch (_error) {
+      console.error('❌ ArticleView: Failed to load article', _error);
       this.showError('Failed to load article');
     }
   }
@@ -162,8 +162,8 @@ export class ArticleView {
         await likesList.init();
         islContainer.parentNode.insertBefore(likesList.getElement(), islContainer);
       }
-    } catch (error) {
-      console.warn('Failed to load zaps/likes list:', error);
+    } catch (_error) {
+      console.warn('Failed to load zaps/likes list:', _error);
     }
   }
 
@@ -171,9 +171,9 @@ export class ArticleView {
    * Load and render replies for the article
    * @param noteId - Addressable identifier (kind:pubkey:d-tag)
    * @param noteAuthor - Author's pubkey
-   * @param articleEventId - Event ID for long-form articles (to search both #a and #e tags)
+   * @param _articleEventId - Event ID for long-form articles (to search both #a and #e tags)
    */
-  private async loadReplies(noteId: string, noteAuthor: string, articleEventId?: string): Promise<void> {
+  private async loadReplies(noteId: string, noteAuthor: string, _articleEventId?: string): Promise<void> {
     const repliesContainer = this.container.querySelector('.article-replies-container');
     if (!repliesContainer) return;
 
@@ -221,8 +221,8 @@ export class ArticleView {
         await likesList.init();
         islContainer.parentNode.insertBefore(likesList.getElement(), islContainer);
       }
-    } catch (error) {
-      console.warn('Failed to load zaps/likes list for reply:', error);
+    } catch (_error) {
+      console.warn('Failed to load zaps/likes list for reply:', _error);
     }
   }
 
@@ -244,8 +244,8 @@ export class ArticleView {
 
       // Add target="_blank" and rel to all links for security
       return html.replace(/<a href=/g, '<a target="_blank" rel="noopener noreferrer" href=');
-    } catch (error) {
-      console.error('Failed to render markdown:', error);
+    } catch (_error) {
+      console.error('Failed to render markdown:', _error);
       // Fallback: return escaped plain text
       return `<p>${this.escapeHtml(content)}</p>`;
     }

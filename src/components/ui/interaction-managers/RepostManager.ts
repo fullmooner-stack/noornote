@@ -11,7 +11,7 @@ import { RelayConfig } from '../../../services/RelayConfig';
 import { ToastService } from '../../../services/ToastService';
 import { PostNoteModal } from '../../post/PostNoteModal';
 import { getRepostsOriginalEvent } from '../../../helpers/getRepostsOriginalEvent';
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { BaseInteractionManager, BaseInteractionConfig } from './BaseInteractionManager';
 
 export interface RepostManagerConfig extends BaseInteractionConfig {

@@ -13,7 +13,7 @@
  * - Provides progress callbacks for UI feedback
  */
 
-import type { Event as NostrEvent, Filter as NostrFilter } from '@nostr-dev-kit/ndk';
+import type { NostrEvent, NDKFilter } from '@nostr-dev-kit/ndk';
 import { Orchestrator } from './Orchestrator';
 import { NostrTransport } from '../transport/NostrTransport';
 import { SystemLogger } from '../../components/system/SystemLogger';
@@ -199,7 +199,7 @@ export class ProfileSearchOrchestrator extends Orchestrator {
 
       onProgress?.(`Chunk ${i + 1}/${chunks.length} (${chunkStart} - ${chunkEnd})`);
 
-      const filters: NostrFilter[] = [{
+      const filters: NDKFilter[] = [{
         kinds: [1], // Text notes only
         authors: [pubkeyHex],
         since: chunk.since,
@@ -284,15 +284,15 @@ export class ProfileSearchOrchestrator extends Orchestrator {
 
   // Orchestrator interface implementations (required by base class)
 
-  public onui(data: any): void {
+  public onui(_data: any): void {
     // Handle UI actions if needed
   }
 
-  public onopen(relay: string): void {
+  public onopen(_relay: string): void {
     // Not used for search (fetch-only)
   }
 
-  public onmessage(relay: string, event: NostrEvent): void {
+  public onmessage(_relay: string, _event: NostrEvent): void {
     // Not used for search (fetch-only)
   }
 
@@ -300,7 +300,7 @@ export class ProfileSearchOrchestrator extends Orchestrator {
     this.systemLogger.error('ProfileSearch', `Relay error (${relay}): ${error.message}`);
   }
 
-  public onclose(relay: string): void {
+  public onclose(_relay: string): void {
     // Not used for search (fetch-only)
   }
 

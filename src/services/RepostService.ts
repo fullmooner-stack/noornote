@@ -6,7 +6,7 @@
  * NIP-18: https://github.com/nostr-protocol/nips/blob/master/18.md
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { AuthService } from './AuthService';
 import { NostrTransport } from './transport/NostrTransport';
 import { SystemLogger } from '../components/system/SystemLogger';

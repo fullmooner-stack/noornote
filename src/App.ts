@@ -22,7 +22,8 @@ import { PlatformService } from './services/PlatformService';
 import { ConnectivityService } from './services/ConnectivityService';
 import { OfflineOverlay } from './components/system/OfflineOverlay';
 import { AutoSyncService } from './services/sync/AutoSyncService';
-import type { View } from './components/views/View';
+// View type imported for potential future use
+// import type { View } from './components/views/View';
 
 export class App {
   private appElement: HTMLElement | null = null;
@@ -172,21 +173,23 @@ export class App {
 
     this.router.register('/note/:noteId', (params) => {
       this.systemLogger.info('Router', 'Single Note View ready');
+      const noteId = params.noteId ?? '';
       this.appState.setState('view', {
         currentView: 'single-note',
-        currentNoteId: params.noteId
+        currentNoteId: noteId
       });
-      this.mountPrimaryContent('single-note', params.noteId);
+      this.mountPrimaryContent('single-note', noteId);
       this.mountSecondaryContent('debug-log');
     }, 'snv');
 
     // Profile View route
     this.router.register('/profile/:npub', (params) => {
+      const npub = params.npub ?? '';
       this.appState.setState('view', {
         currentView: 'profile',
-        currentProfileNpub: params.npub
+        currentProfileNpub: npub
       });
-      this.mountPrimaryContent('profile', params.npub);
+      this.mountPrimaryContent('profile', npub);
       this.mountSecondaryContent('debug-log');
     }, 'pv');
 
@@ -435,7 +438,7 @@ export class App {
     }
   }
 
-  private mountSecondaryContent(contentType: string): void {
+  private mountSecondaryContent(_contentType: string): void {
     // Debug logger is already mounted in MainLayout
   }
 
@@ -546,13 +549,13 @@ export class App {
         event.preventDefault();
 
         try {
-          if (window.__TAURI__) {
+          if (PlatformService.getInstance().isTauri) {
             const { open } = await import('@tauri-apps/plugin-shell');
             await open(href);
           } else {
             window.open(href, '_blank', 'noopener,noreferrer');
           }
-        } catch (error) {
+        } catch {
           // External link open failed
         }
       }

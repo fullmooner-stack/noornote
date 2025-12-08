@@ -12,7 +12,7 @@
  * @returns Original event (unwrapped if repost, same if not)
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 
 export async function getRepostsOriginalEvent(event: NostrEvent): Promise<NostrEvent> {
   // Not a repost - return as-is

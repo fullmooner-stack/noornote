@@ -14,7 +14,7 @@
  * - Silent logging (only errors)
  */
 
-import type { Event as NostrEvent, Filter as NostrFilter } from '@nostr-dev-kit/ndk';
+import type { NostrEvent, NDKFilter } from '@nostr-dev-kit/ndk';
 import { decodeNip19 } from '../NostrToolsAdapter';
 import { Orchestrator } from './Orchestrator';
 import { NostrTransport } from '../transport/NostrTransport';
@@ -150,7 +150,7 @@ export class QuoteOrchestrator extends Orchestrator {
     // Stage 1: Try standard relays first
     const standardRelays = this.transport.getReadRelays();
 
-    const filter: NostrFilter = {
+    const filter: NDKFilter = {
       ids: [eventId],
       limit: 1
     };
@@ -183,15 +183,15 @@ export class QuoteOrchestrator extends Orchestrator {
 
   // Orchestrator interface implementations (required by base class)
 
-  public onui(data: any): void {
+  public onui(_data: any): void {
     // Handle UI actions (future: manual quote refresh)
   }
 
-  public onopen(relay: string): void {
+  public onopen(_relay: string): void {
     // Silent operation
   }
 
-  public onmessage(relay: string, event: NostrEvent): void {
+  public onmessage(_relay: string, _event: NostrEvent): void {
     // Handle incoming events from subscriptions (future: live quote updates)
   }
 
@@ -199,7 +199,7 @@ export class QuoteOrchestrator extends Orchestrator {
     this.systemLogger.error('QuoteOrchestrator', `Relay error (${relay}): ${error.message}`);
   }
 
-  public onclose(relay: string): void {
+  public onclose(_relay: string): void {
     // Silent operation
   }
 

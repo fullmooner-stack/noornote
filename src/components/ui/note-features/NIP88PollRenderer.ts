@@ -3,7 +3,7 @@
  * Displays poll options with vote counts and allows voting
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import type { PollData } from '../../poll/PollCreator';
 import { PollOrchestrator } from '../../../services/orchestration/PollOrchestrator';
 import { PollVoteService } from '../../../services/PollVoteService';
@@ -21,7 +21,6 @@ export class NIP88PollRenderer {
 
     // Get services
     const pollOrchestrator = PollOrchestrator.getInstance();
-    const voteService = PollVoteService.getInstance();
     const authService = AuthService.getInstance();
     const systemLogger = SystemLogger.getInstance();
 
@@ -155,7 +154,7 @@ export class NIP88PollRenderer {
     optionId: string,
     pollData: PollData,
     pollContainer: HTMLElement,
-    event: NostrEvent
+    _event: NostrEvent
   ): Promise<void> {
     const voteService = PollVoteService.getInstance();
     const pollOrchestrator = PollOrchestrator.getInstance();

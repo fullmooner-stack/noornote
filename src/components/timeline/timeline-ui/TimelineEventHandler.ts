@@ -3,7 +3,7 @@
  * Handles user interactions for the Timeline (view changes, refresh, load more)
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { FeedOrchestrator } from '../../../services/orchestration/FeedOrchestrator';
 import { TimelineStateManager } from '../timeline-state/TimelineStateManager';
 import { TimelineUIStateHandler } from './TimelineUIStateHandler';
@@ -20,7 +20,6 @@ export class TimelineEventHandler {
   private appState: AppState;
 
   // Callbacks
-  private onRenderEvents: () => void;
   private onAppendEvents: (events: NostrEvent[]) => void;
   private onPrependEvents: (events: NostrEvent[]) => void;
   private onInitializeTimeline: () => Promise<void>;
@@ -46,7 +45,6 @@ export class TimelineEventHandler {
     this.element = element;
     this.filterAuthorPubkey = filterAuthorPubkey;
     this.appState = AppState.getInstance();
-    this.onRenderEvents = callbacks.onRenderEvents;
     this.onAppendEvents = callbacks.onAppendEvents;
     this.onPrependEvents = callbacks.onPrependEvents;
     this.onInitializeTimeline = callbacks.onInitializeTimeline;

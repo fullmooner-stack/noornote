@@ -6,7 +6,6 @@
  * NIP-25: https://github.com/nostr-protocol/nips/blob/master/25.md
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
 import { AuthService } from './AuthService';
 import { NostrTransport } from './transport/NostrTransport';
 import { SystemLogger } from '../components/system/SystemLogger';
@@ -65,8 +64,8 @@ export class ReactionService {
       );
 
       return !!userReaction;
-    } catch (error) {
-      this.systemLogger.warn('ReactionService', 'Failed to check if user liked note:', error);
+    } catch (_error) {
+      this.systemLogger.warn('ReactionService', 'Failed to check if user liked note:', _error);
       return false;
     }
   }
@@ -99,8 +98,8 @@ export class ReactionService {
       });
 
       return !!userReaction;
-    } catch (error) {
-      this.systemLogger.warn('ReactionService', 'Failed to check if user liked note with emoji:', error);
+    } catch (_error) {
+      this.systemLogger.warn('ReactionService', 'Failed to check if user liked note with emoji:', _error);
       return false;
     }
   }

@@ -7,7 +7,7 @@
  * @used-by Timeline (when logged out)
  */
 
-import type { Event as NostrEvent, Filter as NostrFilter } from '@nostr-dev-kit/ndk';
+import type { NostrEvent, NDKFilter } from '@nostr-dev-kit/ndk';
 import { Orchestrator } from './Orchestrator';
 import { NostrTransport } from '../transport/NostrTransport';
 import { RelayConfig } from '../RelayConfig';
@@ -73,7 +73,7 @@ export class StarterFeedOrchestrator extends Orchestrator {
       const relays = this.relayConfig.getAggregatorRelays();
       const since = Math.floor(Date.now() / 1000) - (timeWindowHours * 3600);
 
-      const filters: NostrFilter[] = [{
+      const filters: NDKFilter[] = [{
         authors: this.starterPubkeysHex,
         kinds: [1, 6], // Text notes + reposts
         since,
@@ -133,7 +133,7 @@ export class StarterFeedOrchestrator extends Orchestrator {
       const relays = this.relayConfig.getAggregatorRelays();
       const since = until - (timeWindowHours * 3600);
 
-      const filters: NostrFilter[] = [{
+      const filters: NDKFilter[] = [{
         authors: this.starterPubkeysHex,
         kinds: [1, 6],
         until: until - 1,
@@ -205,13 +205,13 @@ export class StarterFeedOrchestrator extends Orchestrator {
 
   // Orchestrator interface (minimal implementation)
 
-  public onui(data: any): void {}
-  public onopen(relay: string): void {}
-  public onmessage(relay: string, event: NostrEvent): void {}
-  public onerror(relay: string, error: Error): void {
+  public onui(_data: any): void {}
+  public onopen(_relay: string): void {}
+  public onmessage(_relay: string, _event: NostrEvent): void {}
+  public onerror(_relay: string, error: Error): void {
     this.systemLogger.error('StarterFeedOrchestrator', `Relay error: ${error.message}`);
   }
-  public onclose(relay: string): void {}
+  public onclose(_relay: string): void {}
 
   public override destroy(): void {
     super.destroy();

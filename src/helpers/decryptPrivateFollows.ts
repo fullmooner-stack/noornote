@@ -48,10 +48,10 @@ export async function decryptPrivateFollows(
         // Try NIP-04 first, then NIP-44 fallback
         try {
           plaintext = await keySigner.nip04Decrypt(encryptedContent, authorPubkey);
-        } catch (nip04Error) {
+        } catch (_nip04Error) {
           try {
             plaintext = await keySigner.nip44Decrypt(encryptedContent, authorPubkey);
-          } catch (nip44Error) {
+          } catch (_nip44Error) {
             return [];
           }
         }
@@ -59,10 +59,10 @@ export async function decryptPrivateFollows(
         // Try NIP-44 first, then NIP-04 fallback
         try {
           plaintext = await keySigner.nip44Decrypt(encryptedContent, authorPubkey);
-        } catch (nip44Error) {
+        } catch (_nip44Error) {
           try {
             plaintext = await keySigner.nip04Decrypt(encryptedContent, authorPubkey);
-          } catch (nip04Error) {
+          } catch (_nip04Error) {
             return [];
           }
         }
@@ -76,13 +76,13 @@ export async function decryptPrivateFollows(
             throw new Error('NIP-04 not available');
           }
           plaintext = await window.nostr.nip04.decrypt(authorPubkey, encryptedContent);
-        } catch (nip04Error) {
+        } catch (_nip04Error) {
           try {
             if (!window.nostr?.nip44?.decrypt) {
               throw new Error('NIP-44 not available');
             }
             plaintext = await window.nostr.nip44.decrypt(authorPubkey, encryptedContent);
-          } catch (nip44Error) {
+          } catch (_nip44Error) {
             return [];
           }
         }
@@ -93,22 +93,21 @@ export async function decryptPrivateFollows(
             throw new Error('NIP-44 not available');
           }
           plaintext = await window.nostr.nip44.decrypt(authorPubkey, encryptedContent);
-        } catch (nip44Error) {
+        } catch (_nip44Error) {
           try {
             if (!window.nostr?.nip04?.decrypt) {
               throw new Error('NIP-04 not available');
             }
             plaintext = await window.nostr.nip04.decrypt(authorPubkey, encryptedContent);
-          } catch (nip04Error) {
+          } catch (_nip04Error) {
             return [];
           }
         }
       }
     } else if (authMethod === 'nip46') {
       // Use NIP-46 remote signer for decryption
-      const { Nip46SignerManager } = await import('../services/managers/Nip46SignerManager');
       const { AuthService } = await import('../services/AuthService');
-      const nip46Manager = (AuthService.getInstance() as any).nip46Manager as Nip46SignerManager;
+      const nip46Manager = (AuthService.getInstance() as any).nip46Manager;
 
       if (!nip46Manager?.isAvailable()) {
         return [];
@@ -118,10 +117,10 @@ export async function decryptPrivateFollows(
         // Try NIP-04 first, then NIP-44 fallback
         try {
           plaintext = await nip46Manager.nip04Decrypt(encryptedContent, authorPubkey);
-        } catch (nip04Error) {
+        } catch (_nip04Error) {
           try {
             plaintext = await nip46Manager.nip44Decrypt(encryptedContent, authorPubkey);
-          } catch (nip44Error) {
+          } catch (_nip44Error) {
             return [];
           }
         }
@@ -129,10 +128,10 @@ export async function decryptPrivateFollows(
         // Try NIP-44 first, then NIP-04 fallback
         try {
           plaintext = await nip46Manager.nip44Decrypt(encryptedContent, authorPubkey);
-        } catch (nip44Error) {
+        } catch (_nip44Error) {
           try {
             plaintext = await nip46Manager.nip04Decrypt(encryptedContent, authorPubkey);
-          } catch (nip04Error) {
+          } catch (_nip04Error) {
             return [];
           }
         }
@@ -186,7 +185,7 @@ export async function decryptPrivateFollows(
       .map(tag => tag[1]);
 
     return pubkeys;
-  } catch (error) {
+  } catch (_error) {
     return []; // Fail gracefully
   }
 }

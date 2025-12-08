@@ -13,8 +13,8 @@
  * - kind:10050 = DM Relay List (user's preferred DM relays)
  */
 
-import NDK, { NDKEvent, NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
-import type { NostrEvent, NDKFilter, NDKUser } from '@nostr-dev-kit/ndk';
+import { NDKEvent, NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
+import type { NostrEvent, NDKFilter } from '@nostr-dev-kit/ndk';
 import { NostrTransport } from '../transport/NostrTransport';
 import { AuthService } from '../AuthService';
 import { RelayConfig } from '../RelayConfig';
@@ -246,8 +246,8 @@ export class DMService {
         }
       }
 
-    } catch (error) {
-      this.systemLogger.error('DMService', 'Failed to fetch historical messages:', error);
+    } catch (_error) {
+      this.systemLogger.error('DMService', 'Failed to fetch historical messages:', _error);
     } finally {
       // Exit batch mode - emit single consolidated event
       this.isFetchingHistorical = false;
@@ -365,8 +365,8 @@ export class DMService {
         this.eventBus.emit('dm:new-message', { message, conversationWith });
         this.eventBus.emit('dm:badge-update');
       }
-    } catch (error) {
-      this.systemLogger.error('DMService', 'Error processing gift wrap:', error);
+    } catch (_error) {
+      this.systemLogger.error('DMService', 'Error processing gift wrap:', _error);
     }
   }
 
@@ -433,8 +433,8 @@ export class DMService {
         this.eventBus.emit('dm:new-message', { message, conversationWith });
         this.eventBus.emit('dm:badge-update');
       }
-    } catch (error) {
-      this.systemLogger.error('DMService', 'Error processing legacy DM:', error);
+    } catch (_error) {
+      this.systemLogger.error('DMService', 'Error processing legacy DM:', _error);
     }
   }
 
@@ -572,8 +572,8 @@ export class DMService {
       this.eventBus.emit('dm:new-message', { message, conversationWith: recipientPubkey });
 
       return true;
-    } catch (error) {
-      this.systemLogger.error('DMService', 'Failed to send message:', error);
+    } catch (_error) {
+      this.systemLogger.error('DMService', 'Failed to send message:', _error);
       return false;
     }
   }
@@ -717,7 +717,7 @@ export class DMService {
 
       // Fallback for other users: use aggregator relays
       return this.relayConfig.getAggregatorRelays();
-    } catch (error) {
+    } catch (_error) {
       this.systemLogger.warn('DMService', `Failed to fetch inbox relays for ${pubkey.slice(0, 8)}`);
       return this.relayConfig.getAggregatorRelays();
     }
@@ -922,8 +922,8 @@ export class DMService {
       }
 
       this.mutedPubkeysLoaded = true;
-    } catch (error) {
-      this.systemLogger.error('DMService', 'Failed to load muted pubkeys:', error);
+    } catch (_error) {
+      this.systemLogger.error('DMService', 'Failed to load muted pubkeys:', _error);
     }
   }
 

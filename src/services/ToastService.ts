@@ -101,7 +101,7 @@ export class ToastService {
     if (closeBtn) {
       closeBtn.addEventListener('click', () => {
         const toastId = Array.from(this.activeToasts.entries())
-          .find(([_, el]) => el === toast)?.[0];
+          .find(([_id, el]) => el === toast)?.[0];
         if (toastId) {
           this.hideToast(toastId);
         }
@@ -131,7 +131,7 @@ export class ToastService {
    * Clear all toasts
    */
   private clearAll(): void {
-    this.activeToasts.forEach((toast, id) => {
+    this.activeToasts.forEach((_toast, id) => {
       this.hideToast(id);
     });
   }

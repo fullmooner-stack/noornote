@@ -9,7 +9,7 @@
  * - FIFO queue (max X notifications, configurable)
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 
 interface NotificationsCache {
   events: NostrEvent[];

@@ -65,7 +65,6 @@ interface ActiveAccountResponse {
 export class KeySignerClient {
   private static instance: KeySignerClient | null = null;
   private requestId = 0;
-  private readonly socketPath: string;
   private readonly timeout = 10000; // 10s timeout
   private lastSocketErrorTime = 0;
   private readonly SOCKET_ERROR_THROTTLE = 5000; // Log once every 5s
@@ -77,11 +76,8 @@ export class KeySignerClient {
   private readonly RETRY_DELAY = 1000; // 1s between retries
 
   private constructor() {
-    // Platform-specific socket path
-    const isWindows = typeof navigator !== 'undefined' && navigator.platform.toLowerCase().includes('win');
-    this.socketPath = isWindows
-      ? '\\\\.\\pipe\\noorsigner'
-      : '~/.noorsigner/noorsigner.sock';
+    // Platform-specific socket path (unused - kept for reference)
+    // Socket communication is handled by Tauri backend
   }
 
   public static getInstance(): KeySignerClient {
@@ -158,9 +154,9 @@ export class KeySignerClient {
       this.connectionState = 'connected';
 
       return response;
-    } catch (error) {
+    } catch (_error) {
       // Enhanced error handling with specific error types
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = _error instanceof Error ? _error.message : String(_error);
 
       // Check if it's a transient error (broken pipe, connection reset)
       if (this.isTransientError(errorMessage)) {
@@ -256,8 +252,8 @@ export class KeySignerClient {
       }
 
       return response.signature || '';
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+    } catch (_error) {
+      const errorMessage = _error instanceof Error ? _error.message : String(_error);
       throw new Error(`NIP-44 encrypt failed: ${errorMessage}`);
     }
   }
@@ -289,8 +285,8 @@ export class KeySignerClient {
       }
 
       return response.signature || '';
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+    } catch (_error) {
+      const errorMessage = _error instanceof Error ? _error.message : String(_error);
       throw new Error(`NIP-44 decrypt failed: ${errorMessage}`);
     }
   }
@@ -323,8 +319,8 @@ export class KeySignerClient {
       }
 
       return response.signature || '';
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+    } catch (_error) {
+      const errorMessage = _error instanceof Error ? _error.message : String(_error);
       throw new Error(`NIP-04 encrypt failed: ${errorMessage}`);
     }
   }
@@ -357,8 +353,8 @@ export class KeySignerClient {
       }
 
       return response.signature || '';
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+    } catch (_error) {
+      const errorMessage = _error instanceof Error ? _error.message : String(_error);
       throw new Error(`NIP-04 decrypt failed: ${errorMessage}`);
     }
   }
@@ -376,8 +372,8 @@ export class KeySignerClient {
         await this.sendRequest('get_npub');
         // Success - daemon is running
         return true;
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
+      } catch (_error) {
+        const errorMessage = _error instanceof Error ? _error.message : String(_error);
 
         // If it's a transient error, retry
         if (this.isTransientError(errorMessage) && attempts < this.MAX_RETRY_ATTEMPTS - 1) {
@@ -518,8 +514,8 @@ export class KeySignerClient {
         accounts: response.accounts || [],
         activePubkey: response.active_pubkey || '',
       };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+    } catch (_error) {
+      const errorMessage = _error instanceof Error ? _error.message : String(_error);
       throw new Error(`Failed to list accounts: ${errorMessage}`);
     }
   }
@@ -604,8 +600,8 @@ export class KeySignerClient {
         pubkey: response.pubkey || '',
         npub: response.npub || '',
       };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+    } catch (_error) {
+      const errorMessage = _error instanceof Error ? _error.message : String(_error);
       throw new Error(errorMessage);
     }
   }
@@ -638,8 +634,8 @@ export class KeySignerClient {
       }
 
       return response.success || false;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+    } catch (_error) {
+      const errorMessage = _error instanceof Error ? _error.message : String(_error);
       throw new Error(errorMessage);
     }
   }
@@ -677,8 +673,8 @@ export class KeySignerClient {
         npub: response.npub || '',
         isUnlocked: response.is_unlocked || false,
       };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+    } catch (_error) {
+      const errorMessage = _error instanceof Error ? _error.message : String(_error);
       throw new Error(errorMessage);
     }
   }

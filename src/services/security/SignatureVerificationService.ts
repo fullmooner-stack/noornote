@@ -15,7 +15,7 @@
  * Based on: "Practical Attacks on Nostr" research paper (Vulnerability 2-4)
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { calculateEventHash, verifyEventSignature } from '../NostrToolsAdapter';
 import { SystemLogger } from '../../components/system/SystemLogger';
 

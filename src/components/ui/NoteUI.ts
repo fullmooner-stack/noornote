@@ -4,7 +4,7 @@
  * Takes ProcessedNote input, outputs HTMLElement
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 
 // Import processors, renderers, and factories
 import { NoteProcessor } from './note-processing/NoteProcessor';

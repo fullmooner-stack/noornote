@@ -97,7 +97,7 @@ export class MuteStorageAdapter extends BaseListStorageAdapter<string> {
    *
    * Note: ListSyncManager expects string[] (user pubkeys), not MuteItem[]
    */
-  getBrowserItems(): string[] {
+  override getBrowserItems(): string[] {
     const muteItems = this.getBrowserMuteItems();
 
     // Filter user mutes only (not threads)
@@ -114,7 +114,7 @@ export class MuteStorageAdapter extends BaseListStorageAdapter<string> {
    *
    * Note: This preserves existing threads while updating user mutes
    */
-  setBrowserItems(userPubkeys: string[]): void {
+  override setBrowserItems(userPubkeys: string[]): void {
     const currentItems = this.getBrowserMuteItems();
 
     // Keep existing threads

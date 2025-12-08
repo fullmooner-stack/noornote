@@ -17,7 +17,6 @@ import { ProfileMountsOrchestrator } from '../../services/orchestration/ProfileM
 import { BookmarkOrchestrator } from '../../services/orchestration/BookmarkOrchestrator';
 import { BookmarkFolderService } from '../../services/BookmarkFolderService';
 import { AuthService } from '../../services/AuthService';
-import { NostrTransport } from '../../services/transport/NostrTransport';
 import type { BookmarkItem } from '../../services/storage/BookmarkFileStorage';
 
 const MAX_ITEMS_COLLAPSED = 5;
@@ -37,10 +36,8 @@ export class ProfileListsComponent {
   private bookmarkOrch: BookmarkOrchestrator;
   private folderService: BookmarkFolderService;
   private authService: AuthService;
-  private transport: NostrTransport;
 
   private lists: ProfileListData[] = [];
-  private isLoading: boolean = false;
 
   constructor(pubkey: string) {
     this.pubkey = pubkey;
@@ -52,7 +49,6 @@ export class ProfileListsComponent {
     this.bookmarkOrch = BookmarkOrchestrator.getInstance();
     this.folderService = BookmarkFolderService.getInstance();
     this.authService = AuthService.getInstance();
-    this.transport = NostrTransport.getInstance();
 
     // Check if viewing own profile
     const currentUser = this.authService.getCurrentUser();
@@ -63,7 +59,6 @@ export class ProfileListsComponent {
    * Load and render profile lists
    */
   public async render(): Promise<HTMLElement> {
-    this.isLoading = true;
     this.container.innerHTML = '<div class="profile-lists__loading">Loading lists...</div>';
 
     try {
@@ -80,7 +75,6 @@ export class ProfileListsComponent {
 
       if (mountedFolders.length === 0) {
         this.container.innerHTML = '';
-        this.isLoading = false;
         return this.container;
       }
 
@@ -94,7 +88,6 @@ export class ProfileListsComponent {
       this.container.innerHTML = '';
     }
 
-    this.isLoading = false;
     return this.container;
   }
 
@@ -311,8 +304,8 @@ export class ProfileListsComponent {
       const handle = section.querySelector('.profile-list-drag-handle');
       if (!handle) return;
 
-      handle.addEventListener('mousedown', (e: Event) => {
-        const mouseEvent = e as MouseEvent;
+      handle.addEventListener('mousedown', (_e: Event) => {
+        const mouseEvent = _e as MouseEvent;
         mouseEvent.preventDefault();
         draggedSection = section as HTMLElement;
         startY = mouseEvent.clientY;
@@ -331,7 +324,7 @@ export class ProfileListsComponent {
       draggedSection.style.transform = `translateY(${deltaY}px)`;
 
       // Find drop target
-      sections.forEach((section, index) => {
+      sections.forEach((section, _index) => {
         if (section === draggedSection) return;
         const rect = section.getBoundingClientRect();
         const midY = rect.top + rect.height / 2;
@@ -346,7 +339,7 @@ export class ProfileListsComponent {
       });
     };
 
-    const onMouseUp = (e: MouseEvent) => {
+    const onMouseUp = (_e: MouseEvent) => {
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
 

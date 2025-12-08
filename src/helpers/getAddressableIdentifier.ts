@@ -11,7 +11,7 @@
  * // Returns: "30023:a1b2c3...:my-article-slug"
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 
 export function getAddressableIdentifier(event: NostrEvent): string | null {
   // Only addressable events (kinds 30000-39999) have addressable identifiers

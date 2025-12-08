@@ -13,7 +13,6 @@
 import { AuthService } from './AuthService';
 import { ErrorService } from './ErrorService';
 import { ToastService } from './ToastService';
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
 
 interface MediaServerSettings {
   url: string;
@@ -58,8 +57,8 @@ export class MediaUploadService {
       if (stored) {
         return JSON.parse(stored);
       }
-    } catch (error) {
-      console.warn('Failed to load media server settings:', error);
+    } catch (_error) {
+      console.warn('Failed to load media server settings:', _error);
     }
 
     return {
@@ -238,7 +237,7 @@ export class MediaUploadService {
                   success: true,
                   url: descriptor.url
                 });
-              } catch (error) {
+              } catch (_error) {
                 reject(new Error('Failed to parse response'));
               }
             } else {
@@ -273,18 +272,18 @@ export class MediaUploadService {
           startPseudoProgress();
           xhr.send(file);
         })
-        .catch((error) => {
+        .catch((_error) => {
           stopPseudoProgress();
           this.abortController = null;
-          reject(error);
+          reject(_error);
         });
     })
       .then(result => result as UploadResult)
-      .catch((error: any) => {
-        console.error('Blossom upload error:', error);
+      .catch((_error: any) => {
+        console.error('Blossom upload error:', _error);
         return {
           success: false,
-          error: `Upload error: ${error.message || error}`
+          error: `Upload error: ${_error.message || _error}`
         };
       });
   }
@@ -297,8 +296,8 @@ export class MediaUploadService {
       const response = await fetch(`${serverUrl}/.well-known/nostr/nip96.json`);
       if (!response.ok) return null;
       return await response.json();
-    } catch (error) {
-      console.warn('Failed to fetch NIP-96 config:', error);
+    } catch (_error) {
+      console.warn('Failed to fetch NIP-96 config:', _error);
       return null;
     }
   }
@@ -394,7 +393,7 @@ export class MediaUploadService {
               } else {
                 reject(new Error('No URL in upload response'));
               }
-            } catch (error) {
+            } catch (_error) {
               reject(new Error('Failed to parse response'));
             }
           } else {
@@ -427,18 +426,18 @@ export class MediaUploadService {
 
         startPseudoProgress();
         xhr.send(formData);
-      } catch (error) {
+      } catch (_error) {
         stopPseudoProgress();
         this.abortController = null;
-        reject(error);
+        reject(_error);
       }
     })
       .then(result => result as UploadResult)
-      .catch((error: any) => {
-        console.error('NIP-96 upload error:', error);
+      .catch((_error: any) => {
+        console.error('NIP-96 upload error:', _error);
         return {
           success: false,
-          error: `Upload error: ${error.message || error}`
+          error: `Upload error: ${_error.message || _error}`
         };
       });
   }
@@ -485,11 +484,11 @@ export class MediaUploadService {
       }
 
       return result;
-    } catch (error) {
-      ErrorService.handle(error, 'MediaUploadService.uploadFile', true, 'Failed to upload file');
+    } catch (_error) {
+      ErrorService.handle(_error, 'MediaUploadService.uploadFile', true, 'Failed to upload file');
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Upload failed'
+        error: _error instanceof Error ? _error.message : 'Upload failed'
       };
     }
   }

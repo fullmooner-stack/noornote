@@ -13,7 +13,7 @@
  * - Batch fetching support
  */
 
-import type { Event as NostrEvent, Filter as NostrFilter } from '@nostr-dev-kit/ndk';
+import type { NostrEvent, NDKFilter } from '@nostr-dev-kit/ndk';
 import { Orchestrator } from './Orchestrator';
 import { NostrTransport } from '../transport/NostrTransport';
 import { RelayConfig } from '../RelayConfig';
@@ -89,7 +89,7 @@ export class ProfileOrchestrator extends Orchestrator {
     // User's custom relays can be slow/dead and cause timeouts
     const relays = this.relayConfig.getAggregatorRelays();
 
-    const filters: NostrFilter[] = [{
+    const filters: NDKFilter[] = [{
       authors: [pubkey],
       kinds: [0],
       limit: 1
@@ -138,7 +138,7 @@ export class ProfileOrchestrator extends Orchestrator {
     const relays = this.relayConfig.getAggregatorRelays();
     const profiles = new Map<string, Profile>();
 
-    const filters: NostrFilter[] = [{
+    const filters: NDKFilter[] = [{
       authors: pubkeys,
       kinds: [0]
     }];
@@ -202,15 +202,15 @@ export class ProfileOrchestrator extends Orchestrator {
 
   // Orchestrator interface implementations (unused for now, required by base class)
 
-  public onui(data: any): void {
+  public onui(_data: any): void {
     // Handle UI actions (future: profile update subscriptions)
   }
 
-  public onopen(relay: string): void {
+  public onopen(_relay: string): void {
     // Silent operation
   }
 
-  public onmessage(relay: string, event: NostrEvent): void {
+  public onmessage(_relay: string, _event: NostrEvent): void {
     // Handle incoming events from subscriptions (future: live profile updates)
   }
 
@@ -218,7 +218,7 @@ export class ProfileOrchestrator extends Orchestrator {
     this.systemLogger.error('ProfileOrchestrator', `Relay error (${relay}): ${error.message}`);
   }
 
-  public onclose(relay: string): void {
+  public onclose(_relay: string): void {
     // Silent operation
   }
 

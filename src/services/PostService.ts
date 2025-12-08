@@ -8,7 +8,7 @@
  * NIP-10: https://github.com/nostr-protocol/nips/blob/master/10.md (Reply threading)
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { AuthService } from './AuthService';
 import { NostrTransport } from './transport/NostrTransport';
 import { SystemLogger } from '../components/system/SystemLogger';

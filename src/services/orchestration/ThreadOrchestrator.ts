@@ -14,7 +14,7 @@
  * - Silent logging
  */
 
-import type { Event as NostrEvent, Filter as NostrFilter } from '@nostr-dev-kit/ndk';
+import type { NostrEvent, NDKFilter } from '@nostr-dev-kit/ndk';
 import { Orchestrator } from './Orchestrator';
 import { NostrTransport } from '../transport/NostrTransport';
 import { MuteOrchestrator } from './MuteOrchestrator';
@@ -114,7 +114,7 @@ export class ThreadOrchestrator extends Orchestrator {
     // Determine if this is an addressable event (a-tag) or regular event (e-tag)
     const isAddressable = noteId.includes(':'); // Format: "kind:pubkey:d-tag"
 
-    const filters: NostrFilter[] = [{
+    const filters: NDKFilter[] = [{
       kinds: [1],
       ...(isAddressable ? { '#a': [noteId] } : { '#e': [noteId] })
     }];
@@ -200,13 +200,8 @@ export class ThreadOrchestrator extends Orchestrator {
     try {
       // Fetch the note itself first
       const relays = this.transport.getReadRelays();
-      const filters: NostrFilter[] = [{ ids: [noteId] }];
+      const filters: NDKFilter[] = [{ ids: [noteId] }];
       const events = await this.transport.fetch(relays, filters, 5000);
-
-      // Cache fetched events
-      events.forEach(event => {
-        const relays = (event as any)._relays as string[] | undefined;
-      });
 
       if (events.length === 0) {
         // Note not found
@@ -236,13 +231,8 @@ export class ThreadOrchestrator extends Orchestrator {
         if (chain.some(item => item.eventId === parentId)) break; // Circular reference, stop
 
         // Fetch parent note
-        const parentFilters: NostrFilter[] = [{ ids: [parentId] }];
+        const parentFilters: NDKFilter[] = [{ ids: [parentId] }];
         const parentEvents = await this.transport.fetch(relays, parentFilters, 5000);
-
-        // Cache fetched parent events
-        parentEvents.forEach(event => {
-          const relays = (event as any)._relays as string[] | undefined;
-        });
 
         if (parentEvents.length === 0) break; // Parent not found
 
@@ -346,14 +336,14 @@ export class ThreadOrchestrator extends Orchestrator {
     const subId = `live-replies-${noteId}`;
 
     // Build filter for new replies only (since now)
-    const filters: NostrFilter[] = [{
+    const filters: NDKFilter[] = [{
       kinds: [1],           // Only text notes (replies)
       '#e': [noteId],       // Referencing this note
       since: Math.floor(Date.now() / 1000)  // Only new events from now
     }];
 
     // Subscribe via NostrTransport
-    this.transport.subscribeLive(relays, filters, subId, (event, relay) => {
+    this.transport.subscribeLive(relays, filters, subId, (event, _relay) => {
 
       // Filter out non-replies (mentions only)
       if (this.isActualReply(event, noteId)) {
@@ -397,15 +387,15 @@ export class ThreadOrchestrator extends Orchestrator {
 
   // Orchestrator interface implementations (unused for now, required by base class)
 
-  public onui(data: any): void {
+  public onui(_data: any): void {
     // Handle UI actions (future: real-time reply subscriptions)
   }
 
-  public onopen(relay: string): void {
+  public onopen(_relay: string): void {
     // Silent operation
   }
 
-  public onmessage(relay: string, event: NostrEvent): void {
+  public onmessage(_relay: string, _event: NostrEvent): void {
     // Handle incoming events from subscriptions (future: live reply updates)
   }
 
@@ -413,7 +403,7 @@ export class ThreadOrchestrator extends Orchestrator {
     this.systemLogger.error('ThreadOrchestrator', `Relay error (${relay}): ${error.message}`);
   }
 
-  public onclose(relay: string): void {
+  public onclose(_relay: string): void {
     // Silent operation
   }
 

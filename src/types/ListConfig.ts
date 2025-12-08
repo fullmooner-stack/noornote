@@ -4,7 +4,6 @@
  */
 
 import type { BaseListItem } from './BaseListItem';
-import type { BaseFileStorage, BaseFileData } from '../services/storage/BaseFileStorage';
 
 export interface ListConfig<T extends BaseListItem> {
   // ===== Identification =====

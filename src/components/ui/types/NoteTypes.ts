@@ -3,7 +3,7 @@
  * Single source of truth for note-related interfaces
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import type { PollData } from '../../poll/PollCreator';
 
 export interface ProcessedNote {

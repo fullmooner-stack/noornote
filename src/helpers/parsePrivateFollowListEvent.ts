@@ -11,7 +11,7 @@
  * const privateFollows = await parsePrivateFollowListEvent(event, myPubkey);
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { decryptPrivateFollows } from './decryptPrivateFollows';
 
 export async function parsePrivateFollowListEvent(

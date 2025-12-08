@@ -3,7 +3,7 @@
  * Extracts from: NoteUI.processRepost()
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import type { ProcessedNote } from '../types/NoteTypes';
 import { ContentProcessor } from '../../../services/ContentProcessor';
 
@@ -16,7 +16,6 @@ export class RepostProcessor {
    */
   static process(event: NostrEvent): ProcessedNote {
     const reposterProfile = RepostProcessor.contentProcessor.getNonBlockingProfile(event.pubkey);
-    const originalEventId = RepostProcessor.extractOriginalEventId(event);
     const originalAuthorPubkey = RepostProcessor.extractOriginalAuthorPubkey(event);
 
     let originalAuthorProfile;
@@ -76,13 +75,6 @@ export class RepostProcessor {
     };
   }
 
-  /**
-   * Extract original event ID from repost tags
-   */
-  private static extractOriginalEventId(event: NostrEvent): string | null {
-    const eTags = event.tags.filter(tag => tag[0] === 'e');
-    return eTags.length > 0 ? eTags[0][1] : null;
-  }
 
   /**
    * Extract original author pubkey from repost tags

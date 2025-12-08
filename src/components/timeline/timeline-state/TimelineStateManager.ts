@@ -4,7 +4,7 @@
  * Extracts from: TimelineUI state properties and event management
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 
 export class TimelineStateManager {
   private events: NostrEvent[] = [];

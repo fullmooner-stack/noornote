@@ -3,7 +3,7 @@
  * Extracts from: NoteUI.processTextNote()
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import type { ProcessedNote } from '../types/NoteTypes';
 import { ContentProcessor } from '../../../services/ContentProcessor';
 

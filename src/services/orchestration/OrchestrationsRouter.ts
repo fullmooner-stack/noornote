@@ -18,14 +18,14 @@
  * @used-by All Orchestrators (Feed, Reactions, Thread, Profile, etc.)
  */
 
-import type { Event as NostrEvent, Filter as NostrFilter, Sub } from '@nostr-dev-kit/ndk';
+import type { NostrEvent, NDKFilter, NDKSubscription } from '@nostr-dev-kit/ndk';
 import { NostrTransport } from '../transport/NostrTransport';
 import { Orchestrator } from './Orchestrator';
 import { SystemLogger } from '../../components/system/SystemLogger';
 
 interface Subscription {
   sub: Sub;
-  filters: NostrFilter[];
+  filters: NDKFilter[];
   orchestrators: Set<string>; // Orchestrator names interested in this subscription
 }
 
@@ -93,7 +93,7 @@ export class OrchestrationsRouter {
    * @returns Subscription ID for cleanup
    */
   public subscribe(
-    filters: NostrFilter[],
+    filters: NDKFilter[],
     orchestratorName: string,
     relays?: string[]
   ): string {
@@ -189,7 +189,7 @@ export class OrchestrationsRouter {
   /**
    * Generate unique subscription ID from filters and relays
    */
-  private generateSubscriptionId(filters: NostrFilter[], relays: string[]): string {
+  private generateSubscriptionId(filters: NDKFilter[], relays: string[]): string {
     const filterStr = JSON.stringify(filters);
     const relayStr = relays.join(',');
     return `sub_${this.simpleHash(filterStr + relayStr)}`;

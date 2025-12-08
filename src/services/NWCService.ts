@@ -12,7 +12,6 @@ import { SystemLogger } from '../components/system/SystemLogger';
 import { ErrorService } from './ErrorService';
 import { ToastService } from './ToastService';
 import { KeychainStorage } from './KeychainStorage';
-import { SignatureVerificationService } from './security/SignatureVerificationService';
 
 export type NWCConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error';
 
@@ -89,8 +88,8 @@ export class NWCService {
         secret,
         lud16: lud16 || undefined // URL.searchParams.get() auto-decodes %40 to @
       };
-    } catch (error) {
-      this.systemLogger.error('NWCService', 'Failed to parse connection string:', error);
+    } catch (_error) {
+      this.systemLogger.error('NWCService', 'Failed to parse connection string:', _error);
       throw new Error('Invalid NWC connection string format');
     }
   }
@@ -125,10 +124,10 @@ export class NWCService {
       ToastService.show('Lightning Wallet verbunden', 'success');
 
       return true;
-    } catch (error) {
+    } catch (_error) {
       this.state = 'error';
       ErrorService.handle(
-        error,
+        _error,
         'NWCService.connect',
         true,
         'NWC-Verbindung fehlgeschlagen. Bitte prüfe den Connection String.'
@@ -192,8 +191,8 @@ export class NWCService {
 
               // Check if response has result (successful get_info)
               resolve(!!response.result);
-            } catch (error) {
-              this.systemLogger.error('NWCService', 'Failed to decrypt response:', error);
+            } catch (_error) {
+              this.systemLogger.error('NWCService', 'Failed to decrypt response:', _error);
               resolve(false);
             }
           }
@@ -204,8 +203,8 @@ export class NWCService {
           resolve(false);
         }, 5000);
       });
-    } catch (error) {
-      this.systemLogger.error('NWCService', 'Test connection failed:', error);
+    } catch (_error) {
+      this.systemLogger.error('NWCService', 'Test connection failed:', _error);
       return false;
     }
   }
@@ -224,8 +223,8 @@ export class NWCService {
     try {
       await KeychainStorage.deleteNWC();
       this.systemLogger.info('NWCService', '✓ Stored NWC connection removed from secure storage');
-    } catch (error) {
-      this.systemLogger.error('NWCService', 'Failed to remove stored connection:', error);
+    } catch (_error) {
+      this.systemLogger.error('NWCService', 'Failed to remove stored connection:', _error);
     }
 
     this.systemLogger.info('NWCService', 'Disconnected from NWC wallet');
@@ -322,8 +321,8 @@ export class NWCService {
               } else {
                 resolve(null);
               }
-            } catch (error) {
-              this.systemLogger.error('NWCService', 'Failed to decrypt balance response:', error);
+            } catch (_error) {
+              this.systemLogger.error('NWCService', 'Failed to decrypt balance response:', _error);
               resolve(null);
             }
           }
@@ -334,8 +333,8 @@ export class NWCService {
           resolve(null);
         }, 10000);
       });
-    } catch (error) {
-      this.systemLogger.error('NWCService', 'Get balance failed:', error);
+    } catch (_error) {
+      this.systemLogger.error('NWCService', 'Get balance failed:', _error);
       return null;
     }
   }
@@ -420,8 +419,8 @@ export class NWCService {
                   error: 'Invalid response'
                 });
               }
-            } catch (error) {
-              this.systemLogger.error('NWCService', 'Failed to decrypt payment response:', error);
+            } catch (_error) {
+              this.systemLogger.error('NWCService', 'Failed to decrypt payment response:', _error);
               resolve({
                 success: false,
                 error: 'Failed to decrypt response'
@@ -438,11 +437,11 @@ export class NWCService {
           });
         }, 30000);
       });
-    } catch (error) {
-      this.systemLogger.error('NWCService', 'Payment failed:', error);
+    } catch (_error) {
+      this.systemLogger.error('NWCService', 'Payment failed:', _error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: _error instanceof Error ? _error.message : 'Unknown error'
       };
     }
   }
@@ -454,9 +453,9 @@ export class NWCService {
     try {
       await KeychainStorage.saveNWC(connectionString);
       this.systemLogger.info('NWCService', 'NWC connection saved to secure storage');
-    } catch (error) {
-      this.systemLogger.error('NWCService', 'Failed to save connection:', error);
-      throw error;
+    } catch (_error) {
+      this.systemLogger.error('NWCService', 'Failed to save connection:', _error);
+      throw _error;
     }
   }
 
@@ -505,8 +504,8 @@ export class NWCService {
           this.systemLogger.warn('NWCService', 'Failed to auto-reconnect after 3 attempts (relay offline?), but connection kept.');
         }
       }
-    } catch (error) {
-      this.systemLogger.error('NWCService', 'Failed to restore connection:', error);
+    } catch (_error) {
+      this.systemLogger.error('NWCService', 'Failed to restore connection:', _error);
       // NEVER delete stored connection on errors - only on explicit disconnect()
     }
   }

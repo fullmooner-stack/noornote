@@ -4,7 +4,7 @@
  * Uses subscription pattern for reactive updates
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { SystemLogger } from '../components/system/SystemLogger';
 
 export interface SyncStatusData {
@@ -33,10 +33,12 @@ export interface TimelineState {
 }
 
 export interface ViewState {
-  currentView: 'timeline' | 'single-note' | 'profile' | 'messages' | 'settings';
+  currentView: 'timeline' | 'single-note' | 'profile' | 'messages' | 'settings' | 'login' | 'article' | 'notifications' | 'about' | 'conversation' | 'write-article' | 'articles';
   currentNoteId?: string;
   currentProfileNpub?: string;
+  currentArticleNaddr?: string;
   profileScrollPosition?: number;
+  params?: Record<string, string>;
 }
 
 export interface ProfileSearchState {

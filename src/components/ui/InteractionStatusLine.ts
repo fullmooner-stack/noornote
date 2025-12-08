@@ -10,7 +10,7 @@ import { formatCount } from '../../helpers/formatCount';
 import { ZapManager } from './interaction-managers/ZapManager';
 import { LikeManager } from './interaction-managers/LikeManager';
 import { RepostManager } from './interaction-managers/RepostManager';
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 
 export interface ISLStats {
   replies: number;

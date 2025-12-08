@@ -59,10 +59,6 @@ export class BookmarkSecondaryManager {
   private bookmarksCache: Map<string, BookmarkWithEvent> = new Map();
   private isLoading: boolean = false;
 
-  // Drag state
-  private draggedItemId: string | null = null;
-  private draggedItemType: 'bookmark' | 'folder' | null = null;
-
   // Event handler for cleanup
   private closeDropdownHandler: ((e: Event) => void) | null = null;
 
@@ -435,19 +431,17 @@ export class BookmarkSecondaryManager {
     };
 
     const card = new BookmarkCard(cardData, {
-      onDelete: async (eventId) => {
+      onDelete: async (eventId: string) => {
         await this.deleteBookmark(eventId);
       },
-      onEdit: (bookmarkId) => {
+      onEdit: (bookmarkId: string) => {
         this.editBookmark(bookmarkId);
       },
-      onDragStart: (eventId) => {
-        this.draggedItemId = eventId;
-        this.draggedItemType = 'bookmark';
+      onDragStart: (_eventId: string) => {
+        // Drag state tracked internally by setupGridDragDrop
       },
       onDragEnd: () => {
-        this.draggedItemId = null;
-        this.draggedItemType = null;
+        // Drag state tracked internally by setupGridDragDrop
       }
     });
 
@@ -477,13 +471,11 @@ export class BookmarkSecondaryManager {
       onDrop: async (bookmarkId, folderId) => {
         await this.moveBookmarkToFolder(bookmarkId, folderId);
       },
-      onDragStart: (folderId) => {
-        this.draggedItemId = folderId;
-        this.draggedItemType = 'folder';
+      onDragStart: (_folderId) => {
+        // Drag state tracked internally by setupGridDragDrop
       },
       onDragEnd: () => {
-        this.draggedItemId = null;
-        this.draggedItemType = null;
+        // Drag state tracked internally by setupGridDragDrop
       },
       showMountCheckbox: isLoggedIn,
       onMountToggle: (_folderId, folderName) => this.handleMountToggle(folderName)
@@ -821,7 +813,7 @@ export class BookmarkSecondaryManager {
           this.adapter.setBrowserItems(updatedItems);
 
           // Update cache
-          for (const [id, bookmark] of this.bookmarksCache) {
+          for (const [_id, bookmark] of this.bookmarksCache) {
             if (bookmark.category === folder.name) {
               bookmark.category = newName;
             }
@@ -875,7 +867,7 @@ export class BookmarkSecondaryManager {
       this.adapter.setBrowserItems(updatedItems);
 
       // Update cache
-      for (const [id, bookmark] of this.bookmarksCache) {
+      for (const [_id, bookmark] of this.bookmarksCache) {
         if (bookmark.category === folderName) {
           bookmark.category = '';
         }

@@ -128,7 +128,7 @@ export function verifyEventSignature(event: NostrEvent): boolean {
 export function finalizeEventSigning(
   event: UnsignedEvent,
   privateKeyHex: string,
-  pubkey?: string
+  _pubkey?: string
 ): NostrEvent {
   return finalizeEvent(event, privateKeyHex);
 }

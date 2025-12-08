@@ -3,7 +3,7 @@
  * Extracts poll options, multiple choice, end date, relay URLs from tags
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import type { ProcessedNote } from '../types/NoteTypes';
 import type { PollData, PollOption } from '../../poll/PollCreator';
 import { ContentProcessor } from '../../../services/ContentProcessor';

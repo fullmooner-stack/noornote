@@ -160,7 +160,7 @@ export class LikeManager extends BaseInteractionManager<LikeManagerConfig> {
   /**
    * Destroy manager and cleanup resources
    */
-  public destroy(): void {
+  public override destroy(): void {
     if (this.emojiPicker) {
       this.emojiPicker.destroy();
       this.emojiPicker = null;

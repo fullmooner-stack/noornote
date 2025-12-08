@@ -13,7 +13,7 @@
  * - User's relay list syncs across devices
  */
 
-import type { Event as NostrEvent, Filter as NostrFilter } from '@nostr-dev-kit/ndk';
+import type { NostrEvent, NDKFilter } from '@nostr-dev-kit/ndk';
 import { Orchestrator } from './Orchestrator';
 import { NostrTransport } from '../transport/NostrTransport';
 import { SystemLogger } from '../../components/system/SystemLogger';
@@ -48,7 +48,7 @@ export class RelayListOrchestrator extends Orchestrator {
   ): Promise<RelayInfo[] | null> {
     // Silent operation - RelayConfig logs "Fetching [username]'s relay list"
 
-    const filters: NostrFilter[] = [{
+    const filters: NDKFilter[] = [{
       authors: [pubkey],
       kinds: [10002],
       limit: 1
@@ -169,15 +169,15 @@ export class RelayListOrchestrator extends Orchestrator {
 
   // Orchestrator interface implementations
 
-  public onui(data: any): void {
+  public onui(_data: any): void {
     // Handle UI actions (future: relay status updates)
   }
 
-  public onopen(relay: string): void {
+  public onopen(_relay: string): void {
     // Silent operation
   }
 
-  public onmessage(relay: string, event: NostrEvent): void {
+  public onmessage(_relay: string, _event: NostrEvent): void {
     // Handle incoming events (future: relay list update subscriptions)
   }
 
@@ -188,7 +188,7 @@ export class RelayListOrchestrator extends Orchestrator {
     );
   }
 
-  public onclose(relay: string): void {
+  public onclose(_relay: string): void {
     // Silent operation
   }
 

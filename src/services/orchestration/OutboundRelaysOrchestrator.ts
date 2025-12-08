@@ -14,7 +14,7 @@
  * - 1-hour cache TTL (relay lists don't change frequently)
  */
 
-import type { Event as NostrEvent, Filter as NostrFilter } from '@nostr-dev-kit/ndk';
+import type { NostrEvent, NDKFilter } from '@nostr-dev-kit/ndk';
 import { Orchestrator } from './Orchestrator';
 import { NostrTransport } from '../transport/NostrTransport';
 import { RelayConfig } from '../RelayConfig';
@@ -107,7 +107,7 @@ export class OutboundRelaysOrchestrator extends Orchestrator {
     );
 
     // Fetch NIP-65 events (kind:10002) for uncached users
-    const filter: NostrFilter = {
+    const filter: NDKFilter = {
       authors: uncachedPubkeys,
       kinds: [10002], // Relay List Metadata
       limit: uncachedPubkeys.length * 2 // Allow for multiple events per user
@@ -402,15 +402,15 @@ export class OutboundRelaysOrchestrator extends Orchestrator {
 
   // Orchestrator interface implementations
 
-  public onui(data: any): void {
+  public onui(_data: any): void {
     // Handle UI actions (future: relay discovery updates)
   }
 
-  public onopen(relay: string): void {
+  public onopen(_relay: string): void {
     // Silent operation
   }
 
-  public onmessage(relay: string, event: NostrEvent): void {
+  public onmessage(_relay: string, _event: NostrEvent): void {
     // Handle incoming events (future: real-time relay list updates)
   }
 
@@ -421,7 +421,7 @@ export class OutboundRelaysOrchestrator extends Orchestrator {
     );
   }
 
-  public onclose(relay: string): void {
+  public onclose(_relay: string): void {
     // Silent operation
   }
 

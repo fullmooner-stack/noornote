@@ -106,7 +106,6 @@ export class CustomDropdown {
    */
   private setupEventListeners(): void {
     const trigger = this.element.querySelector('.custom-dropdown__trigger');
-    const menu = this.element.querySelector('.custom-dropdown__menu');
     const items = this.element.querySelectorAll('.custom-dropdown__item');
 
     // Toggle dropdown

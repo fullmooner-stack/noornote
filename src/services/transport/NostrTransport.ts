@@ -13,9 +13,7 @@ import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import type { NDKCacheAdapterDexieOptions } from '@nostr-dev-kit/ndk-cache-dexie';
 import { RelayConfig } from '../RelayConfig';
 import { SystemLogger } from '../../components/system/SystemLogger';
-import { SignatureVerificationService } from '../security/SignatureVerificationService';
 import { EventBus } from '../EventBus';
-import { RelayHealthMonitor } from '../RelayHealthMonitor';
 
 export interface SubscriptionCallbacks {
   onEvent: (event: NostrEvent, relay: string) => void;
@@ -60,17 +58,13 @@ export class NostrTransport {
   private ndkConnected: boolean = false;
   private relayConfig: RelayConfig;
   private systemLogger: SystemLogger;
-  private signatureVerification: SignatureVerificationService;
   private eventBus: EventBus;
-  private healthMonitor: RelayHealthMonitor;
   private subscriptions: Map<string, { closer: SubCloser; relays: string[] }> = new Map();
 
   private constructor() {
     this.relayConfig = RelayConfig.getInstance();
     this.systemLogger = SystemLogger.getInstance();
-    this.signatureVerification = SignatureVerificationService.getInstance();
     this.eventBus = EventBus.getInstance();
-    this.healthMonitor = RelayHealthMonitor.getInstance();
 
     // Initialize NDK with Dexie cache (using config from localStorage)
     const cacheConfig = getNDKCacheConfig();
@@ -365,14 +359,14 @@ export class NostrTransport {
         ws.onmessage = (msg) => {
           try {
             const data = JSON.parse(msg.data);
-            const [type, subId, event] = data;
+            const [type, _subId, event] = data;
 
             if (type === 'EVENT' && event) {
               events.set(event.id, event);
             } else if (type === 'EOSE') {
               ws.close();
             }
-          } catch (error) {
+          } catch (_error) {
             // Ignore parse errors
           }
         };
@@ -413,8 +407,8 @@ export class NostrTransport {
       publishSuccesses.push(relay.url);
     };
 
-    const onRelayPublishFailed = (relay: any, error: Error) => {
-      publishFailures.set(relay.url, error.message);
+    const onRelayPublishFailed = (relay: any, _error: Error) => {
+      publishFailures.set(relay.url, _error.message);
     };
 
     ndkEvent.on('relay:published', onRelayPublished);

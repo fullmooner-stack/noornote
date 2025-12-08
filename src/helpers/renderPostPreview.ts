@@ -10,7 +10,7 @@
  * - No local imports (only external libs)
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { NoteProcessor } from '../components/ui/note-processing/NoteProcessor';
 import { replaceMediaPlaceholders } from './renderMediaContent';
 

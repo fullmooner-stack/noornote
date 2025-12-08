@@ -8,7 +8,6 @@ import { Router } from '../../services/Router';
 import { EventBus } from '../../services/EventBus';
 import { UserSearchService, type UserSearchResult } from '../../services/UserSearchService';
 import { hexToNpub } from '../../helpers/nip19';
-import { extractDisplayName } from '../../helpers/extractDisplayName';
 
 export class SearchSpotlight {
   private element: HTMLElement;

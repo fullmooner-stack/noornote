@@ -3,7 +3,6 @@
  * Extracts from: NoteUI.createOriginalNoteElement()
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
 import type { ProcessedNote, NoteUIOptions } from '../types/NoteTypes';
 import { NoteStructureBuilder } from './NoteStructureBuilder';
 import { CollapsibleManager } from '../note-features/CollapsibleManager';

@@ -8,7 +8,7 @@ import { Orchestrator } from './Orchestrator';
 import { NostrTransport } from '../transport/NostrTransport';
 import { RelayConfig } from '../RelayConfig';
 import { SystemLogger } from '../../components/system/SystemLogger';
-import type { Event as NostrEvent, Filter } from '@nostr-dev-kit/ndk';
+import type { NostrEvent, NDKFilter } from '@nostr-dev-kit/ndk';
 
 /** Search relay endpoints (hardcoded + user relays) */
 const SEARCH_RELAYS = [
@@ -51,7 +51,7 @@ export class SearchOrchestrator extends Orchestrator {
   /**
    * Handle UI-triggered actions (not used for search - direct API calls)
    */
-  public onui(data: any): void {
+  public onui(_data: any): void {
     // Search is triggered via direct API calls (search/searchPaginated)
     // No UI event handling needed
   }
@@ -59,14 +59,14 @@ export class SearchOrchestrator extends Orchestrator {
   /**
    * Handle relay connection opened
    */
-  public onopen(relay: string): void {
+  public onopen(_relay: string): void {
     // Search doesn't maintain persistent connections
   }
 
   /**
    * Handle incoming Nostr event
    */
-  public onmessage(relay: string, event: NostrEvent): void {
+  public onmessage(_relay: string, _event: NostrEvent): void {
     // Search uses fetch() not subscribe(), events handled directly in search methods
   }
 
@@ -80,7 +80,7 @@ export class SearchOrchestrator extends Orchestrator {
   /**
    * Handle relay connection closed
    */
-  public onclose(relay: string): void {
+  public onclose(_relay: string): void {
     // Search doesn't maintain persistent connections
   }
 

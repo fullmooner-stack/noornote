@@ -71,7 +71,7 @@ function npubToUsernameSimple(npub: string): string {
     }
 
     // Trigger async profile fetch (fire and forget)
-    userProfileService.getUserProfile(hexPubkey).catch(() => {
+    userProfileService.getUserProfile(hexPubkey).catch((_error) => {
       // Ignore errors, profile will stay as fallback
     });
 
@@ -120,7 +120,7 @@ function npubToUsernameHTMLMulti(
   // Valid nprofile format: nprofile1 + bech32 chars (excludes b, i, o)
   // Variable length due to relay hints, but must be at least 59 chars
   // Use word boundary (\b) or lookahead to prevent over-matching
-  text = text.replace(/(nostr:)?(nprofile1[023456789acdefghjklmnpqrstuvwxyz]{58,})(?=[^023456789acdefghjklmnpqrstuvwxyz]|$)/gi, (fullMatch, prefix, nprofile) => {
+  text = text.replace(/(nostr:)?(nprofile1[023456789acdefghjklmnpqrstuvwxyz]{58,})(?=[^023456789acdefghjklmnpqrstuvwxyz]|$)/gi, (fullMatch, _prefix, nprofile) => {
     try {
       const npub = nprofileToNpub(nprofile);
       const hexPubkey = npubToHex(npub);
@@ -133,7 +133,7 @@ function npubToUsernameHTMLMulti(
         // Fallback: show loading placeholder until profile loads
         return buildMentionHTML(npub, '...', undefined, true);
       }
-    } catch (error) {
+    } catch (_error) {
       // Fail gracefully - return original text without logging
       // (invalid checksums are common in wild, not worth spamming console)
       return fullMatch;
@@ -144,7 +144,7 @@ function npubToUsernameHTMLMulti(
   // BUT skip npubs that are already inside links we created above
   // Valid npub format: npub1 + 58 bech32 chars (excludes b, i, o) = exactly 63 chars
   // Use lookahead to ensure we stop at word boundary
-  text = text.replace(/(nostr:)?(npub1[023456789acdefghjklmnpqrstuvwxyz]{58})(?=[^023456789acdefghjklmnpqrstuvwxyz]|$)/gi, (fullMatch, prefix, npub, offset, string) => {
+  text = text.replace(/(nostr:)?(npub1[023456789acdefghjklmnpqrstuvwxyz]{58})(?=[^023456789acdefghjklmnpqrstuvwxyz]|$)/gi, (fullMatch, _prefix, npub, offset, string) => {
 
     // Check if this npub is inside a link we already created
     const before = string.substring(Math.max(0, offset - 60), offset);
@@ -165,7 +165,7 @@ function npubToUsernameHTMLMulti(
         // Fallback: show loading placeholder until profile loads
         return buildMentionHTML(npub, '...', undefined, true);
       }
-    } catch (error) {
+    } catch (_error) {
       // Fail gracefully - return original text without logging
       return fullMatch;
     }

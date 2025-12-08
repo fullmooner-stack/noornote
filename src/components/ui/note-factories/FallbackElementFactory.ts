@@ -4,7 +4,7 @@
  * Extracts from: NoteUI.createErrorNoteElement() and createMaxDepthElement()
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { Router } from '../../../services/Router';
 import { encodeNevent } from '../../../services/NostrToolsAdapter';
 
@@ -12,7 +12,7 @@ export class FallbackElementFactory {
   /**
    * Create fallback element when note processing fails
    */
-  static createErrorElement(event: NostrEvent, error: any): HTMLElement {
+  static createErrorElement(event: NostrEvent, _error: any): HTMLElement {
     const errorDiv = document.createElement('div');
     errorDiv.className = 'note-card note-card--error';
     errorDiv.dataset.eventId = event.id;

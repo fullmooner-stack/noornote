@@ -15,7 +15,6 @@ import { NostrTransport } from '../transport/NostrTransport';
 import { AuthService } from '../AuthService';
 import { ProfileMountsService } from '../ProfileMountsService';
 import { SystemLogger } from '../../components/system/SystemLogger';
-import type { NostrEvent } from '@nostr-dev-kit/ndk';
 
 const NIP78_KIND = 30078;
 const D_TAG = 'noornote/profile-mounts';

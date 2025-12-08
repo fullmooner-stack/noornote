@@ -47,7 +47,6 @@ export class MainLayout {
   private followManager: FollowListSecondaryManager | null = null;
   private muteManager: MuteListSecondaryManager | null = null;
   private badgeManager: NotificationsBadgeManager | null = null;
-  private dmBadgeManager: DMBadgeManager | null = null;
   private listsMenu: ListsMenuPartial | null = null;
   private currentListView: ListViewPartial | null = null;
 
@@ -130,7 +129,7 @@ export class MainLayout {
     // Initialize DMBadgeManager
     const dmBadgeElement = this.element.querySelector('.dm-badge') as HTMLElement;
     if (dmBadgeElement) {
-      this.dmBadgeManager = new DMBadgeManager(dmBadgeElement);
+      new DMBadgeManager(dmBadgeElement);
     }
 
     // Initialize Lists Menu (Sidebar Accordion)
@@ -937,26 +936,6 @@ export class MainLayout {
     cacheSizeDisplay.textContent = `(${this.cacheManager.formatBytes(totalCacheSize)})`;
   }
 
-  /**
-   * Parse byte string (e.g., "2.5 MB", "512 KB") back to bytes
-   */
-  private parseBytesString(sizeStr: string): number {
-    const match = sizeStr.match(/^([\d.]+)\s*([KMGT]?B)$/i);
-    if (!match) return 0;
-
-    const value = parseFloat(match[1]);
-    const unit = match[2].toUpperCase();
-
-    const multipliers: { [key: string]: number } = {
-      'B': 1,
-      'KB': 1024,
-      'MB': 1024 * 1024,
-      'GB': 1024 * 1024 * 1024,
-      'TB': 1024 * 1024 * 1024 * 1024
-    };
-
-    return Math.floor(value * (multipliers[unit] || 1));
-  }
 
   /**
    * Stop cache size updates

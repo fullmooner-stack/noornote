@@ -95,7 +95,7 @@ export class MutualChangeDetector {
     const currentUser = this.authService.getCurrentUser();
 
     // Start debug logging session
-    const checkId = this.debugLog.startCheck();
+    this.debugLog.startCheck();
 
     if (!currentUser) {
       this.systemLogger.warn('MutualChangeDetector', 'No user logged in, skipping detection');
@@ -223,10 +223,10 @@ export class MutualChangeDetector {
       });
 
       return { unfollows, newMutuals, totalChanges, durationMs, isFirstCheck: false };
-    } catch (error) {
-      this.systemLogger.error('MutualChangeDetector', `Detection failed: ${error}`);
-      await this.debugLog.logError(`Detection failed: ${error}`, {
-        stack: error instanceof Error ? error.stack : undefined
+    } catch (_error) {
+      this.systemLogger.error('MutualChangeDetector', `Detection failed: ${_error}`);
+      await this.debugLog.logError(`Detection failed: ${_error}`, {
+        stack: _error instanceof Error ? _error.stack : undefined
       });
       return { unfollows: [], newMutuals: [], totalChanges: 0, durationMs: Date.now() - startTime, isFirstCheck: false };
     }

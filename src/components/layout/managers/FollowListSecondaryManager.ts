@@ -187,7 +187,7 @@ export class FollowListSecondaryManager extends BaseListSecondaryManager<FollowI
   /**
    * Override renderListTab to add sticky header with stats and filter
    */
-  protected async renderListTab(container: HTMLElement): Promise<void> {
+  protected override async renderListTab(container: HTMLElement): Promise<void> {
     // Initialize browser storage from file on first render
     await this.initializeBrowserStorage();
 
@@ -523,7 +523,7 @@ export class FollowListSecondaryManager extends BaseListSecondaryManager<FollowI
   /**
    * Override loadBatch to check mutual status per batch
    */
-  protected async loadBatch(listElement: HTMLElement): Promise<void> {
+  protected override async loadBatch(listElement: HTMLElement): Promise<void> {
     if (this.isLoading || !this.hasMore) return;
 
     this.isLoading = true;

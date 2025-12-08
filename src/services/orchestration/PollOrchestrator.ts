@@ -10,7 +10,7 @@
  * - Cache results with 5min TTL
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { Orchestrator } from './Orchestrator';
 import { NostrTransport } from '../transport/NostrTransport';
 
@@ -174,23 +174,23 @@ export class PollOrchestrator extends Orchestrator {
   }
 
   // Orchestrator interface implementations (not used for polls, but required)
-  public onui(data: any): void {
+  public onui(_data: any): void {
     // Polls don't use router subscriptions, we fetch on-demand
   }
 
-  public onopen(relay: string): void {
+  public onopen(_relay: string): void {
     // No-op
   }
 
-  public onmessage(relay: string, event: NostrEvent): void {
+  public onmessage(_relay: string, _event: NostrEvent): void {
     // No-op - we fetch zaps directly, not via router
   }
 
-  public onerror(relay: string, error: Error): void {
+  public onerror(_relay: string, _error: Error): void {
     // No-op
   }
 
-  public onclose(relay: string): void {
+  public onclose(_relay: string): void {
     // No-op
   }
 }

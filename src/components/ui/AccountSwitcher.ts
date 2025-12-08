@@ -7,7 +7,7 @@
 import { UserProfileService, UserProfile } from '../../services/UserProfileService';
 import { AuthService } from '../../services/AuthService';
 import { AccountStorageService } from '../../services/AccountStorageService';
-import { KeySignerClient, type KeySignerAccount } from '../../services/KeySignerClient';
+import { KeySignerClient } from '../../services/KeySignerClient';
 import { KeySignerPasswordModal } from '../modals/KeySignerPasswordModal';
 
 export interface AccountSwitcherOptions {
@@ -36,7 +36,6 @@ export class AccountSwitcher {
   private profile: UserProfile | null = null;
   private unsubscribeProfile?: () => void;
   private clickOutsideHandler: (e: MouseEvent) => void;
-  private keySignerAccounts: KeySignerAccount[] = [];
   private profileCache: Map<string, UserProfile> = new Map();
 
   constructor(options: AccountSwitcherOptions) {
@@ -193,7 +192,6 @@ export class AccountSwitcher {
       // NoorSigner: get accounts from daemon
       try {
         const result = await this.keySignerClient.listAccounts();
-        this.keySignerAccounts = result.accounts;
         accounts = result.accounts.map(acc => ({
           pubkey: acc.pubkey,
           npub: acc.npub,

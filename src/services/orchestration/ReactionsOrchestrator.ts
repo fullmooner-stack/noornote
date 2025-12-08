@@ -13,7 +13,7 @@
  * - Fetches reactions, reposts, replies, zaps in parallel
  */
 
-import type { Event as NostrEvent, Filter as NostrFilter } from '@nostr-dev-kit/ndk';
+import type { NostrEvent, NDKFilter } from '@nostr-dev-kit/ndk';
 import { Orchestrator } from './Orchestrator';
 import { NostrTransport } from '../transport/NostrTransport';
 import { SystemLogger } from '../../components/system/SystemLogger';
@@ -354,7 +354,7 @@ export class ReactionsOrchestrator extends Orchestrator {
       const isArticle = this.isLongFormArticle(noteId);
 
       // Build filters based on note type
-      const filters: NostrFilter[] = [];
+      const filters: NDKFilter[] = [];
 
       if (isArticle) {
         // LONG-FORM ARTICLE: Search both #a (addressable) and #e (event ID)
@@ -403,7 +403,7 @@ export class ReactionsOrchestrator extends Orchestrator {
 
       const isArticle = this.isLongFormArticle(noteId);
 
-      const filters: NostrFilter[] = [];
+      const filters: NDKFilter[] = [];
 
       if (isArticle) {
         // LONG-FORM ARTICLE: Search both #a and #e for regular reposts
@@ -461,7 +461,7 @@ export class ReactionsOrchestrator extends Orchestrator {
       const isArticle = this.isLongFormArticle(noteId);
 
       // Build filters based on note type
-      const filters: NostrFilter[] = [];
+      const filters: NDKFilter[] = [];
 
       if (isArticle) {
         // LONG-FORM ARTICLE: Search both #a and #e
@@ -522,7 +522,7 @@ export class ReactionsOrchestrator extends Orchestrator {
       const isArticle = this.isLongFormArticle(noteId);
 
       // Build filters based on note type
-      const filters: NostrFilter[] = [];
+      const filters: NDKFilter[] = [];
 
       if (isArticle) {
         // LONG-FORM ARTICLE: Search both #a and #e
@@ -560,7 +560,7 @@ export class ReactionsOrchestrator extends Orchestrator {
    * SNV counts all replies including nested, ReactionsOrchestrator only counts direct replies
    * NOTE: Only updates count-based fields, not the event arrays
    */
-  public updateCachedStats(noteId: string, updates: Partial<InteractionStats>): void {
+  public updateCachedStats(noteId: string, _updates: Partial<InteractionStats>): void {
     const cached = this.detailedStatsCache.get(noteId);
     if (cached) {
       // Update lastUpdated timestamp when modifying stats
@@ -664,7 +664,7 @@ export class ReactionsOrchestrator extends Orchestrator {
     const articleEventId = isArticle ? this.articleEventIdCache.get(noteId) : undefined;
 
     // Build filters based on note type
-    const filters: NostrFilter[] = [];
+    const filters: NDKFilter[] = [];
 
     if (isArticle) {
       // LONG-FORM ARTICLE: Poll both #a and #e
@@ -741,15 +741,15 @@ export class ReactionsOrchestrator extends Orchestrator {
 
   // Orchestrator interface implementations (unused for now, required by base class)
 
-  public onui(data: any): void {
+  public onui(_data: any): void {
     // Handle UI actions (future: real-time subscriptions)
   }
 
-  public onopen(relay: string): void {
+  public onopen(_relay: string): void {
     // Silent operation
   }
 
-  public onmessage(relay: string, event: NostrEvent): void {
+  public onmessage(_relay: string, _event: NostrEvent): void {
     // Handle incoming events from subscriptions (future: live updates)
   }
 
@@ -757,7 +757,7 @@ export class ReactionsOrchestrator extends Orchestrator {
     this.systemLogger.error('ReactionsOrchestrator', `Relay error (${relay}): ${error.message}`);
   }
 
-  public onclose(relay: string): void {
+  public onclose(_relay: string): void {
     // Silent operation
   }
 

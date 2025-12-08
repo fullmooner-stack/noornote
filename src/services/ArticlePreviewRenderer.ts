@@ -4,7 +4,7 @@
  * Used by NoteUI and SingleNoteView when encountering naddr references
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { LongFormOrchestrator } from './orchestration/LongFormOrchestrator';
 import { Router } from './Router';
 

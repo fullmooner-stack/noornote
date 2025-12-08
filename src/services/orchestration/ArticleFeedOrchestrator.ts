@@ -6,7 +6,7 @@
  * Can be easily disabled by removing route and sidebar entry.
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { Orchestrator } from './Orchestrator';
 import { NostrTransport } from '../transport/NostrTransport';
 import { RelayConfig } from '../RelayConfig';

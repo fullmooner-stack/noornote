@@ -7,13 +7,11 @@
  */
 
 import { KeySignerClient } from '../KeySignerClient';
-import { EventBus } from '../EventBus';
 import { PlatformService } from '../PlatformService';
 import { SystemLogger } from '../../components/system/SystemLogger';
 
 export class KeySignerConnectionManager {
   private keySigner: KeySignerClient | null = null;
-  private eventBus: EventBus;
   private logger: SystemLogger;
   private daemonPollingInterval: NodeJS.Timeout | null = null;
   private readonly DAEMON_POLL_INTERVAL = 5000; // Poll every 5 seconds
@@ -24,7 +22,6 @@ export class KeySignerConnectionManager {
   private onDaemonLost?: () => void;
 
   constructor() {
-    this.eventBus = EventBus.getInstance();
     this.logger = SystemLogger.getInstance();
     this.setupWindowFocusListeners();
   }
@@ -87,10 +84,10 @@ export class KeySignerConnectionManager {
 
       this.keySigner = null;
       return { success: false, error: 'No pubkey available' };
-    } catch (error) {
-      this.logger.error('KeySigner', `Auto-login failed: ${error}`);
+    } catch (_error) {
+      this.logger.error('KeySigner', `Auto-login failed: ${_error}`);
       this.keySigner = null;
-      return { success: false, error: String(error) };
+      return { success: false, error: String(_error) };
     }
   }
 
@@ -153,16 +150,16 @@ export class KeySignerConnectionManager {
       this.startDaemonPolling();
 
       return { success: true, npub, pubkey };
-    } catch (error: any) {
-      this.logger.error('KeySigner', `Authentication failed: ${error}`);
+    } catch (_error: any) {
+      this.logger.error('KeySigner', `Authentication failed: ${_error}`);
 
-      if (error.name === 'AbortError') {
+      if (_error.name === 'AbortError') {
         this.logger.info('KeySigner', 'Login cancelled by user');
         return { success: false, error: 'Login cancelled' };
       }
 
       this.keySigner = null;
-      return { success: false, error: String(error) };
+      return { success: false, error: String(_error) };
     } finally {
       this.keySignerAbortController = null;
     }
@@ -218,13 +215,13 @@ export class KeySignerConnectionManager {
             this.daemonFailureCount = 0;
           }
         }
-      } catch (error: any) {
-        const isTransientError = error.message?.includes('Broken pipe') ||
-                                  error.message?.includes('os error 32');
+      } catch (_error: any) {
+        const isTransientError = _error.message?.includes('Broken pipe') ||
+                                  _error.message?.includes('os error 32');
 
         if (isTransientError) {
           this.daemonFailureCount++;
-          this.logger.warn('KeySigner', `Transient error (${this.daemonFailureCount}/${this.MAX_DAEMON_FAILURES}): ${error.message}`);
+          this.logger.warn('KeySigner', `Transient error (${this.daemonFailureCount}/${this.MAX_DAEMON_FAILURES}): ${_error.message}`);
 
           if (this.daemonFailureCount >= this.MAX_DAEMON_FAILURES) {
             this.logger.error('KeySigner', 'Too many transient errors - logging out');
@@ -235,7 +232,7 @@ export class KeySignerConnectionManager {
             ToastService.show('KeySigner connection unstable - logged out', 'error');
           }
         } else {
-          this.logger.error('KeySigner', `Daemon polling error: ${error}`);
+          this.logger.error('KeySigner', `Daemon polling error: ${_error}`);
         }
       }
     }, this.DAEMON_POLL_INTERVAL);
@@ -278,8 +275,8 @@ export class KeySignerConnectionManager {
               await this.keySigner!.stopDaemon();
               this.logger.success('KeySigner', 'Daemon stopped successfully');
               resolve(true);
-            } catch (error) {
-              this.logger.error('KeySigner', `Failed to stop daemon: ${error}`);
+            } catch (_error) {
+              this.logger.error('KeySigner', `Failed to stop daemon: ${_error}`);
               const { ToastService } = await import('../ToastService');
               ToastService.show('Failed to stop daemon', 'error');
               resolve(false);
@@ -290,8 +287,8 @@ export class KeySignerConnectionManager {
           }
         });
       });
-    } catch (error) {
-      this.logger.error('KeySigner', `Error checking daemon status: ${error}`);
+    } catch (_error) {
+      this.logger.error('KeySigner', `Error checking daemon status: ${_error}`);
       return false;
     }
   }

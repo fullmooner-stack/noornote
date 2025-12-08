@@ -14,7 +14,7 @@
  * - Multi-stage relay strategy (hint relays → standard → outbound)
  */
 
-import type { Event as NostrEvent, Filter as NostrFilter } from '@nostr-dev-kit/ndk';
+import type { NostrEvent, NDKFilter } from '@nostr-dev-kit/ndk';
 import { decodeNip19 } from '../NostrToolsAdapter';
 import { Orchestrator } from './Orchestrator';
 import { NostrTransport } from '../transport/NostrTransport';
@@ -80,7 +80,6 @@ export class LongFormOrchestrator extends Orchestrator {
     try {
       const event = await fetchPromise;
       if (event) {
-        const relays = (event as any)._relays as string[] | undefined;
         // Store naddr → eventId mapping
         this.naddrToEventId.set(naddrRef, event.id);
       }
@@ -133,7 +132,7 @@ export class LongFormOrchestrator extends Orchestrator {
     data: AddressableEventData,
     relays: string[]
   ): Promise<NostrEvent | null> {
-    const filters: NostrFilter[] = [{
+    const filters: NDKFilter[] = [{
       kinds: [data.kind],
       authors: [data.pubkey],
       '#d': [data.identifier],
@@ -143,7 +142,7 @@ export class LongFormOrchestrator extends Orchestrator {
     try {
       const events = await this.transport.fetch(relays, filters, 5000);
       return events.length > 0 ? events[0] : null;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -170,7 +169,7 @@ export class LongFormOrchestrator extends Orchestrator {
         identifier: data.identifier,
         relays: data.relays || []
       };
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -201,15 +200,15 @@ export class LongFormOrchestrator extends Orchestrator {
 
   // Orchestrator interface implementations
 
-  public onui(data: any): void {
+  public onui(_data: any): void {
     // Handle UI actions (future: article refresh/reload)
   }
 
-  public onopen(relay: string): void {
+  public onopen(_relay: string): void {
     // Silent operation
   }
 
-  public onmessage(relay: string, event: NostrEvent): void {
+  public onmessage(_relay: string, _event: NostrEvent): void {
     // Handle incoming events from subscriptions (future: live article updates)
   }
 
@@ -217,7 +216,7 @@ export class LongFormOrchestrator extends Orchestrator {
     this.systemLogger.error('LongFormOrchestrator', `Relay error (${relay}): ${error.message}`);
   }
 
-  public onclose(relay: string): void {
+  public onclose(_relay: string): void {
     // Silent operation
   }
 

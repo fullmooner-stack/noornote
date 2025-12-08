@@ -36,7 +36,6 @@ export class MuteListView extends View {
   private listSyncManager: ListSyncManager<string>;
   private mutedUsers: MutedUser[] = [];
   private mutedThreads: MutedThread[] = [];
-  private isLoading: boolean = false;
 
   constructor() {
     super();
@@ -60,8 +59,8 @@ export class MuteListView extends View {
   private async initializeBrowserStorage(): Promise<void> {
     try {
       await this.listSyncManager.restoreFromFile();
-    } catch (error) {
-      console.error('[MuteListView] Failed to initialize browser storage:', error);
+    } catch (_error) {
+      console.error('[MuteListView] Failed to initialize browser storage:', _error);
     }
   }
 
@@ -113,8 +112,6 @@ export class MuteListView extends View {
       return;
     }
 
-    this.isLoading = true;
-
     try {
       // Load muted users with profiles
       const mutedUsersMap = await this.muteOrch.getAllMutedUsersWithStatus(currentUser.pubkey);
@@ -134,11 +131,9 @@ export class MuteListView extends View {
       }));
 
       this.renderMuteList();
-    } catch (error) {
-      console.error('Failed to load mute list:', error);
+    } catch (_error) {
+      console.error('Failed to load mute list:', _error);
       this.renderError('Failed to load mute list. Please try again.');
-    } finally {
-      this.isLoading = false;
     }
   }
 
@@ -352,8 +347,8 @@ export class MuteListView extends View {
           ToastService.show(`Synced ${result.diff.added.length} new mute${result.diff.added.length > 1 ? 's' : ''} from relays`, 'success');
           await this.loadMuteList();
         }
-      } catch (error) {
-        console.error('Failed to sync from relays:', error);
+      } catch (_error) {
+        console.error('Failed to sync from relays:', _error);
         ToastService.show('Failed to sync from relays', 'error');
       }
     });
@@ -372,8 +367,8 @@ export class MuteListView extends View {
         ToastService.show('Publishing to relays...', 'info');
         await this.listSyncManager.syncToRelays();
         ToastService.show('Mute list published successfully', 'success');
-      } catch (error) {
-        console.error('Failed to publish to relays:', error);
+      } catch (_error) {
+        console.error('Failed to publish to relays:', _error);
         ToastService.show('Failed to publish to relays', 'error');
       }
     });
@@ -392,8 +387,8 @@ export class MuteListView extends View {
         ToastService.show('Saving to file...', 'info');
         await this.listSyncManager.saveToFile();
         ToastService.show('Saved to local file', 'success');
-      } catch (error) {
-        console.error('Failed to save to file:', error);
+      } catch (_error) {
+        console.error('Failed to save to file:', _error);
         ToastService.show('Failed to save to file', 'error');
       }
     });
@@ -412,8 +407,8 @@ export class MuteListView extends View {
         await this.listSyncManager.restoreFromFile();
         ToastService.show('Restored from local file', 'success');
         await this.loadMuteList();
-      } catch (error) {
-        console.error('Failed to restore from file:', error);
+      } catch (_error) {
+        console.error('Failed to restore from file:', _error);
         ToastService.show('Failed to restore from file', 'error');
       }
     });
@@ -444,8 +439,8 @@ export class MuteListView extends View {
       // Notify timeline to refresh (show unmuted user's posts again)
       const eventBus = EventBus.getInstance();
       eventBus.emit('mute:updated', {});
-    } catch (error) {
-      console.error('Failed to unmute user:', error);
+    } catch (_error) {
+      console.error('Failed to unmute user:', _error);
       ToastService.show('Failed to unmute user', 'error');
     }
   }
@@ -463,8 +458,8 @@ export class MuteListView extends View {
       const eventBus = EventBus.getInstance();
       eventBus.emit('mute:thread:updated', { eventId });
       eventBus.emit('mute:updated', {});
-    } catch (error) {
-      console.error('Failed to unmute thread:', error);
+    } catch (_error) {
+      console.error('Failed to unmute thread:', _error);
       ToastService.show('Failed to unmute thread', 'error');
     }
   }

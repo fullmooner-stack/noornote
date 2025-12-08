@@ -11,7 +11,6 @@
  * Important: Deletion is NOT guaranteed. Relays may choose to ignore deletion requests.
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
 import { AuthService } from './AuthService';
 import { AuthGuard } from './AuthGuard';
 import { NostrTransport } from './transport/NostrTransport';
@@ -179,8 +178,8 @@ export class DeletionService {
       if (stored) {
         return JSON.parse(stored);
       }
-    } catch (error) {
-      console.warn('Failed to load local relay settings:', error);
+    } catch (_error) {
+      console.warn('Failed to load local relay settings:', _error);
     }
 
     return {

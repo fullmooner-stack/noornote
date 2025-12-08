@@ -11,7 +11,7 @@
  * - NEW: noornote_mutes_browser_v2 (MuteItem[])
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import type { MuteItem } from '../../types/BaseListItem';
 import type { FetchFromRelaysResult } from '../sync/ListStorageAdapter';
 import { migrateMuteStorage, needsMuteMigration, cleanupOldMuteStorage } from '../../types/BaseListItem';
@@ -50,11 +50,11 @@ export class MuteOrchestrator extends GenericListOrchestrator<MuteItem> {
   }
 
   // Required Orchestrator abstract methods
-  public onui(data: any): void {}
-  public onopen(relay: string): void {}
-  public onmessage(relay: string, event: NostrEvent): void {}
-  public onerror(relay: string, error: Error): void {}
-  public onclose(relay: string): void {}
+  public override onui(_data: any): void {}
+  public override onopen(_relay: string): void {}
+  public override onmessage(_relay: string, _event: NostrEvent): void {}
+  public override onerror(_relay: string, _error: Error): void {}
+  public override onclose(_relay: string): void {}
 
   /**
    * Run one-time migration from old 4-key format to new unified format
@@ -580,7 +580,7 @@ export class MuteOrchestrator extends GenericListOrchestrator<MuteItem> {
   /**
    * Sync mute list from relays with smart merge
    */
-  public async syncFromRelays(options: { autoRepublish?: boolean } = {}): Promise<void> {
+  public override async syncFromRelays(options: { autoRepublish?: boolean } = {}): Promise<void> {
     const currentUser = this.authService.getCurrentUser();
     if (!currentUser) {
       return;

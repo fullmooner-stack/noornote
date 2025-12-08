@@ -157,7 +157,7 @@ export class MuteListSecondaryManager extends BaseListSecondaryManager<string, M
   /**
    * Override renderListTab to show both users and threads
    */
-  public async renderListTab(content: HTMLElement): Promise<void> {
+  public override async renderListTab(content: HTMLElement): Promise<void> {
     // Show loading state
     content.innerHTML = `
       <div class="list-loading">

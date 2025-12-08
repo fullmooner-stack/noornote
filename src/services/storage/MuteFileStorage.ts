@@ -40,7 +40,7 @@ class PublicMuteStorage extends BaseFileStorage<MuteListData> {
   /**
    * Migration: Add eventIds array if missing (backward compatibility)
    */
-  protected migrateData(data: MuteListData): MuteListData {
+  protected override migrateData(data: MuteListData): MuteListData {
     if (!Array.isArray(data.eventIds)) {
       data.eventIds = [];
     }
@@ -71,7 +71,7 @@ class PrivateMuteStorage extends BaseFileStorage<MuteListData> {
   /**
    * Migration: Add eventIds array if missing (backward compatibility)
    */
-  protected migrateData(data: MuteListData): MuteListData {
+  protected override migrateData(data: MuteListData): MuteListData {
     if (!Array.isArray(data.eventIds)) {
       data.eventIds = [];
     }

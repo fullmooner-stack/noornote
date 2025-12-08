@@ -301,15 +301,6 @@ export class SystemLogger {
   }
 
 
-  /**
-   * Lazy load Router to avoid circular dependency
-   */
-  private getRouter(): Router {
-    if (!this.router) {
-      this.router = Router.getInstance();
-    }
-    return this.router;
-  }
 
   /**
    * Render page logs to UI (filtered by current Router view)

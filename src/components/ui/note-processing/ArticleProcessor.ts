@@ -4,7 +4,7 @@
  * Full article rendering is handled by ArticleView component
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import type { ProcessedNote } from '../types/NoteTypes';
 
 export class ArticleProcessor {

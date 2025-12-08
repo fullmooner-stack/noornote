@@ -132,8 +132,7 @@ export const muteListConfig: ListConfig<MuteItem> = {
         return await keySignerClient.nip04Encrypt(plaintext, pubkey);
       }
     } else if (authMethod === 'nip46') {
-      const { Nip46SignerManager } = await import('../../managers/Nip46SignerManager');
-      const nip46Manager = (authService as any).nip46Manager as Nip46SignerManager;
+      const nip46Manager = (authService as any).nip46Manager;
       try {
         return await nip46Manager.nip44Encrypt(plaintext, pubkey);
       } catch {
@@ -145,7 +144,7 @@ export const muteListConfig: ListConfig<MuteItem> = {
           return await window.nostr.nip44.encrypt(pubkey, plaintext);
         }
         throw new Error('NIP-44 not available');
-      } catch {
+      } catch (_nip44Error) {
         if (window.nostr?.nip04?.encrypt) {
           return await window.nostr.nip04.encrypt(pubkey, plaintext);
         }
@@ -182,8 +181,7 @@ export const muteListConfig: ListConfig<MuteItem> = {
           plaintext = await keySignerClient.nip04Decrypt(content, pubkey);
         }
       } else if (authMethod === 'nip46') {
-        const { Nip46SignerManager } = await import('../../managers/Nip46SignerManager');
-        const nip46Manager = (authService as any).nip46Manager as Nip46SignerManager;
+        const nip46Manager = (authService as any).nip46Manager;
         try {
           plaintext = await nip46Manager.nip44Decrypt(content, pubkey);
         } catch {

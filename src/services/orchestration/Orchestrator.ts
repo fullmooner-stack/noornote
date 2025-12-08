@@ -13,7 +13,7 @@
  * Based on: Gossip client architecture (code.png/code1.png)
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import type { OrchestrationsRouter } from './OrchestrationsRouter';
 
 export abstract class Orchestrator {

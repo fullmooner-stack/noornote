@@ -12,14 +12,13 @@ import { ThreadOrchestrator } from '../../../services/orchestration/ThreadOrches
 import { ReactionsOrchestrator } from '../../../services/orchestration/ReactionsOrchestrator';
 import { AuthService } from '../../../services/AuthService';
 import { SystemLogger } from '../../system/SystemLogger';
-import { NostrTransport } from '../../../services/transport/NostrTransport';
 import { UserProfileService } from '../../../services/UserProfileService';
 import { RelayConfig } from '../../../services/RelayConfig';
 import { Router } from '../../../services/Router';
 import { encodeNevent } from '../../../services/NostrToolsAdapter';
 import { escapeHtml } from '../../../helpers/escapeHtml';
 import { fetchNostrEvents } from '../../../helpers/fetchNostrEvents';
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 
 /** Thread node for building reply tree */
 export interface ThreadNode {
@@ -42,7 +41,6 @@ export class ThreadManager {
   private reactionsOrchestrator: ReactionsOrchestrator;
   private authService: AuthService;
   private systemLogger: SystemLogger;
-  private transport: NostrTransport;
   private profileService: UserProfileService;
   private relayConfig: RelayConfig;
 
@@ -52,7 +50,6 @@ export class ThreadManager {
     this.reactionsOrchestrator = ReactionsOrchestrator.getInstance();
     this.authService = AuthService.getInstance();
     this.systemLogger = SystemLogger.getInstance();
-    this.transport = NostrTransport.getInstance();
     this.profileService = UserProfileService.getInstance();
     this.relayConfig = RelayConfig.getInstance();
   }
@@ -85,8 +82,8 @@ export class ThreadManager {
       this.systemLogger.info('ThreadManager', `✅ Fetched reposts: ${result.events.length}`);
       this.systemLogger.info('ThreadManager', `✅ Quoted reposts: ${quotedReposts.length}`);
       return quotedReposts;
-    } catch (error) {
-      this.systemLogger.error('ThreadManager', `Failed to fetch quoted reposts: ${error}`);
+    } catch (_error) {
+      this.systemLogger.error('ThreadManager', `Failed to fetch quoted reposts: ${_error}`);
       return [];
     }
   }
@@ -171,8 +168,8 @@ export class ThreadManager {
           }
         }
       }
-    } catch (error) {
-      this.systemLogger.error('ThreadManager', `Failed to load replies: ${error}`);
+    } catch (_error) {
+      this.systemLogger.error('ThreadManager', `Failed to load replies: ${_error}`);
       repliesContainer.innerHTML = `
         <div class="snv-replies__error">
           <p>Failed to load replies</p>

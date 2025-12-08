@@ -5,8 +5,6 @@
  */
 
 import { NoteUI } from '../ui/NoteUI';
-import { ZapsList } from '../ui/ZapsList';
-import { LikesList } from '../ui/LikesList';
 import { ThreadOrchestrator } from '../../services/orchestration/ThreadOrchestrator';
 import { ReactionsOrchestrator } from '../../services/orchestration/ReactionsOrchestrator';
 import { UserProfileService } from '../../services/UserProfileService';
@@ -16,7 +14,7 @@ import { RelayConfig } from '../../services/RelayConfig';
 import { SystemLogger } from '../system/SystemLogger';
 import { encodeNevent } from '../../services/NostrToolsAdapter';
 import { escapeHtml } from '../../helpers/escapeHtml';
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 
 /** Thread node for building reply tree */
 interface ThreadNode {

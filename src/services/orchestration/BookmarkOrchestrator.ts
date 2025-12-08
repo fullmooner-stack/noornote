@@ -9,7 +9,7 @@
  * - Private bookmarks = encrypted in content of respective category event
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import type { BookmarkItem } from '../storage/BookmarkFileStorage';
 import { BookmarkFileStorage } from '../storage/BookmarkFileStorage';
 import type { FetchFromRelaysResult } from '../sync/ListStorageAdapter';
@@ -51,11 +51,11 @@ export class BookmarkOrchestrator extends GenericListOrchestrator<BookmarkItem> 
   }
 
   // Required Orchestrator abstract methods
-  public onui(data: any): void {}
-  public onopen(relay: string): void {}
-  public onmessage(relay: string, event: NostrEvent): void {}
-  public onerror(relay: string, error: Error): void {}
-  public onclose(relay: string): void {}
+  public override onui(_data: any): void {}
+  public override onopen(_relay: string): void {}
+  public override onmessage(_relay: string, _event: NostrEvent): void {}
+  public override onerror(_relay: string, _error: Error): void {}
+  public override onclose(_relay: string): void {}
 
   /**
    * Check if NIP-51 private bookmarks feature is enabled
@@ -200,7 +200,7 @@ export class BookmarkOrchestrator extends GenericListOrchestrator<BookmarkItem> 
    * Get all bookmarks (merged public + private), sorted chronologically
    * Reads from browserItems (localStorage)
    */
-  public async getAllBookmarks(pubkey: string): Promise<string[]> {
+  public async getAllBookmarks(_pubkey: string): Promise<string[]> {
     try {
       const browserItems = this.getBrowserItems();
 
@@ -229,7 +229,7 @@ export class BookmarkOrchestrator extends GenericListOrchestrator<BookmarkItem> 
   /**
    * Get all bookmarks with metadata (public/private indicator)
    */
-  public async getAllBookmarksWithMetadata(pubkey: string): Promise<BookmarkWithMetadata[]> {
+  public async getAllBookmarksWithMetadata(_pubkey: string): Promise<BookmarkWithMetadata[]> {
     try {
       const browserItems = this.getBrowserItems();
 
@@ -266,7 +266,7 @@ export class BookmarkOrchestrator extends GenericListOrchestrator<BookmarkItem> 
   /**
    * Save to file (override to use BookmarkSetData format)
    */
-  public async saveToFile(): Promise<void> {
+  public override async saveToFile(): Promise<void> {
     const setData = this.buildSetDataFromLocalStorage();
     const storage = BookmarkFileStorage.getInstance();
     await storage.write(setData);
@@ -286,7 +286,7 @@ export class BookmarkOrchestrator extends GenericListOrchestrator<BookmarkItem> 
    * - Private bookmarks → encrypted in content
    * - Deleted categories → publish empty event to overwrite
    */
-  public async publishToRelays(): Promise<void> {
+  public override async publishToRelays(): Promise<void> {
     const currentUser = this.authService.getCurrentUser();
     if (!currentUser) {
       throw new Error('User not authenticated');
@@ -494,7 +494,7 @@ export class BookmarkOrchestrator extends GenericListOrchestrator<BookmarkItem> 
    * Fetch bookmarks from relays (read-only, no local changes)
    * Fetches ALL kind:30003 events for the user and extracts categories
    */
-  public async fetchFromRelays(pubkey: string): Promise<FetchFromRelaysResult<BookmarkItem>> {
+  public override async fetchFromRelays(pubkey: string): Promise<FetchFromRelaysResult<BookmarkItem>> {
     const relays = this.getBootstrapRelays();
 
     try {
@@ -588,7 +588,7 @@ export class BookmarkOrchestrator extends GenericListOrchestrator<BookmarkItem> 
    * Fetches all categories and merges with local
    * Creates folders from relay categories and assigns bookmarks
    */
-  public async syncFromRelays(pubkey: string): Promise<{ added: number; total: number }> {
+  public override async syncFromRelays(pubkey: string): Promise<{ added: number; total: number }> {
     const relays = this.getBootstrapRelays();
     this.systemLogger.info('BookmarkOrchestrator', `Syncing from relays (${relays.length} relays)...`);
 

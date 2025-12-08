@@ -4,7 +4,7 @@
  * Uses ModalService for modal infrastructure
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { encodeNevent } from '../../services/NostrToolsAdapter';
 import { ReactionsOrchestrator, type DetailedStats } from '../../services/orchestration/ReactionsOrchestrator';
 import { UserProfileService } from '../../services/UserProfileService';
@@ -117,7 +117,7 @@ export class AnalyticsModal {
   /**
    * Render stats content
    */
-  private async renderStatsContent(noteId: string, stats: DetailedStats, rawEvent?: NostrEvent): Promise<HTMLElement> {
+  private async renderStatsContent(_noteId: string, stats: DetailedStats, rawEvent?: NostrEvent): Promise<HTMLElement> {
     // Fetch all usernames in parallel
     const allPubkeys = new Set<string>();
     stats.replyEvents.forEach(e => allPubkeys.add(e.pubkey));
@@ -127,7 +127,7 @@ export class AnalyticsModal {
 
     // For zaps, extract actual zapper pubkey from description tag
     stats.zapEvents.forEach(e => {
-      const descTag = e.tags.find(tag => tag[0] === 'description');
+      const descTag = e.tags.find((tag: string[]) => tag[0] === 'description');
       if (descTag && descTag[1]) {
         try {
           const zapRequest = JSON.parse(descTag[1]);
@@ -231,7 +231,7 @@ export class AnalyticsModal {
     let totalSats = 0;
     const zapItems = zapEvents.map(event => {
       // Extract actual zapper pubkey from description tag (zap request)
-      const descTag = event.tags.find(tag => tag[0] === 'description');
+      const descTag = event.tags.find((tag: string[]) => tag[0] === 'description');
       let zapperPubkey = event.pubkey;
       let zapMessage = '';
 
@@ -248,7 +248,7 @@ export class AnalyticsModal {
       }
 
       const profile = profileMap.get(zapperPubkey) || { username: 'Anonymous', avatarUrl: DEFAULT_AVATAR };
-      const bolt11Tag = event.tags.find(tag => tag[0] === 'bolt11');
+      const bolt11Tag = event.tags.find((tag: string[]) => tag[0] === 'bolt11');
       const amount = bolt11Tag ? this.parseBolt11Amount(bolt11Tag[1]) : 0;
       totalSats += amount;
 
@@ -457,7 +457,7 @@ export class AnalyticsModal {
     // Calculate total zap amount in sats
     let totalZapSats = 0;
     stats.zapEvents.forEach(event => {
-      const bolt11Tag = event.tags.find(tag => tag[0] === 'bolt11');
+      const bolt11Tag = event.tags.find((tag: string[]) => tag[0] === 'bolt11');
       if (bolt11Tag) {
         totalZapSats += this.parseBolt11Amount(bolt11Tag[1]);
       }

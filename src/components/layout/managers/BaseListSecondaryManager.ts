@@ -17,7 +17,7 @@ import { ListSyncManager } from '../../../services/sync/ListSyncManager';
 import { SyncConfirmationModal } from '../../modals/SyncConfirmationModal';
 import { InfiniteScroll } from '../../ui/InfiniteScroll';
 import { switchTabWithContent } from '../../../helpers/TabsHelper';
-import { renderListSyncButtons, isEasyMode } from '../../../helpers/ListSyncButtonsHelper';
+import { renderListSyncButtons } from '../../../helpers/ListSyncButtonsHelper';
 
 export abstract class BaseListSecondaryManager<TItem, TWithProfile> {
   protected eventBus: EventBus;

@@ -14,7 +14,6 @@ import { UserProfileService } from '../../services/UserProfileService';
 import { EventBus } from '../../services/EventBus';
 import { Router } from '../../services/Router';
 import { SystemLogger } from '../system/SystemLogger';
-import { AuthService } from '../../services/AuthService';
 import { MuteOrchestrator } from '../../services/orchestration/MuteOrchestrator';
 import { FeedOrchestrator } from '../../services/orchestration/FeedOrchestrator';
 import { NotificationsOrchestrator } from '../../services/orchestration/NotificationsOrchestrator';
@@ -29,10 +28,8 @@ export class ConversationView extends View {
   private eventBus: EventBus;
   private router: Router;
   private systemLogger: SystemLogger;
-  private authService: AuthService;
   private partnerPubkey: string;
   private messages: DMMessage[] = [];
-  private isLoading: boolean = true;
   private isSending: boolean = false;
   private partnerProfile: { displayName: string; avatarUrl: string } | null = null;
   private menuOpen: boolean = false;
@@ -51,7 +48,6 @@ export class ConversationView extends View {
     this.eventBus = EventBus.getInstance();
     this.router = Router.getInstance();
     this.systemLogger = SystemLogger.getInstance();
-    this.authService = AuthService.getInstance();
     this.outsideClickHandler = () => this.closeMenu();
 
     this.render();
@@ -278,8 +274,8 @@ export class ConversationView extends View {
 
       // Navigate back to messages list
       this.router.navigate('/messages');
-    } catch (error) {
-      this.systemLogger.error('ConversationView', `Failed to mute user: ${error}`);
+    } catch (_error) {
+      this.systemLogger.error('ConversationView', `Failed to mute user: ${_error}`);
       ToastService.show('Failed to mute user', 'error');
     }
   }
@@ -288,8 +284,6 @@ export class ConversationView extends View {
    * Load conversation data
    */
   private async loadConversation(): Promise<void> {
-    this.isLoading = true;
-
     try {
       // Load partner profile
       const profile = await this.userProfileService.getUserProfile(this.partnerPubkey);
@@ -310,11 +304,9 @@ export class ConversationView extends View {
       // Render messages
       this.renderMessages();
       this.scrollToBottom();
-    } catch (error) {
-      this.systemLogger.error('ConversationView', 'Failed to load conversation:', error);
+    } catch (_error) {
+      this.systemLogger.error('ConversationView', 'Failed to load conversation:', _error);
       this.renderError();
-    } finally {
-      this.isLoading = false;
     }
   }
 
@@ -402,8 +394,8 @@ export class ConversationView extends View {
       } else {
         this.systemLogger.error('ConversationView', 'Failed to send message');
       }
-    } catch (error) {
-      this.systemLogger.error('ConversationView', 'Error sending message:', error);
+    } catch (_error) {
+      this.systemLogger.error('ConversationView', 'Error sending message:', _error);
     } finally {
       this.isSending = false;
       sendBtn.disabled = !textarea.value.trim();

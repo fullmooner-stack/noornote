@@ -16,7 +16,7 @@ import { SystemLogger } from '../../system/SystemLogger';
 import { EventBus } from '../../../services/EventBus';
 import { NostrTransport } from '../../../services/transport/NostrTransport';
 import { Router } from '../../../services/Router';
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import type { InteractionStats } from '../../../services/InteractionStatsService';
 
 export interface LiveUpdatesConfig {

@@ -6,12 +6,10 @@
  * REFACTORED: Now uses GenericListOrchestrator with config-driven approach
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
 import type { FollowItem } from '../storage/FollowFileStorage';
 import type { FetchFromRelaysResult } from '../sync/ListStorageAdapter';
 import { GenericListOrchestrator } from './GenericListOrchestrator';
 import { followListConfig, createFollowFileStorageWrapper } from './configs/FollowListConfig';
-import { SystemLogger } from '../../components/system/SystemLogger';
 import { AppState } from '../AppState';
 
 // Re-export FollowItem for external use
@@ -269,7 +267,7 @@ export class FollowListOrchestrator extends GenericListOrchestrator<FollowItem> 
    * Sync from relays (manual sync)
    * Wrapper for GenericListOrchestrator.syncFromRelays()
    */
-  public async syncFromRelays(pubkey: string): Promise<{ added: number; total: number }> {
+  public override async syncFromRelays(pubkey: string): Promise<{ added: number; total: number }> {
     return await super.syncFromRelays(pubkey);
   }
 

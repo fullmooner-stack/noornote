@@ -464,7 +464,6 @@ export class EmojiPicker {
   private positionPicker(trigger: HTMLElement): void {
     const rect = trigger.getBoundingClientRect();
     const pickerHeight = 450; // From CSS
-    const pickerWidth = 200;
 
     // Try to position above trigger, if not enough space, position below
     const spaceAbove = rect.top;

@@ -20,7 +20,7 @@
  * Use "Save to File" or "Sync to Relays" to persist elsewhere.
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import type { BaseListItem } from '../../types/BaseListItem';
 import type { ListConfig, FileStorageWrapper } from '../../types/ListConfig';
 import type { FetchFromRelaysResult } from '../sync/ListStorageAdapter';
@@ -56,11 +56,11 @@ export class GenericListOrchestrator<T extends BaseListItem> extends Orchestrato
   }
 
   // Required Orchestrator abstract methods
-  public onui(data: any): void {}
-  public onopen(relay: string): void {}
-  public onmessage(relay: string, event: NostrEvent): void {}
-  public onerror(relay: string, error: Error): void {}
-  public onclose(relay: string): void {}
+  public onui(_data: any): void {}
+  public onopen(_relay: string): void {}
+  public onmessage(_relay: string, _event: NostrEvent): void {}
+  public onerror(_relay: string, _error: Error): void {}
+  public onclose(_relay: string): void {}
 
   // ===== Browser Storage (Single Source of Truth) =====
 
@@ -247,12 +247,11 @@ export class GenericListOrchestrator<T extends BaseListItem> extends Orchestrato
       const keySignerClient = KeySignerClient.getInstance();
       try {
         return await keySignerClient.nip44Encrypt(plaintext, pubkey);
-      } catch (nip44Error) {
+      } catch {
         return await keySignerClient.nip04Encrypt(plaintext, pubkey);
       }
     } else if (authMethod === 'nip46') {
-      const { Nip46SignerManager } = await import('../managers/Nip46SignerManager');
-      const nip46Manager = (this.authService as any).nip46Manager as Nip46SignerManager;
+      const nip46Manager = (this.authService as any).nip46Manager;
       if (!nip46Manager?.isAvailable()) {
         throw new Error('NIP-46 remote signer not available');
       }
@@ -267,7 +266,7 @@ export class GenericListOrchestrator<T extends BaseListItem> extends Orchestrato
       };
       try {
         return await encryptWithTimeout(() => nip46Manager.nip44Encrypt(plaintext, pubkey));
-      } catch (nip44Error) {
+      } catch {
         return await encryptWithTimeout(() => nip46Manager.nip04Encrypt(plaintext, pubkey));
       }
     } else if (authMethod === 'extension') {
@@ -277,7 +276,7 @@ export class GenericListOrchestrator<T extends BaseListItem> extends Orchestrato
         } else {
           throw new Error('NIP-44 not available');
         }
-      } catch (nip44Error) {
+      } catch {
         if (window.nostr?.nip04?.encrypt) {
           return await window.nostr.nip04.encrypt(pubkey, plaintext);
         } else {
@@ -395,8 +394,7 @@ export class GenericListOrchestrator<T extends BaseListItem> extends Orchestrato
           plaintext = await keySignerClient.nip04Decrypt(event.content, event.pubkey);
         }
       } else if (authMethod === 'nip46') {
-        const { Nip46SignerManager } = await import('../managers/Nip46SignerManager');
-        const nip46Manager = (this.authService as any).nip46Manager as Nip46SignerManager;
+        const nip46Manager = (this.authService as any).nip46Manager;
         if (!nip46Manager?.isAvailable()) {
           throw new Error('NIP-46 remote signer not available');
         }

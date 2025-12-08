@@ -14,7 +14,6 @@
  * - other: Miscellaneous reports
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
 import { AuthService } from './AuthService';
 import { NostrTransport } from './transport/NostrTransport';
 import { SystemLogger } from '../components/system/SystemLogger';
@@ -217,7 +216,7 @@ export class ReportService {
       const reports = JSON.parse(stored) as Record<string, boolean>;
       const key = this.generateReportKey(reportedPubkey, type, reportedEventId);
       return reports[key] === true;
-    } catch {
+    } catch (_error) {
       return false;
     }
   }
@@ -234,8 +233,8 @@ export class ReportService {
       reports[key] = true;
 
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(reports));
-    } catch (error) {
-      this.systemLogger.error('ReportService', `Failed to store report: ${error}`);
+    } catch (_error) {
+      this.systemLogger.error('ReportService', `Failed to store report: ${_error}`);
     }
   }
 

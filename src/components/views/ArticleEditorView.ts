@@ -16,7 +16,6 @@ import { View } from './View';
 import { Router } from '../../services/Router';
 import { ArticleService } from '../../services/ArticleService';
 import { RelayConfig } from '../../services/RelayConfig';
-import { AuthService } from '../../services/AuthService';
 import { AuthGuard } from '../../services/AuthGuard';
 import { SystemLogger } from '../system/SystemLogger';
 import { RelaySelector } from '../post/RelaySelector';
@@ -33,7 +32,6 @@ export class ArticleEditorView extends View {
   private router: Router;
   private articleService: ArticleService;
   private relayConfig: RelayConfig;
-  private authService: AuthService;
   private systemLogger: SystemLogger;
   private mediaUploadService: MediaUploadService;
 
@@ -63,7 +61,6 @@ export class ArticleEditorView extends View {
     this.router = Router.getInstance();
     this.articleService = ArticleService.getInstance();
     this.relayConfig = RelayConfig.getInstance();
-    this.authService = AuthService.getInstance();
     this.systemLogger = SystemLogger.getInstance();
     this.mediaUploadService = MediaUploadService.getInstance();
 
@@ -103,7 +100,7 @@ export class ArticleEditorView extends View {
       if (stored) {
         return JSON.parse(stored);
       }
-    } catch {
+    } catch (_err) {
       // Ignore
     }
     return { enabled: false, url: 'ws://localhost:7777' };
@@ -364,7 +361,7 @@ export class ArticleEditorView extends View {
     // Mention autocomplete
     this.mentionAutocomplete = new MentionAutocomplete({
       textareaSelector: '.article-editor-content',
-      onMentionInserted: (npub, username) => {
+      onMentionInserted: (_npub, username) => {
         this.systemLogger.info('ArticleEditorView', `Mention inserted: @${username}`);
       }
     });
@@ -496,8 +493,8 @@ export class ArticleEditorView extends View {
         this.updateButtonStates();
         this.systemLogger.info('ArticleEditorView', 'Image uploaded and inserted');
       }
-    } catch (error) {
-      this.systemLogger.error('ArticleEditorView', 'Image upload failed:', error);
+    } catch (_error) {
+      this.systemLogger.error('ArticleEditorView', 'Image upload failed:', _error);
     }
   }
 
@@ -553,8 +550,8 @@ export class ArticleEditorView extends View {
         }
         this.systemLogger.info('ArticleEditorView', 'Cover image uploaded');
       }
-    } catch (error) {
-      this.systemLogger.error('ArticleEditorView', 'Cover upload failed:', error);
+    } catch (_error) {
+      this.systemLogger.error('ArticleEditorView', 'Cover upload failed:', _error);
     } finally {
       this.isCoverUploading = false;
       if (uploadBtn) {
@@ -632,7 +629,7 @@ export class ArticleEditorView extends View {
         }
         this.mentionAutocomplete = new MentionAutocomplete({
           textareaSelector: '.article-editor-content',
-          onMentionInserted: () => {}
+          onMentionInserted: (_npub, _username) => {}
         });
         this.mentionAutocomplete.init();
       } else {
@@ -809,7 +806,7 @@ export class ArticleEditorView extends View {
       const html = marked.parse(content) as string;
       // Add target="_blank" to links
       return html.replace(/<a href=/g, '<a target="_blank" rel="noopener noreferrer" href=');
-    } catch {
+    } catch (_err) {
       return `<p>${this.escapeHtml(content)}</p>`;
     }
   }

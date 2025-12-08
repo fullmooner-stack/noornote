@@ -8,7 +8,6 @@ import { View } from './View';
 import { NoteUI } from '../ui/NoteUI';
 import { ZapsList } from '../ui/ZapsList';
 import { LikesList } from '../ui/LikesList';
-import { RepliesRenderer } from '../replies/RepliesRenderer';
 import { ThreadManager } from './managers/ThreadManager';
 import { LiveUpdatesManager } from './managers/LiveUpdatesManager';
 import { fetchNostrEvents } from '../../helpers/fetchNostrEvents';
@@ -22,10 +21,8 @@ import { SystemLogger } from '../system/SystemLogger';
 import { AppState } from '../../services/AppState';
 import { Router } from '../../services/Router';
 import { EventBus } from '../../services/EventBus';
-import { NostrTransport } from '../../services/transport/NostrTransport';
-import { decodeNip19, encodeNevent, encodeNpub } from '../../services/NostrToolsAdapter';
-import { escapeHtml } from '../../helpers/escapeHtml';
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import { decodeNip19, encodeNpub } from '../../services/NostrToolsAdapter';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 
 export class SingleNoteView extends View {
   private container: HTMLElement;
@@ -38,7 +35,6 @@ export class SingleNoteView extends View {
   private appState: AppState;
   private router: Router;
   private eventBus: EventBus;
-  private transport: NostrTransport;
   private currentNoteId: string | null = null;
   private currentEvent: NostrEvent | null = null;
 
@@ -59,7 +55,6 @@ export class SingleNoteView extends View {
     this.appState = AppState.getInstance();
     this.router = Router.getInstance();
     this.eventBus = EventBus.getInstance();
-    this.transport = NostrTransport.getInstance();
 
     // Reset ISL fetch counter for new SNV session
     this.reactionsOrchestrator.resetFetchCounter();
@@ -95,8 +90,8 @@ export class SingleNoteView extends View {
       }
 
       this.renderNote(event);
-    } catch (error) {
-      this.systemLogger.error('SNV', `❌ Failed to load note: ${error}`);
+    } catch (_error) {
+      this.systemLogger.error('SNV', `❌ Failed to load note: ${_error}`);
       this.showError('Failed to load note');
     }
   }
@@ -242,7 +237,7 @@ export class SingleNoteView extends View {
   /**
    * Initialize managers for thread and live updates
    */
-  private initializeManagers(noteId: string, noteAuthor: string, repliesContainer: HTMLElement): void {
+  private initializeManagers(noteId: string, noteAuthor: string, _repliesContainer: HTMLElement): void {
     // Initialize ThreadManager
     this.threadManager = new ThreadManager({
       noteId,
@@ -324,66 +319,11 @@ export class SingleNoteView extends View {
         await likesList.init();
         islContainer.parentNode.insertBefore(likesList.getElement(), islContainer);
       }
-    } catch (error) {
-      console.warn('Failed to load zaps/likes list:', error);
+    } catch (_error) {
+      console.warn('Failed to load zaps/likes list:', _error);
     }
   }
 
-  /**
-   * Load and render replies for a note
-   */
-
-  /**
-   * Build thread tree from flat reply list
-   * Groups replies by their parent (creates hierarchical structure)
-   */
-
-  /**
-   * Fetch quoted reposts (kind 1 or kind 6 with 'q' tag referencing this note)
-   */
-
-  /**
-   * Extract parent ID from reply's e-tags (NIP-10)
-   */
-
-  /**
-   * Render a threaded reply recursively with indentation
-   */
-
-  /**
-   * Create a reply element with depth-based indentation
-   * Uses NoteUI for consistent rendering (Single Source of Truth!)
-   */
-  private createReplyElement(reply: NostrEvent, depth: number = 0): HTMLElement {
-    // Check if user is logged in (interactions require authentication)
-    const isUserLoggedIn = this.authService.getCurrentUser() !== null;
-
-    // Use NoteUI for full note rendering (ISL, ThreadContext, Media, etc.)
-    const noteElement = NoteUI.createNoteElement(reply, {
-      collapsible: true,        // Enable "Show More" for long replies
-      islFetchStats: true,      // Fetch ISL stats (likes, reposts, zaps)
-      isLoggedIn: isUserLoggedIn, // Enable interactions only if logged in
-      headerSize: 'small',      // Use small header for replies
-      depth: 0                  // NoteUI depth (for quoted notes)
-    });
-
-    // Load zaps list for this reply
-    this.loadZapsList(reply.id, reply.pubkey, noteElement);
-
-    // Wrap in reply container with depth-based indentation
-    const replyWrapper = document.createElement('div');
-    replyWrapper.className = 'snv-reply';
-    replyWrapper.dataset.eventId = reply.id;
-    replyWrapper.dataset.depth = String(depth);
-    replyWrapper.appendChild(noteElement);
-
-    return replyWrapper;
-  }
-
-  /**
-   * Render a quoted repost as a special comment
-   * Uses NoteUI for consistent rendering, but with "quoted this note:" header and no ISL
-   */
 
   /**
    * Create footer with Back button(s)
@@ -444,18 +384,6 @@ export class SingleNoteView extends View {
     return this.container;
   }
 
-  /**
-   * Update ISL counts with new stats from polling
-   */
-  private updateISL(stats: InteractionStats): void {
-    if (!this.currentNoteId) return;
-
-    const isl = NoteUI.getInteractionStatusLine(this.currentNoteId);
-    if (isl) {
-      this.systemLogger.info('SNV', `🔄 Updating ISL stats: ${stats.likes} likes, ${stats.reposts} reposts`);
-      isl.updateStats(stats);
-    }
-  }
 
   /**
    * Setup listener for mute updates - navigate away if viewed note author is muted

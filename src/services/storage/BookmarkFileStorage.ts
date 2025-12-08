@@ -96,7 +96,7 @@ class BookmarkSetStorage extends BaseFileStorage<BookmarkSetData> {
   /**
    * Override read to handle migration from old format
    */
-  public async read(): Promise<BookmarkSetData> {
+  public override async read(): Promise<BookmarkSetData> {
     const rawData = await super.read();
 
     // Check if it's old format and needs migration

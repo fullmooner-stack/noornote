@@ -4,7 +4,7 @@
  * Uses SearchResultsView (modular component)
  */
 
-import { SearchOrchestrator, type SearchOptions } from '../../services/orchestration/SearchOrchestrator';
+import { SearchOrchestrator } from '../../services/orchestration/SearchOrchestrator';
 import { MuteOrchestrator } from '../../services/orchestration/MuteOrchestrator';
 import { AuthService } from '../../services/AuthService';
 import { SearchResultsView } from './SearchResultsView';
@@ -13,7 +13,7 @@ import { EventBus } from '../../services/EventBus';
 import { SystemLogger } from '../system/SystemLogger';
 import { encodeNevent } from '../../services/NostrToolsAdapter';
 import { deactivateAllTabs, activateTabElement } from '../../helpers/TabsHelper';
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 
 export class GlobalSearchView {
   private container: HTMLElement;

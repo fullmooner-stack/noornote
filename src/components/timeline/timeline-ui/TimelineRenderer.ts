@@ -3,7 +3,7 @@
  * Handles rendering of timeline events (notes/cards)
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { NoteUI } from '../../ui/NoteUI';
 import { TimelineStateManager } from '../timeline-state/TimelineStateManager';
 import { TimelineUIStateHandler } from './TimelineUIStateHandler';

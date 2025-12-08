@@ -4,7 +4,7 @@
  * Extracts from: TimelineUI.updateISLWithCachedStats()
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { InteractionStatsService } from '../../../services/InteractionStatsService';
 import { extractOriginalNoteId } from '../../../helpers/extractOriginalNoteId';
 import { formatCount } from '../../../helpers/formatCount';

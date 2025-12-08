@@ -10,7 +10,7 @@ import { Router } from '../../services/Router';
 import { hexToNpub } from '../../helpers/nip19';
 import { NoteMenu } from './NoteMenu';
 import { UserHoverCard } from './UserHoverCard';
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 
 export interface NoteHeaderOptions {
   pubkey: string;

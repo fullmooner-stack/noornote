@@ -75,9 +75,8 @@ export async function encryptPrivateFollows(
     }
   } else if (authMethod === 'nip46') {
     // Use NIP-46 remote signer for encryption (NIP-44 → NIP-04 fallback)
-    const { Nip46SignerManager } = await import('../services/managers/Nip46SignerManager');
     const { AuthService } = await import('../services/AuthService');
-    const nip46Manager = (AuthService.getInstance() as any).nip46Manager as Nip46SignerManager;
+    const nip46Manager = (AuthService.getInstance() as any).nip46Manager;
 
     if (!nip46Manager?.isAvailable()) {
       throw new Error('NIP-46 remote signer not available');

@@ -7,7 +7,7 @@
  * @returns Original note ID (for stats, ISL, etc.)
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 
 export function extractOriginalNoteId(event: NostrEvent): string {
   // For regular notes (not reposts), return their ID

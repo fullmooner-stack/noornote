@@ -4,7 +4,7 @@
  * Extracts from: OriginalNoteRenderer.renderPollOptions()
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { PollOrchestrator } from '../../../services/orchestration/PollOrchestrator';
 
 export class PollRenderer {

@@ -6,7 +6,7 @@
  * Can be easily disabled by removing route and sidebar entry.
  */
 
-import type { Event as NostrEvent } from '@nostr-dev-kit/ndk';
+import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { ArticleFeedOrchestrator } from '../../services/orchestration/ArticleFeedOrchestrator';
 import { UserProfileService } from '../../services/UserProfileService';
 import { Router } from '../../services/Router';

@@ -9,19 +9,16 @@ import { View } from './View';
 import { UserProfileService, type UserProfile } from '../../services/UserProfileService';
 import { AuthService } from '../../services/AuthService';
 import { UserService } from '../../services/UserService';
-import { FollowListOrchestrator } from '../../services/orchestration/FollowListOrchestrator';
 import { Timeline } from '../timeline/Timeline';
 import { ProfileSearchComponent } from '../profile/ProfileSearchComponent';
 import { ProfileFollowManager } from '../profile/ProfileFollowManager';
 import { ProfileMuteManager } from '../profile/ProfileMuteManager';
 import { ProfileEditModal } from '../profile/ProfileEditModal';
 import { AppState } from '../../services/AppState';
-import { Router } from '../../services/Router';
 import { QRCodeModal } from '../qrcode/QRCodeModal';
 import { decodeNip19 } from '../../services/NostrToolsAdapter';
 import { linkifyUrls } from '../../helpers/linkifyUrls';
 import { convertLineBreaks } from '../../helpers/convertLineBreaks';
-import { NostrTransport } from '../../services/transport/NostrTransport';
 import { ClipboardActionsService } from '../../services/ClipboardActionsService';
 import { EventBus } from '../../services/EventBus';
 import { AuthGuard } from '../../services/AuthGuard';
@@ -43,15 +40,11 @@ export class ProfileView extends View {
   private userProfileService: UserProfileService;
   private authService: AuthService;
   private userService: UserService;
-  private followListOrch: FollowListOrchestrator;
-  private transport: NostrTransport;
   private appState: AppState;
-  private router: Router;
   private eventBus: EventBus;
   private timeline: Timeline | null = null;
   private followingCount: number = 0;
   private followsYou: boolean = false;
-  private followEvent: any = null; // kind:3 event for chronological ordering
   private isInitialRender: boolean = true; // Track if this is first render
 
   // Managers
@@ -72,10 +65,7 @@ export class ProfileView extends View {
     this.userProfileService = UserProfileService.getInstance();
     this.authService = AuthService.getInstance();
     this.userService = UserService.getInstance();
-    this.followListOrch = FollowListOrchestrator.getInstance();
-    this.transport = NostrTransport.getInstance();
     this.appState = AppState.getInstance();
-    this.router = Router.getInstance();
     this.eventBus = EventBus.getInstance();
 
     // Decode npub to pubkey
@@ -86,8 +76,8 @@ export class ProfileView extends View {
       } else {
         throw new Error('Invalid npub');
       }
-    } catch (error) {
-      console.error('❌ PV: Invalid npub', error);
+    } catch (_error) {
+      console.error('❌ PV: Invalid npub', _error);
       this.pubkey = '';
     }
 
@@ -121,8 +111,8 @@ export class ProfileView extends View {
     try {
       const profile = await this.userProfileService.getUserProfile(this.pubkey);
       this.renderProfileHeader(profile);
-    } catch (error) {
-      console.error('❌ PV: Failed to refresh profile', error);
+    } catch (_error) {
+      console.error('❌ PV: Failed to refresh profile', _error);
     }
   }
 
@@ -158,10 +148,9 @@ export class ProfileView extends View {
       }
 
       // Fetch profile data (uses shared promise to prevent duplicate requests)
-      const { profile, following, followEvent } = await this.getProfileData();
+      const { profile, following } = await this.getProfileData();
 
       this.followingCount = following.length;
-      this.followEvent = followEvent;
 
       // Check if this profile user follows the logged-in user
       if (currentUser && this.pubkey !== currentUser.pubkey) {
@@ -186,8 +175,8 @@ export class ProfileView extends View {
 
       // Mount timeline with author filter
       await this.mountTimeline();
-    } catch (error) {
-      console.error('❌ PV: Failed to load profile', error);
+    } catch (_error) {
+      console.error('❌ PV: Failed to load profile', _error);
       this.showError('Failed to load profile');
     }
   }
@@ -197,20 +186,15 @@ export class ProfileView extends View {
    */
   private async fetchProfileData(): Promise<ProfileLoadResult> {
     try {
-      const [profile, following, followEvents] = await Promise.all([
+      const [profile, following] = await Promise.all([
         this.userProfileService.getUserProfile(this.pubkey),
-        this.userService.getUserFollowing(this.pubkey),
-        this.transport.fetch(this.transport.getReadRelays(), [{
-          authors: [this.pubkey],
-          kinds: [3],
-          limit: 1
-        }], 5000)
+        this.userService.getUserFollowing(this.pubkey)
       ]);
 
       return {
         profile,
         following,
-        followEvent: followEvents.length > 0 ? followEvents[0] : null
+        followEvent: null
       };
     } finally {
       // Remove from loading map after completion (success or error)
@@ -605,8 +589,8 @@ export class ProfileView extends View {
 
       // Mount timeline
       timelineContainer.appendChild(this.timeline.getElement());
-    } catch (error) {
-      console.error('❌ PV: Failed to mount timeline', error);
+    } catch (_error) {
+      console.error('❌ PV: Failed to mount timeline', _error);
     }
   }
 
@@ -632,61 +616,6 @@ export class ProfileView extends View {
     });
   }
 
-  /**
-   * Render profile without mute check (for temporary unmute)
-   */
-  private async renderWithoutMuteCheck(): Promise<void> {
-    if (!this.pubkey) {
-      this.showError('Invalid profile ID');
-      return;
-    }
-
-    // Show loading state
-    this.container.innerHTML = `
-      <div class="profile-loading">
-        <div class="loading-spinner"></div>
-        <p>Loading profile...</p>
-      </div>
-    `;
-
-    try {
-      // Get current logged-in user
-      const currentUser = this.authService.getCurrentUser();
-
-      // Fetch profile data (uses shared promise to prevent duplicate requests)
-      const { profile, following, followEvent } = await this.getProfileData();
-
-      this.followingCount = following.length;
-      this.followEvent = followEvent;
-
-      // Check if this profile user follows the logged-in user
-      if (currentUser && this.pubkey !== currentUser.pubkey) {
-        this.followsYou = following.includes(currentUser.pubkey);
-      }
-
-      // Check if current user follows this profile
-      if (currentUser && this.pubkey !== currentUser.pubkey) {
-        await this.followManager.checkFollowStatus();
-      }
-
-      // Render profile header
-      this.renderProfileHeader(profile);
-
-      // Subscribe to profile updates for live avatar/name updates
-      this.userProfileService.subscribeToProfile(this.pubkey, (updatedProfile) => {
-        this.renderProfileHeader(updatedProfile);
-      });
-
-      // Initialize search component
-      this.initializeSearchComponent();
-
-      // Mount timeline with author filter
-      await this.mountTimeline();
-    } catch (error) {
-      console.error('❌ PV: Failed to load profile', error);
-      this.showError('Failed to load profile');
-    }
-  }
 
   /**
    * Initialize search component
