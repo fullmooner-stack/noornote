@@ -88,6 +88,11 @@ jobs:
           # Copy NoorSigner sidecar
           cp src-tauri/binaries/noorsigner-${{ matrix.rust_target }} "${TARBALL_DIR}/"
 
+          # Copy install script and README
+          cp deployment/linux/install.sh "${TARBALL_DIR}/"
+          cp deployment/linux/README.txt "${TARBALL_DIR}/"
+          chmod +x "${TARBALL_DIR}/install.sh"
+
           # Create tarball
           tar -czvf "${TARBALL_DIR}.tar.gz" "${TARBALL_DIR}"
 

@@ -49,7 +49,8 @@
     "linux": {
       "deb": {
         "section": "net",
-        "priority": "optional"
+        "priority": "optional",
+        "depends": ["libwebkit2gtk-4.1-0", "libgtk-3-0", "libsecret-1-0"]
       }
     }
   },
