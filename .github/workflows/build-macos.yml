@@ -19,7 +19,7 @@ jobs:
           - arch: x64
             rust_target: x86_64-apple-darwin
             go_arch: amd64
-            runner: macos-13  # Intel
+            runner: macos-15-large  # Intel
 
     runs-on: ${{ matrix.runner }}
     steps:
