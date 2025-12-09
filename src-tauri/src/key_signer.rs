@@ -187,14 +187,12 @@ pub async fn key_signer_request(request: String) -> Result<String, String> {
             .set_write_timeout(Some(Duration::from_secs(10)))
             .map_err(|e| format!("Failed to set write timeout: {}", e))?;
 
-        // Send request
+        // Send request with newline in single write to avoid race condition
+        // Go's json.Decoder may close connection before we send newline if we split the writes
+        let request_with_newline = format!("{}\n", request);
         stream
-            .write_all(request.as_bytes())
+            .write_all(request_with_newline.as_bytes())
             .map_err(|e| format!("Failed to send request: {}", e))?;
-
-        stream
-            .write_all(b"\n")
-            .map_err(|e| format!("Failed to send newline: {}", e))?;
 
         // Read response line-by-line (JSON response ends with \n)
         let mut reader = BufReader::new(&mut stream);
