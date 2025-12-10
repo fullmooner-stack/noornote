@@ -1,3 +1,9 @@
+// OS-spezifische KeySigner Module
+#[cfg(unix)]
+mod key_signer;
+
+#[cfg(windows)]
+#[path = "key_signer_windows.rs"]
 mod key_signer;
 
 use tauri::{Emitter, RunEvent, WindowEvent};
