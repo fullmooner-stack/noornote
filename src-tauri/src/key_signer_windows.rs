@@ -6,6 +6,7 @@
  */
 
 use std::io::{BufRead, BufReader, Write};
+use std::os::windows::process::CommandExt;
 use std::path::PathBuf;
 use tauri::command;
 
@@ -72,7 +73,6 @@ pub async fn ensure_noorsigner_installed() -> Result<String, String> {
 #[command]
 pub async fn key_signer_request(request: String) -> Result<String, String> {
     use std::fs::OpenOptions;
-    use std::time::Duration;
 
     // Open Named Pipe as a file
     let mut pipe = OpenOptions::new()
