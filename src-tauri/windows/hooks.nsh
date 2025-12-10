@@ -3,11 +3,11 @@
 
 !macro NSIS_HOOK_POSTUNINSTALL
   ; Only delete if user checked "Delete application data"
-  ${If} $DeleteAppData == 1
+  ${If} $DeleteAppDataCheckboxState = 1
     ; Remove NoorSigner data (Roaming AppData)
     RMDir /r "$APPDATA\NoorSigner"
 
-    ; Remove NoorNote data (Local AppData) - should already be handled by Tauri but ensure it's gone
+    ; Remove NoorNote data (Local AppData)
     RMDir /r "$LOCALAPPDATA\Noornote"
   ${EndIf}
 !macroend
