@@ -4,18 +4,32 @@
 
 ## Features
 
+### Core
 - **Timeline** - Follow your network, see latest posts, reposts, and quotes
 - **Notifications** - Likes, zaps, reposts, mentions, and replies
 - **Direct Messages** - Encrypted private conversations (NIP-17 + legacy NIP-04)
-- **Long-Form Articles** - Read and write NIP-23 articles with Markdown
-- **Bookmarks** - Save posts privately or publicly, organize in folders
+- **Long-Form Articles** - Read and write NIP-23 articles with dedicated timeline
 - **Polls** - Create and vote on NIP-88 polls
 - **Zaps** - Send and receive Lightning payments via NWC
-- **Multiple Login Methods** - Browser extension, nsec, NIP-46 remote signer, or NoorSigner
+
+### Highlights
+- **Spotlight-like search** - Quick access to anything
+- **Search in npub** - Search for keywords within a specific user's posts
+- **Rich Bookmarks** - Sortable lists with folder organization
+- **Custom Bookmarks** - Bookmark any URL, just like in a browser
+- **Mute Threads** - Say bye to hell threads
+- **Follow lists** - With mutual badges and zap balances
+- **Quoted reposts** - Shown in note's replies
+- **Article notifications** - Get notified on new articles per user
+- **Analytics per note** - See who liked, reposted, quoted, replied, or zapped
+- **Thread mention alerts** - Get notified when someone replies to a note you were mentioned in
+- **Local list backups** - Manual NIP-51 list management, never lose your follows, bookmarks, or mutes again
+
+...and many more to come.
 
 ## Download
 
-Coming soon for macOS, Linux, and Windows.
+Available for macOS, Linux, and Windows: [Releases](https://github.com/77elements/noornote/releases)
 
 ## Screenshots
 
@@ -24,9 +38,8 @@ Coming soon for macOS, Linux, and Windows.
 ## Privacy & Security
 
 - **No tracking** - Zero analytics, no data collection
-- **Local-first** - Your data stays on your device
-- **Open source** - Fully auditable code
-- **Encrypted keys** - Private keys stored in system keychain (macOS) or encrypted storage
+- **Local-first lists** - Follows, bookmarks, and mutes are stored locally with optional relay sync
+- **Encrypted keys** - Private keys stored in system keychain (macOS), Secret Service (Linux), or Credential Manager (Windows)
 
 ## Troubleshooting
 
@@ -42,12 +55,10 @@ If the app crashes, check the log files:
 
 | Method | Security | Convenience |
 |--------|----------|-------------|
-| Browser Extension | High | Medium |
 | NoorSigner | High | High |
 | NIP-46 Remote Signer | High | Medium |
-| nsec (direct key) | Low | High |
 
-**Recommended:** Use a browser extension (nos2x, Alby) or NoorSigner for best security.
+**Recommended:** Use NoorSigner for best security and convenience.
 
 ## Build from Source
 
