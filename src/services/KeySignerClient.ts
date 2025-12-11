@@ -1,6 +1,6 @@
 /**
  * KeySignerClient - Client for NoorSigner daemon socket communication
- * Communicates with local key signer daemon via Unix socket (macOS/Linux) or Named Pipe (Windows)
+ * Communicates with local key signer daemon via Unix socket (macOS/Linux)
  */
 
 import { PlatformService } from './PlatformService';

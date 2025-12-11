@@ -2,6 +2,8 @@
 
 **NoorNote** (Arabic: نور, meaning "light") is a fast, privacy-focused desktop client for [Nostr](https://nostr.com) - the decentralized social protocol.
 
+**Available for macOS and Linux.** Windows is not officially supported.
+
 ## Features
 
 ### Core
@@ -25,13 +27,13 @@
 - **Thread mention alerts** - Get notified when someone replies to a note you were mentioned in
 - **Local list backups** - Manual NIP-51 list management, never lose your follows, bookmarks, or mutes again
 - **Multiple NIP-05 support** - Add multiple verified addresses to your profile
-- **Safe NWC storage** - Stored in keychain (macOS), Secret Service (Linux), or Credential Manager (Windows)
+- **Safe NWC storage** - Stored in keychain (macOS) or Secret Service (Linux)
 
 ...and many more to come.
 
 ## Download
 
-Available for macOS, Linux, and Windows: [Releases](https://github.com/77elements/noornote/releases)
+Available for macOS and Linux: [Releases](https://github.com/77elements/noornote/releases)
 
 ## Screenshots
 
@@ -41,7 +43,7 @@ Available for macOS, Linux, and Windows: [Releases](https://github.com/77element
 
 - **No tracking** - Zero analytics, no data collection
 - **Local-first lists** - Follows, bookmarks, and mutes are stored locally with optional relay sync
-- **Encrypted keys** - Private keys stored in system keychain (macOS), Secret Service (Linux), or Credential Manager (Windows)
+- **Encrypted keys** - Private keys stored in system keychain (macOS) or Secret Service (Linux)
 
 ## Troubleshooting
 
@@ -49,9 +51,8 @@ If the app crashes, check the log files:
 
 | System | Log Location |
 |--------|--------------|
-| Linux | `~/.local/share/com.noornote.app/logs/` |
-| macOS | `~/Library/Logs/com.noornote.app/` |
-| Windows | `%LOCALAPPDATA%\com.noornote.desktop\logs\` |
+| Linux | `~/.local/share/com.noornote.desktop/logs/` |
+| macOS | `~/Library/Logs/com.noornote.desktop/` |
 
 ## Login Options
 

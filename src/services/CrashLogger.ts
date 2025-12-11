@@ -5,9 +5,8 @@
  * Uses Tauri's log plugin for cross-platform file logging.
  *
  * Log locations:
- * - Linux: ~/.local/share/com.noornote.app/logs/
- * - macOS: ~/Library/Logs/com.noornote.app/
- * - Windows: %LOCALAPPDATA%/com.noornote.app/logs/
+ * - Linux: ~/.local/share/com.noornote.desktop/logs/
+ * - macOS: ~/Library/Logs/com.noornote.desktop/
  */
 
 import { error as tauriError, info as tauriInfo, attachConsole } from '@tauri-apps/plugin-log';
