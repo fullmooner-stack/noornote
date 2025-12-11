@@ -63,6 +63,7 @@
     "@tauri-apps/plugin-dialog": "^2.4.0",
     "@tauri-apps/plugin-fs": "^2.4.2",
     "@tauri-apps/plugin-http": "^2.5.2",
+    "@tauri-apps/plugin-log": "^2.7.1",
     "@tauri-apps/plugin-shell": "^2.3.3",
     "bech32": "^2.0.0",
     "dataloader": "^2.2.2",

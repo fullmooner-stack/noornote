@@ -8,6 +8,7 @@ mod key_signer;
 
 use tauri::{Emitter, RunEvent, WindowEvent};
 use tauri_plugin_global_shortcut::{Code, Modifiers, Shortcut, ShortcutState, GlobalShortcutExt};
+use tauri_plugin_log::{Target, TargetKind};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -17,6 +18,16 @@ pub fn run() {
     .plugin(tauri_plugin_fs::init())
     .plugin(tauri_plugin_http::init())
     .plugin(tauri_plugin_shell::init())
+    // Log plugin for ALL builds (debug + release) - writes to OS log directory
+    .plugin(
+      tauri_plugin_log::Builder::new()
+        .targets([
+          Target::new(TargetKind::Stdout),
+          Target::new(TargetKind::LogDir { file_name: None }),
+        ])
+        .level(log::LevelFilter::Info)
+        .build(),
+    )
     .plugin(
       tauri_plugin_global_shortcut::Builder::new()
         .with_handler(|app, shortcut, event| {
@@ -45,12 +56,6 @@ pub fn run() {
       // Register global keyboard shortcuts
       register_global_shortcuts(app)?;
       if cfg!(debug_assertions) {
-        app.handle().plugin(
-          tauri_plugin_log::Builder::default()
-            .level(log::LevelFilter::Info)
-            .build(),
-        )?;
-
         use tauri::Manager;
         let window = app.get_webview_window("main").unwrap();
 

@@ -7,6 +7,7 @@ import { App } from './App';
 import { AuthService } from './services/AuthService';
 import { UserProfileService } from './services/UserProfileService';
 import { SystemLogger } from './components/system/SystemLogger';
+import { CrashLogger } from './services/CrashLogger';
 import './styles/main.scss';
 import './services/AuthStateManager'; // Initialize AuthStateManager and window.isLoggedIn()
 import './services/MutualChangeService'; // Initialize MutualChangeService (auto-starts on login)
@@ -68,6 +69,9 @@ if (originalSrcDescriptor && originalSrcDescriptor.set) {
 // Application initialization
 async function init(): Promise<void> {
   try {
+    // Initialize crash logging FIRST (before anything else can fail)
+    await CrashLogger.init();
+
     // Initialize the main application
     const app = new App();
     await app.initialize();

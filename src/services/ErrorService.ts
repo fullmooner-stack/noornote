@@ -12,6 +12,7 @@
 
 import { ToastService } from './ToastService';
 import { SystemLogger } from '../components/system/SystemLogger';
+import { CrashLogger } from './CrashLogger';
 
 export class ErrorService {
   private static instance: ErrorService;
@@ -47,13 +48,28 @@ export class ErrorService {
   }
 
   /**
+   * Handle a critical error - logs to file for crash debugging
+   * Use this for errors that might cause app instability or crashes
+   */
+  public static handleCritical(
+    error: unknown,
+    context: string,
+    userFacing: boolean = true,
+    customMessage?: string
+  ): void {
+    const instance = ErrorService.getInstance();
+    instance.handleError(error, context, userFacing, customMessage, true);
+  }
+
+  /**
    * Internal error handler
    */
   private handleError(
     error: unknown,
     context: string,
     userFacing: boolean,
-    customMessage?: string
+    customMessage?: string,
+    critical: boolean = false
   ): void {
     // Convert unknown error to Error object
     const err = this.normalizeError(error);
@@ -64,11 +80,39 @@ export class ErrorService {
     // 2. Log to console (always, for debugging)
     console.error(`[${context}]`, err);
 
-    // 3. Show toast to user (if user-facing)
+    // 3. Log critical errors to file for crash debugging
+    if (critical || this.isCriticalError(err)) {
+      void CrashLogger.logCriticalError(context, err);
+    }
+
+    // 4. Show toast to user (if user-facing)
     if (userFacing) {
       const message = customMessage || this.getUserFriendlyMessage(err);
       ToastService.show(message, 'error');
     }
+  }
+
+  /**
+   * Determine if an error should be logged as critical
+   */
+  private isCriticalError(error: Error): boolean {
+    const message = error.message.toLowerCase();
+    const criticalPatterns = [
+      'crash',
+      'fatal',
+      'panic',
+      'memory',
+      'heap',
+      'stack overflow',
+      'segfault',
+      'abort',
+      'unhandled',
+      'upload',
+      'media',
+      'blob',
+      'file'
+    ];
+    return criticalPatterns.some(pattern => message.includes(pattern));
   }
 
   /**
