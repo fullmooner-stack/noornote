@@ -13,7 +13,7 @@
 - **Zaps** - Send and receive Lightning payments via NWC
 
 ### Highlights
-- **Spotlight-like search** - Quick access to anything
+- **Spotlight-like search** - Search by Event, Username, npub and full-text. With built-in browsing history. Quick access to anything with CMD+K/CTRL+K
 - **Search in npub** - Search for keywords within a specific user's posts
 - **Rich Bookmarks** - Sortable lists with folder organization
 - **Custom Bookmarks** - Bookmark any URL, just like in a browser
