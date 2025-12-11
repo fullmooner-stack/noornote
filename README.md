@@ -84,32 +84,32 @@ npm run tauri build
 
 | NIP | Description | Kind(s) |
 |-----|-------------|---------|
-| NIP-01 | Basic protocol (notes, profiles) | 0, 1 |
-| NIP-02 | Follow list | 3 |
-| NIP-04 | Encrypted DMs (legacy) | 4 |
-| NIP-05 | DNS-based verification | - |
-| NIP-07 | Browser extension signing | - |
-| NIP-09 | Event deletion | 5 |
-| NIP-10 | Reply threading | - |
-| NIP-17 | Private Direct Messages | 13, 14, 1059, 10050 |
-| NIP-18 | Reposts | 6 |
-| NIP-19 | bech32 encoding (npub, nsec, note, nevent, naddr) | - |
-| NIP-23 | Long-form content (articles) | 30023 |
-| NIP-25 | Reactions | 7 |
-| NIP-27 | Text note references | - |
-| NIP-36 | Content warnings (NSFW) | - |
-| NIP-44 | Encrypted payloads (modern encryption) | - |
-| NIP-46 | Remote signing (bunker://) | 24133 |
-| NIP-47 | Nostr Wallet Connect | 23194, 23195 |
-| NIP-50 | Search | - |
-| NIP-51 | Lists (bookmarks, mutes, private follows) | 10000, 30000, 30003 |
-| NIP-56 | Reporting | 1984 |
-| NIP-57 | Zaps | 9734, 9735 |
-| NIP-65 | Relay list metadata | 10002 |
-| NIP-78 | Application-specific data | 30078 |
-| NIP-88 | Polls | 1068, 1018 |
-| NIP-96 | HTTP file storage | 24242 |
-| NIP-98 | HTTP auth | 27235 |
+| [NIP-01](https://github.com/nostr-protocol/nips/blob/master/01.md) | Basic protocol (notes, profiles) | 0, 1 |
+| [NIP-02](https://github.com/nostr-protocol/nips/blob/master/02.md) | Follow list | 3 |
+| [NIP-04](https://github.com/nostr-protocol/nips/blob/master/04.md) | Encrypted DMs (legacy) | 4 |
+| [NIP-05](https://github.com/nostr-protocol/nips/blob/master/05.md) | DNS-based verification | - |
+| [NIP-07](https://github.com/nostr-protocol/nips/blob/master/07.md) | Browser extension signing | - |
+| [NIP-09](https://github.com/nostr-protocol/nips/blob/master/09.md) | Event deletion | 5 |
+| [NIP-10](https://github.com/nostr-protocol/nips/blob/master/10.md) | Reply threading | - |
+| [NIP-17](https://github.com/nostr-protocol/nips/blob/master/17.md) | Private Direct Messages | 13, 14, 1059, 10050 |
+| [NIP-18](https://github.com/nostr-protocol/nips/blob/master/18.md) | Reposts | 6 |
+| [NIP-19](https://github.com/nostr-protocol/nips/blob/master/19.md) | bech32 encoding (npub, nsec, note, nevent, naddr) | - |
+| [NIP-23](https://github.com/nostr-protocol/nips/blob/master/23.md) | Long-form content (articles) | 30023 |
+| [NIP-25](https://github.com/nostr-protocol/nips/blob/master/25.md) | Reactions | 7 |
+| [NIP-27](https://github.com/nostr-protocol/nips/blob/master/27.md) | Text note references | - |
+| [NIP-36](https://github.com/nostr-protocol/nips/blob/master/36.md) | Content warnings (NSFW) | - |
+| [NIP-44](https://github.com/nostr-protocol/nips/blob/master/44.md) | Encrypted payloads (modern encryption) | - |
+| [NIP-46](https://github.com/nostr-protocol/nips/blob/master/46.md) | Remote signing (bunker://) | 24133 |
+| [NIP-47](https://github.com/nostr-protocol/nips/blob/master/47.md) | Nostr Wallet Connect | 23194, 23195 |
+| [NIP-50](https://github.com/nostr-protocol/nips/blob/master/50.md) | Search | - |
+| [NIP-51](https://github.com/nostr-protocol/nips/blob/master/51.md) | Lists (bookmarks, mutes, private follows) | 10000, 30000, 30003 |
+| [NIP-56](https://github.com/nostr-protocol/nips/blob/master/56.md) | Reporting | 1984 |
+| [NIP-57](https://github.com/nostr-protocol/nips/blob/master/57.md) | Zaps | 9734, 9735 |
+| [NIP-65](https://github.com/nostr-protocol/nips/blob/master/65.md) | Relay list metadata | 10002 |
+| [NIP-78](https://github.com/nostr-protocol/nips/blob/master/78.md) | Application-specific data | 30078 |
+| [NIP-88](https://github.com/nostr-protocol/nips/blob/master/88.md) | Polls | 1068, 1018 |
+| [NIP-96](https://github.com/nostr-protocol/nips/blob/master/96.md) | HTTP file storage | 24242 |
+| [NIP-98](https://github.com/nostr-protocol/nips/blob/master/98.md) | HTTP auth | 27235 |
 
 ## Tech Stack
 
