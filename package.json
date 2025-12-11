@@ -1,6 +1,6 @@
 {
   "name": "noornote",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "description": "High-performance Nostr web client - Light, fast, secure",
   "type": "module",
   "scripts": {
