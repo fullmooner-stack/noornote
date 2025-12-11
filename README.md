@@ -28,6 +28,16 @@ Coming soon for macOS, Linux, and Windows.
 - **Open source** - Fully auditable code
 - **Encrypted keys** - Private keys stored in system keychain (macOS) or encrypted storage
 
+## Troubleshooting
+
+If the app crashes, check the log files:
+
+| System | Log Location |
+|--------|--------------|
+| Linux | `~/.local/share/com.noornote.app/logs/` |
+| macOS | `~/Library/Logs/com.noornote.app/` |
+| Windows | `%LOCALAPPDATA%\com.noornote.app\logs\` |
+
 ## Login Options
 
 | Method | Security | Convenience |
