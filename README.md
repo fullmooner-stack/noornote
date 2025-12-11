@@ -57,7 +57,7 @@ If the app crashes, check the log files:
 
 | Method | Security | Convenience |
 |--------|----------|-------------|
-| NoorSigner | High | High |
+| [NoorSigner](https://github.com/77elements/noorsigner) | High | High |
 | NIP-46 Remote Signer | High | Medium |
 
 **Recommended:** Use NoorSigner for best security and convenience.
