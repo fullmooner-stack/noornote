@@ -142,7 +142,7 @@ export class SearchResultsView {
     const excerpt = this.createExcerpt(note.content, searchTerms);
 
     item.innerHTML = `
-      <div class="search-results__date">${date}</div>
+      ${date}
       <div class="search-results__excerpt">${excerpt}</div>
       <button class="search-results__view-btn" data-note-id="${note.id}">
         View note

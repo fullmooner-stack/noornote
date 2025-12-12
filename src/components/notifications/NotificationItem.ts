@@ -17,6 +17,7 @@ import { resolveQuotedContent } from '../../helpers/resolveQuotedContent';
 import { extractOriginalNoteId } from '../../helpers/extractOriginalNoteId';
 import { getRepostsOriginalEvent } from '../../helpers/getRepostsOriginalEvent';
 import { npubToUsername } from '../../helpers/npubToUsername';
+import { formatTimestamp } from '../../helpers/formatTimestamp';
 
 export interface NotificationItemOptions {
   event: NostrEvent;
@@ -70,7 +71,7 @@ export class NotificationItem {
           <div class="notification-item__info">
             <span class="notification-item__action">${actionText}</span>
           </div>
-          <time class="notification-item__timestamp">${this.formatTimeAgo(this.options.timestamp)}</time>
+          ${formatTimestamp(this.options.timestamp)}
         </div>
         ${contextHtml}
         ${preview ? `<div class="notification-item__preview">${this.escapeHtml(preview)}</div>` : ''}
@@ -558,19 +559,6 @@ export class NotificationItem {
     }
   }
 
-  /**
-   * Format timestamp as date and time
-   */
-  private formatTimeAgo(timestamp: number): string {
-    const date = new Date(timestamp * 1000);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-
-    return `${year}-${month}-${day} ${hours}:${minutes}`;
-  }
 
   /**
    * Escape HTML to prevent XSS

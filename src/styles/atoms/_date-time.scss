@@ -1,0 +1,11 @@
+/**
+ * Date-Time Atom
+ * Unified styling for all date/time displays
+ */
+
+@use '../abstracts/variables' as *;
+
+.date-time {
+  font-size: 12px;
+  color: $color-3;
+}

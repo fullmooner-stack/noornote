@@ -13,6 +13,7 @@ import { Router } from '../../services/Router';
 import { InfiniteScroll } from '../ui/InfiniteScroll';
 import { encodeNaddr } from '../../services/NostrToolsAdapter';
 import { hexToNpub } from '../../helpers/nip19';
+import { formatTimestamp } from '../../helpers/formatTimestamp';
 import { setupUserMentionHandlers } from '../../helpers/UserMentionHelper';
 
 const DEFAULT_AVATAR = '/assets/default-avatar.svg';
@@ -163,7 +164,7 @@ export class ArticleTimeline {
             <a href="#" class="mention-link" data-profile-pubkey="${event.pubkey}">
               <img class="profile-pic profile-pic--mini" src="${DEFAULT_AVATAR}" alt="" onerror="this.src='${DEFAULT_AVATAR}'" />Loading...</a>
           </span>
-          <span class="article-card__date">${this.formatDate(event.created_at || 0)}</span>
+          ${formatTimestamp(event.created_at || 0)}
         </div>
         ${metadata.topics.length > 0 ? `
           <div class="article-card__tags">
@@ -214,17 +215,6 @@ export class ArticleTimeline {
     setupUserMentionHandlers(authorEl as HTMLElement);
   }
 
-  /**
-   * Format date
-   */
-  private formatDate(timestamp: number): string {
-    const date = new Date(timestamp * 1000);
-    return date.toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  }
 
   /**
    * Show loading state

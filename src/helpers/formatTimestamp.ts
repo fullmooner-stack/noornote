@@ -1,63 +1,61 @@
 /**
- * Format timestamp to human readable format
- * Unified function supporting both compact and verbose modes
+ * Format timestamp to human readable format with .date-time CSS class
+ *
+ * Rules:
+ * 1. Within last hour: "12m" or "34s"
+ * 2. Older than 1 hour but same calendar day: "20:43"
+ * 3. Older than today but current calendar year: "30. Oct, 20:43"
+ * 4. Older than current calendar year: "30. Oct. 2024, 20:43"
  *
  * @param timestamp - Unix timestamp in seconds
- * @param mode - Format mode: 'compact' (default) or 'verbose'
- * @returns Formatted time string
- *
- * @example
- * formatTimestamp(Date.now() / 1000 - 120)
- * // => "2m" (compact mode)
- *
- * formatTimestamp(Date.now() / 1000 - 7200, 'verbose')
- * // => "2 hours ago" (verbose mode)
+ * @returns HTML string with formatted time wrapped in span.date-time
  */
-
-export function formatTimestamp(timestamp: number, mode: 'compact' | 'verbose' = 'compact'): string {
+export function formatTimestamp(timestamp: number): string {
   if (!timestamp) return '';
 
-  const now = Math.floor(Date.now() / 1000);
-  const diff = now - timestamp;
+  const now = new Date();
+  const date = new Date(timestamp * 1000);
+  const diffSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-  if (mode === 'verbose') {
-    // Verbose mode: "X minutes ago", "X hours ago", etc.
-    if (diff < 60) {
-      return 'just now';
-    } else if (diff < 3600) {
-      const minutes = Math.floor(diff / 60);
-      return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
-    } else if (diff < 86400) {
-      const hours = Math.floor(diff / 3600);
-      return `${hours} hour${hours === 1 ? '' : 's'} ago`;
-    } else if (diff < 2592000) {
-      const days = Math.floor(diff / 86400);
-      return `${days} day${days === 1 ? '' : 's'} ago`;
+  let formatted: string;
+
+  // Rule 1: Within last hour
+  if (diffSeconds < 3600) {
+    if (diffSeconds < 60) {
+      formatted = `${Math.max(1, diffSeconds)}s`;
     } else {
-      const date = new Date(timestamp * 1000);
-      return date.toLocaleDateString([], {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
+      formatted = `${Math.floor(diffSeconds / 60)}m`;
     }
   } else {
-    // Compact mode: "now", "5m", "14:35", "Sep 23"
-    if (diff < 3600) {
-      // Less than 1 hour - show relative time
-      const minutes = Math.floor(diff / 60);
-      return minutes <= 1 ? 'now' : `${minutes}m`;
-    } else {
-      // More than 1 hour - show absolute time
-      const date = new Date(timestamp * 1000);
-      const today = new Date();
-      const isToday = date.toDateString() === today.toDateString();
+    const time = date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 
-      if (isToday) {
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    // Rule 2: Same calendar day
+    if (isSameDay(date, now)) {
+      formatted = time;
+    } else {
+      const day = date.getDate();
+      const month = date.toLocaleString('en-US', { month: 'short' });
+
+      // Rule 3: Current calendar year
+      if (date.getFullYear() === now.getFullYear()) {
+        formatted = `${day}. ${month}, ${time}`;
       } else {
-        return date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+        // Rule 4: Previous years
+        formatted = `${day}. ${month}. ${date.getFullYear()}, ${time}`;
       }
     }
   }
+
+  return `<span class="date-time">${formatted}</span>`;
+}
+
+/**
+ * Check if two dates are the same calendar day
+ */
+function isSameDay(date1: Date, date2: Date): boolean {
+  return (
+    date1.getFullYear() === date2.getFullYear() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getDate() === date2.getDate()
+  );
 }

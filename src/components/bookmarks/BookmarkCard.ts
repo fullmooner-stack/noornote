@@ -9,6 +9,7 @@
 import { UserProfileService } from '../../services/UserProfileService';
 import { Router } from '../../services/Router';
 import { encodeNevent } from '../../services/NostrToolsAdapter';
+import { formatTimestamp } from '../../helpers/formatTimestamp';
 import type { NostrEvent } from '@nostr-dev-kit/ndk';
 
 export interface BookmarkCardData {
@@ -55,7 +56,7 @@ export class BookmarkCard {
       const username = profile?.name || 'Anonymous';
       const profilePic = profile?.picture || '';
       const snippet = this.getTextSnippet(event.content, 100);
-      const timeAgo = this.formatTimestamp(event.created_at);
+      const timeAgo = formatTimestamp(event.created_at);
 
       card.innerHTML = `
         ${isPrivate ? '<span class="bookmark-card__private-badge">🔒</span>' : ''}
@@ -216,26 +217,6 @@ export class BookmarkCard {
     return text || '(No text content)';
   }
 
-  private formatTimestamp(timestamp: number): string {
-    const date = new Date(timestamp * 1000);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) {
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      return `Today ${hours}:${minutes}`;
-    } else if (diffDays === 1) {
-      return 'Yesterday';
-    } else if (diffDays < 7) {
-      return `${diffDays} days ago`;
-    } else {
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${date.getFullYear()}-${month}-${day}`;
-    }
-  }
 
   private escapeHtml(text: string): string {
     const div = document.createElement('div');

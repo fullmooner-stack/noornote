@@ -8,6 +8,7 @@
 import { UserProfileService, UserProfile } from '../../services/UserProfileService';
 import { Router } from '../../services/Router';
 import { hexToNpub } from '../../helpers/nip19';
+import { formatTimestamp } from '../../helpers/formatTimestamp';
 import { NoteMenu } from './NoteMenu';
 import { UserHoverCard } from './UserHoverCard';
 import type { NostrEvent } from '@nostr-dev-kit/ndk';
@@ -67,7 +68,7 @@ export class NoteHeader {
 
     // NO whitespace between tags - prevents invisible text nodes causing spacing issues
     // Note: Display name will be populated when profile loads
-    header.innerHTML = `<div class="note-header__avatar"><img class="profile-pic profile-pic--medium" src="" alt="Avatar" loading="lazy" /></div><div class="note-header__info"><div class="note-header__primary-line"><span class="note-header__display-name"><span class="note-header__display-name-trigger"></span></span>${this.options.showVerification ? '<span class="note-header__verification" style="display: none;">✓</span>' : ''}${this.options.showTimestamp ? `<time class="note-header__timestamp">${this.formatTimeAgo(this.options.timestamp)}</time>` : ''}${this.options.showMenu ? '<span class="note-header__menu-container"></span>' : ''}</div><div class="note-header__handle"></div></div>`;
+    header.innerHTML = `<div class="note-header__avatar"><img class="profile-pic profile-pic--medium" src="" alt="Avatar" loading="lazy" /></div><div class="note-header__info"><div class="note-header__primary-line"><span class="note-header__display-name"><span class="note-header__display-name-trigger"></span></span>${this.options.showVerification ? '<span class="note-header__verification" style="display: none;">✓</span>' : ''}${this.options.showTimestamp ? `<time class="note-header__timestamp">${formatTimestamp(this.options.timestamp)}</time>` : ''}${this.options.showMenu ? '<span class="note-header__menu-container"></span>' : ''}</div><div class="note-header__handle"></div></div>`;
 
     // User hover card - only on avatar and display name trigger
     const hoverCard = UserHoverCard.getInstance();
@@ -191,50 +192,6 @@ export class NoteHeader {
     }
   }
 
-  /**
-   * Format timestamp to human readable
-   */
-  private formatTimeAgo(timestamp: number): string {
-    const now = Math.floor(Date.now() / 1000);
-    const diff = now - timestamp;
-
-    // For recent posts, show relative time
-    if (diff < 60) return `${diff}s`;
-    if (diff < 3600) return `${Math.floor(diff / 60)}m`;
-
-    // For posts older than 1 hour, show absolute date/time
-    const date = new Date(timestamp * 1000);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    // Check if it's today
-    if (date.toDateString() === today.toDateString()) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-
-    // Check if it's yesterday
-    if (date.toDateString() === yesterday.toDateString()) {
-      return `Yesterday ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-    }
-
-    // Check if it's this year
-    if (date.getFullYear() === today.getFullYear()) {
-      return date.toLocaleDateString([], {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    }
-
-    // Older posts: full date
-    return date.toLocaleDateString([], {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  }
 
   /**
    * Update timestamp (for live updates)
@@ -242,7 +199,7 @@ export class NoteHeader {
   public updateTimestamp(): void {
     const timestampEl = this.element.querySelector('.note-header__timestamp');
     if (timestampEl && this.options.showTimestamp) {
-      timestampEl.textContent = this.formatTimeAgo(this.options.timestamp);
+      timestampEl.textContent = formatTimestamp(this.options.timestamp);
     }
   }
 

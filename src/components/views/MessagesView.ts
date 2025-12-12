@@ -20,6 +20,7 @@ import { ToastService } from '../../services/ToastService';
 import { setupTabClickHandlers, switchTabWithContent } from '../../helpers/TabsHelper';
 import { escapeHtml } from '../../helpers/escapeHtml';
 import { ProgressBarHelper } from '../../helpers/ProgressBarHelper';
+import { formatTimestamp } from '../../helpers/formatTimestamp';
 import { DMComposeModal } from '../modals/DMComposeModal';
 
 const BATCH_SIZE = 15;
@@ -460,7 +461,7 @@ export class MessagesView extends View {
     }
 
     // Format timestamp
-    const timeAgo = this.formatTimeAgo(conversation.lastMessageAt);
+    const timeAgo = formatTimestamp(conversation.lastMessageAt);
 
     // Avatar: use image if available, otherwise letter placeholder
     // Wrap in user-mention for hover card support
@@ -475,7 +476,7 @@ export class MessagesView extends View {
         <div class="conversation-item__content">
           <div class="conversation-item__header">
             <span class="user-mention conversation-item__name" data-pubkey="${conversation.pubkey}">${escapeHtml(displayName)}</span>
-            <span class="conversation-item__time">${timeAgo}</span>
+            ${timeAgo}
           </div>
           <div class="conversation-item__preview">
             ${escapeHtml(conversation.lastMessagePreview)}
@@ -528,19 +529,6 @@ export class MessagesView extends View {
     `;
   }
 
-  /**
-   * Format timestamp as "time ago"
-   */
-  private formatTimeAgo(timestamp: number): string {
-    const now = Math.floor(Date.now() / 1000);
-    const diff = now - timestamp;
-
-    if (diff < 60) return 'now';
-    if (diff < 3600) return `${Math.floor(diff / 60)}m`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
-    if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
-    return new Date(timestamp * 1000).toLocaleDateString();
-  }
 
   /**
    * Toggle menu visibility
