@@ -192,7 +192,7 @@ export class MuteListSecondaryManager extends BaseListSecondaryManager<string, M
           <div class="mute-section">
             <div class="mute-section__header">
               <span class="mute-section__title">Muted Users</span>
-              <span class="mute-section__count">${this.allItemsWithProfiles.length}</span>
+              <span class="badge">${this.allItemsWithProfiles.length}</span>
             </div>
             <div class="mutes-list mutes-list--users"></div>
           </div>
@@ -205,7 +205,7 @@ export class MuteListSecondaryManager extends BaseListSecondaryManager<string, M
           <div class="mute-section">
             <div class="mute-section__header">
               <span class="mute-section__title">Muted Threads</span>
-              <span class="mute-section__count">${this.mutedThreads.length}</span>
+              <span class="badge">${this.mutedThreads.length}</span>
             </div>
             <div class="mutes-list mutes-list--threads"></div>
           </div>

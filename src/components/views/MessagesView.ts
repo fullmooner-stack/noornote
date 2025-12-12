@@ -142,11 +142,11 @@ export class MessagesView extends View {
         <div class="tabs">
           <button class="tab tab--active" data-tab="known">
             Known
-            <span class="tab__badge" data-badge="known" style="display: none;"></span>
+            <span class="badge" data-badge="known" style="display: none;"></span>
           </button>
           <button class="tab" data-tab="unknown">
             Unknown
-            <span class="tab__badge" data-badge="unknown" style="display: none;"></span>
+            <span class="badge" data-badge="unknown" style="display: none;"></span>
           </button>
         </div>
       </div>
@@ -483,7 +483,7 @@ export class MessagesView extends View {
         </div>
       </div>
       ${conversation.unreadCount > 0 ? `
-        <div class="conversation-item__badge">${conversation.unreadCount}</div>
+        <div class="badge">${conversation.unreadCount}</div>
       ` : ''}
     `;
 

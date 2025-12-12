@@ -205,18 +205,8 @@
     text-overflow: ellipsis;
   }
 
-  &__badge {
-    min-width: 20px;
-    height: 20px;
-    padding: 0 6px;
-    border-radius: 10px;
-    background: $color-4;
-    color: $color-1;
-    font-size: 12px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  // Badge spacing (styles in _badges.scss)
+  .badge {
     flex-shrink: 0;
   }
 }
@@ -428,21 +418,10 @@
 }
 
 /* ================================
-   DM Badge in Sidebar
+   DM Badge in Sidebar (styles in _badges.scss)
    ================================ */
 
-.dm-badge {
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 9px;
-  background: $color-6;
-  color: $color-1;
-  font-size: 11px;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.primary-nav .badge {
   margin-left: auto;
 }
 

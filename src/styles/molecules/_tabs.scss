@@ -79,19 +79,8 @@
     }
   }
 
-  // Badge for unread counts
-  &__badge {
-    min-width: 18px;
-    height: 18px;
-    padding: 0 5px;
-    border-radius: 9px;
-    background: $color-4;
-    color: $color-1;
-    font-size: 11px;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  // Badge spacing (styles in _badges.scss)
+  .badge {
     margin-left: calc($gap / 2);
   }
 }
