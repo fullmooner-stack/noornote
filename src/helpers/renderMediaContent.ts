@@ -191,14 +191,13 @@ export function replaceMediaPlaceholders(
       const wrapper = isNSFW ? `note-media nsfw-media${gridModifier}` : `note-media${gridModifier}`;
       const gridHtml = `<div class="${wrapper}"${dataAttr}>${mediaHtml}</div>`;
 
-      // Replace all placeholders in this group with the grid
-      const firstPlaceholder = `__MEDIA_${group[0]}__`;
-      result = result.replace(firstPlaceholder, gridHtml);
+      // Build regex to match all placeholders in this group with <br> tags between them
+      // e.g. __MEDIA_0__<br>__MEDIA_1__<br>__MEDIA_2__
+      const placeholderRegexParts = group.map(index => `__MEDIA_${index}__`);
+      const groupPattern = placeholderRegexParts.join('(?:<br\\s*/?>|\\s)*');
+      const groupRegex = new RegExp(groupPattern, 'g');
 
-      // Remove remaining placeholders from this group
-      group.slice(1).forEach(index => {
-        result = result.replace(`__MEDIA_${index}__`, '');
-      });
+      result = result.replace(groupRegex, gridHtml);
     }
   });
 
