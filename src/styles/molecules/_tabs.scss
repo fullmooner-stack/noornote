@@ -45,7 +45,6 @@
     display: flex;
     align-items: center;
     gap: calc($gap / 2);
-    border-radius: 4px;
 
     &:hover {
       background: color.adjust($color-2, $lightness: 5%);
