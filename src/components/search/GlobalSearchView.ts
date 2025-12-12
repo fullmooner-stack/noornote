@@ -12,11 +12,12 @@ import { Router } from '../../services/Router';
 import { EventBus } from '../../services/EventBus';
 import { SystemLogger } from '../system/SystemLogger';
 import { encodeNevent } from '../../services/NostrToolsAdapter';
-import { deactivateAllTabs, activateTabElement } from '../../helpers/TabsHelper';
+import { deactivateAllTabs, switchTabWithContent } from '../../helpers/TabsHelper';
 import type { NostrEvent } from '@nostr-dev-kit/ndk';
 
 export class GlobalSearchView {
   private container: HTMLElement;
+  private tabElement: HTMLElement | null = null;
   private searchOrchestrator: SearchOrchestrator;
   private muteOrchestrator: MuteOrchestrator;
   private authService: AuthService;
@@ -44,12 +45,12 @@ export class GlobalSearchView {
   }
 
   /**
-   * Create container element
+   * Create container element (tab-content style)
    */
   private createElement(): HTMLElement {
     const container = document.createElement('div');
-    container.className = 'global-search-view';
-    container.style.display = 'none'; // Hidden by default
+    container.className = 'tab-content global-search-view';
+    container.dataset.tabContent = 'search-results';
     return container;
   }
 
@@ -136,7 +137,6 @@ export class GlobalSearchView {
 
     // Clear container
     this.container.innerHTML = '';
-    this.container.style.display = 'block';
 
     // Activate search tab
     this.activateSearchTab();
@@ -204,8 +204,6 @@ export class GlobalSearchView {
    * Show loading state
    */
   private showLoading(): void {
-    this.container.style.display = 'block';
-
     // Switch to search results tab
     this.activateSearchTab();
 
@@ -220,7 +218,6 @@ export class GlobalSearchView {
    * Show error state
    */
   private showError(message: string): void {
-    this.container.style.display = 'block';
     this.container.innerHTML = `
       <div class="global-search-error">
         <p>${message}</p>
@@ -240,7 +237,6 @@ export class GlobalSearchView {
 
     // Clear container
     this.container.innerHTML = '';
-    this.container.style.display = 'block';
 
     // Create SearchResultsView
     this.searchResultsView = new SearchResultsView(
@@ -291,14 +287,12 @@ export class GlobalSearchView {
     }
 
     // Activate search tab button
-    const searchTabBtn = document.querySelector('.tab[data-tab="search-results"]') as HTMLElement;
-    if (searchTabBtn) {
-      activateTabElement(searchTabBtn);
+    if (this.tabElement) {
+      this.tabElement.classList.add('tab--active');
     }
 
-    // Show search results container
-    this.container.classList.add('tab-content', 'tab-content--active');
-    this.container.setAttribute('data-tab-content', 'search-results');
+    // Activate search content
+    this.container.classList.add('tab-content--active');
   }
 
   /**
@@ -309,22 +303,71 @@ export class GlobalSearchView {
     if (!tabsContainer) return;
 
     // Check if tab already exists
-    const existingTab = tabsContainer.querySelector('.tab[data-tab="search-results"]');
-    if (existingTab) return;
+    if (this.tabElement && tabsContainer.contains(this.tabElement)) return;
 
-    // Create new tab button
+    // Create new tab button with close icon
     const searchTab = document.createElement('button');
-    searchTab.className = 'tab';
+    searchTab.className = 'tab tab--closable';
     searchTab.setAttribute('data-tab', 'search-results');
-    searchTab.textContent = 'Search Results';
 
-    // Add click handler
-    searchTab.addEventListener('click', () => {
+    searchTab.innerHTML = `
+      <span class="tab__label">Search Results</span>
+      <button class="tab__close" aria-label="Close search" title="Close search">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="7" cy="7" r="6.5" stroke="currentColor" stroke-width="1"/>
+          <path d="M4.5 4.5l5 5M9.5 4.5l-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    `;
+
+    // Close button handler
+    const closeBtn = searchTab.querySelector('.tab__close');
+    closeBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.closeSearchTab();
+    });
+
+    // Tab click handler
+    searchTab.addEventListener('click', (e) => {
+      // Ignore clicks on close button
+      if ((e.target as HTMLElement).closest('.tab__close')) {
+        return;
+      }
       this.activateSearchTab();
     });
 
     // Append to tabs container
     tabsContainer.appendChild(searchTab);
+    this.tabElement = searchTab;
+  }
+
+  /**
+   * Close search tab and switch to System Logs
+   */
+  private closeSearchTab(): void {
+    // Remove tab button
+    if (this.tabElement) {
+      this.tabElement.remove();
+      this.tabElement = null;
+    }
+
+    // Clear and hide container
+    this.container.innerHTML = '';
+    this.container.classList.remove('tab-content--active');
+
+    // Reset state
+    this.currentQuery = '';
+    this.currentResults = [];
+    if (this.searchResultsView) {
+      this.searchResultsView.destroy();
+      this.searchResultsView = null;
+    }
+
+    // Switch to System Logs tab
+    const secondaryContent = document.querySelector('.secondary-content');
+    if (secondaryContent) {
+      switchTabWithContent(secondaryContent as HTMLElement, 'system-log');
+    }
   }
 
   /**
@@ -377,7 +420,7 @@ export class GlobalSearchView {
    * Hide search view
    */
   public hide(): void {
-    this.container.style.display = 'none';
+    this.container.classList.remove('tab-content--active');
   }
 
   /**
@@ -385,6 +428,7 @@ export class GlobalSearchView {
    */
   public destroy(): void {
     this.searchResultsView?.destroy();
+    this.tabElement?.remove();
     this.container.remove();
   }
 }
