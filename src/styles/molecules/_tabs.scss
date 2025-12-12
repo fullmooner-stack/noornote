@@ -23,20 +23,21 @@
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
-  color: $color-5;
+  color: $color-4;
   cursor: pointer;
   font-size: 15px;
   font-weight: 500;
   transition: all 0.2s ease;
 
   &:hover {
-    color: $color-4;
+    color: $color-5;
   }
 
   &--active {
-    color: $color-4;
-    border-bottom-color: $color-4;
+    color: $color-5;
+    border-bottom-color: $color-5;
     background-color: rgba(255, 255, 255, 0.1);
+    cursor: default;
   }
 
   // Closable tab variant (with close button)
@@ -45,7 +46,6 @@
     align-items: center;
     gap: calc($gap / 2);
     border-radius: 4px;
-    border-bottom: none;
 
     &:hover {
       background: color.adjust($color-2, $lightness: 5%);
