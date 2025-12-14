@@ -6,12 +6,14 @@
  * - connections: Map<pubkey, NWCConnection>
  * - states: Map<pubkey, NWCConnectionState>
  *
+ * IMPORTANT: Uses direct WebSocket connections instead of NDK relay pool
+ * to avoid connection issues when switching between accounts.
+ *
  * NIP-47: https://github.com/nostr-protocol/nips/blob/master/47.md
  */
 
 import type { NostrEvent } from '@nostr-dev-kit/ndk';
 import { decodeNip19, nip04, finalizeEvent, getPublicKeyFromPrivate } from './NostrToolsAdapter';
-import { NostrTransport } from './transport/NostrTransport';
 import { SystemLogger } from '../components/system/SystemLogger';
 import { ErrorService } from './ErrorService';
 import { ToastService } from './ToastService';
@@ -36,7 +38,6 @@ export interface PayInvoiceResult {
 export class NWCService {
   private static instance: NWCService;
   private systemLogger: SystemLogger;
-  private transport: NostrTransport;
 
   // Per-user state - NO clearing needed on account switch
   private connections: Map<string, NWCConnection> = new Map();
@@ -44,7 +45,6 @@ export class NWCService {
 
   private constructor() {
     this.systemLogger = SystemLogger.getInstance();
-    this.transport = NostrTransport.getInstance();
 
     // Restore connection for current user (if any)
     this.restoreConnectionForCurrentUser();
@@ -151,6 +151,105 @@ export class NWCService {
   }
 
   /**
+   * Connect to NWC relay via direct WebSocket (bypasses NDK relay pool)
+   * This avoids issues when switching between accounts using the same relay
+   */
+  private connectToNwcRelay(url: string, timeoutMs: number = 5000): Promise<WebSocket> {
+    return new Promise((resolve, reject) => {
+      const ws = new WebSocket(url);
+
+      const timeout = setTimeout(() => {
+        ws.close();
+        reject(new Error(`WebSocket connection timeout: ${url}`));
+      }, timeoutMs);
+
+      ws.onopen = () => {
+        clearTimeout(timeout);
+        resolve(ws);
+      };
+
+      ws.onerror = (error) => {
+        clearTimeout(timeout);
+        reject(new Error(`WebSocket connection error: ${error}`));
+      };
+    });
+  }
+
+  /**
+   * Send NWC request via WebSocket and wait for response
+   * @param ws WebSocket connection
+   * @param event Signed NWC request event (kind 23194)
+   * @param expectedAuthor Expected author of the response (wallet pubkey)
+   * @param expectedPTag Expected p-tag in response (app pubkey)
+   * @param timeoutMs Timeout in milliseconds
+   */
+  private sendNwcRequest(
+    ws: WebSocket,
+    event: NostrEvent,
+    expectedAuthor: string,
+    expectedPTag: string,
+    timeoutMs: number = 10000
+  ): Promise<NostrEvent> {
+    return new Promise((resolve, reject) => {
+      const subId = `nwc-${Date.now()}`;
+
+      const timeout = setTimeout(() => {
+        ws.send(JSON.stringify(['CLOSE', subId]));
+        reject(new Error('NWC request timeout'));
+      }, timeoutMs);
+
+      const handleMessage = (msgEvent: MessageEvent) => {
+        try {
+          const data = JSON.parse(msgEvent.data);
+
+          // Handle EVENT messages
+          if (data[0] === 'EVENT' && data[1] === subId && data[2]) {
+            const responseEvent = data[2] as NostrEvent;
+
+            // Verify it's a response event (kind 23195) from the expected author
+            if (
+              responseEvent.kind === 23195 &&
+              responseEvent.pubkey === expectedAuthor &&
+              responseEvent.tags.some((t: string[]) => t[0] === 'p' && t[1] === expectedPTag)
+            ) {
+              clearTimeout(timeout);
+              ws.removeEventListener('message', handleMessage);
+              ws.send(JSON.stringify(['CLOSE', subId]));
+              resolve(responseEvent);
+            }
+          }
+
+          // Handle OK message (event published successfully)
+          if (data[0] === 'OK' && data[1] === event.id) {
+            // Event accepted, continue waiting for response
+          }
+
+          // Handle EOSE (end of stored events)
+          if (data[0] === 'EOSE' && data[1] === subId) {
+            // Continue waiting for new events
+          }
+        } catch {
+          // Ignore parse errors
+        }
+      };
+
+      ws.addEventListener('message', handleMessage);
+
+      // Subscribe to response events
+      const filter = {
+        kinds: [23195],
+        authors: [expectedAuthor],
+        '#p': [expectedPTag],
+        since: Math.floor(Date.now() / 1000) - 5 // 5 seconds buffer
+      };
+      ws.send(JSON.stringify(['REQ', subId, filter]));
+
+      // Publish the request event
+      ws.send(JSON.stringify(['EVENT', event]));
+    });
+  }
+
+  /**
    * Connect to NWC wallet
    */
   public async connect(connectionString: string): Promise<boolean> {
@@ -194,9 +293,15 @@ export class NWCService {
 
   /**
    * Test NWC connection by sending get_info request
+   * Uses direct WebSocket instead of NDK relay pool
    */
   private async testConnection(connection: NWCConnection): Promise<boolean> {
+    let ws: WebSocket | null = null;
+
     try {
+      // Connect to NWC relay via direct WebSocket
+      ws = await this.connectToNwcRelay(connection.relay);
+
       // Create get_info request
       const content = JSON.stringify({
         method: 'get_info'
@@ -215,53 +320,19 @@ export class NWCService {
         content: encryptedContent
       }, appSecretKey);
 
-      // Ensure NWC relay is connected before publishing
-      const connected = await this.transport.connectToRelay(connection.relay);
-      if (!connected) {
-        this.systemLogger.warn('NWCService', `Failed to connect to NWC relay: ${connection.relay}`);
-        return false;
-      }
+      // Send request and wait for response
+      const response = await this.sendNwcRequest(ws, event, connection.walletPubkey, appPubkey, 5000);
 
-      // Publish to relay and wait for response
-      await this.transport.publish([connection.relay], event);
+      // Decrypt and validate response
+      const decrypted = await nip04.decrypt(connection.secret, connection.walletPubkey, response.content);
+      const result = JSON.parse(decrypted);
 
-      // Listen for response (kind 23195) - timeout after 5 seconds
-      return new Promise(async (resolve) => {
-        const sub = await this.transport.subscribe([connection.relay], [
-          {
-            kinds: [23195],
-            authors: [connection.walletPubkey],
-            '#p': [appPubkey],
-            since: Math.floor(Date.now() / 1000)
-          }
-        ], {
-          onEvent: async (event: NostrEvent) => {
-            // NostrTransport already verified signature
-            clearTimeout(timeout);
-            sub.close();
-
-            // Decrypt response
-            try {
-              const decrypted = await nip04.decrypt(connection.secret, connection.walletPubkey, event.content);
-              const response = JSON.parse(decrypted);
-
-              // Check if response has result (successful get_info)
-              resolve(!!response.result);
-            } catch (_error) {
-              this.systemLogger.error('NWCService', 'Failed to decrypt response:', _error);
-              resolve(false);
-            }
-          }
-        });
-
-        const timeout = setTimeout(() => {
-          sub.close();
-          resolve(false);
-        }, 5000);
-      });
+      return !!result.result;
     } catch (_error) {
       this.systemLogger.error('NWCService', 'Test connection failed:', _error);
       return false;
+    } finally {
+      ws?.close();
     }
   }
 
@@ -318,6 +389,7 @@ export class NWCService {
 
   /**
    * Get wallet balance via NWC
+   * Uses direct WebSocket instead of NDK relay pool
    */
   public async getBalance(): Promise<number | null> {
     const connection = this.getConnectionForCurrentUser();
@@ -325,7 +397,12 @@ export class NWCService {
       return null;
     }
 
+    let ws: WebSocket | null = null;
+
     try {
+      // Connect to NWC relay via direct WebSocket
+      ws = await this.connectToNwcRelay(connection.relay);
+
       // Create get_balance request
       const content = JSON.stringify({
         method: 'get_balance',
@@ -345,58 +422,35 @@ export class NWCService {
         content: encryptedContent
       }, appSecretKey);
 
-      // Publish to relay
-      await this.transport.publish([connection.relay], event);
+      // Send request and wait for response
+      const response = await this.sendNwcRequest(ws, event, connection.walletPubkey, appPubkey, 10000);
 
-      // Wait for response (kind 23195) - timeout after 10 seconds
-      return new Promise(async (resolve) => {
-        const sub = await this.transport.subscribe([connection.relay], [
-          {
-            kinds: [23195],
-            authors: [connection.walletPubkey],
-            '#p': [appPubkey],
-            since: Math.floor(Date.now() / 1000)
-          }
-        ], {
-          onEvent: async (event: NostrEvent) => {
-            // NostrTransport already verified signature
-            clearTimeout(timeout);
-            sub.close();
+      // Decrypt response
+      const decrypted = await nip04.decrypt(connection.secret, connection.walletPubkey, response.content);
+      const result = JSON.parse(decrypted);
 
-            try {
-              // Decrypt response
-              const decrypted = await nip04.decrypt(connection.secret, connection.walletPubkey, event.content);
-              const response = JSON.parse(decrypted);
+      if (result.error) {
+        this.systemLogger.error('NWCService', 'Get balance failed:', result.error.message);
+        return null;
+      }
 
-              if (response.error) {
-                this.systemLogger.error('NWCService', 'Get balance failed:', response.error.message);
-                resolve(null);
-              } else if (response.result && typeof response.result.balance === 'number') {
-                // Balance is returned in millisatoshis
-                resolve(response.result.balance);
-              } else {
-                resolve(null);
-              }
-            } catch (_error) {
-              this.systemLogger.error('NWCService', 'Failed to decrypt balance response:', _error);
-              resolve(null);
-            }
-          }
-        });
+      if (result.result && typeof result.result.balance === 'number') {
+        // Balance is returned in millisatoshis
+        return result.result.balance;
+      }
 
-        const timeout = setTimeout(() => {
-          sub.close();
-          resolve(null);
-        }, 10000);
-      });
+      return null;
     } catch (_error) {
       this.systemLogger.error('NWCService', 'Get balance failed:', _error);
       return null;
+    } finally {
+      ws?.close();
     }
   }
 
   /**
    * Pay Lightning invoice via NWC
+   * Uses direct WebSocket instead of NDK relay pool
    */
   public async payInvoice(invoice: string): Promise<PayInvoiceResult> {
     const connection = this.getConnectionForCurrentUser();
@@ -407,7 +461,12 @@ export class NWCService {
       };
     }
 
+    let ws: WebSocket | null = null;
+
     try {
+      // Connect to NWC relay via direct WebSocket
+      ws = await this.connectToNwcRelay(connection.relay);
+
       // Create pay_invoice request
       const content = JSON.stringify({
         method: 'pay_invoice',
@@ -431,75 +490,45 @@ export class NWCService {
 
       this.systemLogger.info('NWCService', 'Sending pay_invoice request...');
 
-      // Publish to relay
-      await this.transport.publish([connection.relay], event);
+      // Send request and wait for response (30s timeout for payments)
+      const response = await this.sendNwcRequest(ws, event, connection.walletPubkey, appPubkey, 30000);
 
-      // Wait for response (kind 23195) - timeout after 30 seconds
-      return new Promise(async (resolve) => {
-        const sub = await this.transport.subscribe([connection.relay], [
-          {
-            kinds: [23195],
-            authors: [connection.walletPubkey],
-            '#p': [appPubkey],
-            since: Math.floor(Date.now() / 1000)
-          }
-        ], {
-          onEvent: async (event: NostrEvent) => {
-            // NostrTransport already verified signature
-            clearTimeout(timeout);
-            sub.close();
+      // Decrypt response
+      const decrypted = await nip04.decrypt(connection.secret, connection.walletPubkey, response.content);
+      const result = JSON.parse(decrypted);
 
-            try {
-              // Decrypt response
-              const decrypted = await nip04.decrypt(connection.secret, connection.walletPubkey, event.content);
-              const response = JSON.parse(decrypted);
+      if (result.error) {
+        this.systemLogger.error('NWCService', 'Payment failed:', result.error.message);
+        return {
+          success: false,
+          error: result.error.message || 'Payment failed'
+        };
+      }
 
-              if (response.error) {
-                this.systemLogger.error('NWCService', 'Payment failed:', response.error.message);
-                resolve({
-                  success: false,
-                  error: response.error.message || 'Payment failed'
-                });
-              } else if (response.result) {
-                // Format payment info for readable log
-                const amount = response.result.amount ? Math.floor(response.result.amount / 1000) : 0;
-                const fees = response.result.fees_paid ? Math.floor(response.result.fees_paid / 1000) : 0;
-                this.systemLogger.info('NWCService', `${amount} Sats sent, ${fees} Sats fees paid`);
+      if (result.result) {
+        // Format payment info for readable log
+        const amount = result.result.amount ? Math.floor(result.result.amount / 1000) : 0;
+        const fees = result.result.fees_paid ? Math.floor(result.result.fees_paid / 1000) : 0;
+        this.systemLogger.info('NWCService', `${amount} Sats sent, ${fees} Sats fees paid`);
 
-                resolve({
-                  success: true,
-                  preimage: response.result.preimage
-                });
-              } else {
-                resolve({
-                  success: false,
-                  error: 'Invalid response'
-                });
-              }
-            } catch (_error) {
-              this.systemLogger.error('NWCService', 'Failed to decrypt payment response:', _error);
-              resolve({
-                success: false,
-                error: 'Failed to decrypt response'
-              });
-            }
-          }
-        });
+        return {
+          success: true,
+          preimage: result.result.preimage
+        };
+      }
 
-        const timeout = setTimeout(() => {
-          sub.close();
-          resolve({
-            success: false,
-            error: 'Payment timeout'
-          });
-        }, 30000);
-      });
+      return {
+        success: false,
+        error: 'Invalid response'
+      };
     } catch (_error) {
       this.systemLogger.error('NWCService', 'Payment failed:', _error);
       return {
         success: false,
         error: _error instanceof Error ? _error.message : 'Unknown error'
       };
+    } finally {
+      ws?.close();
     }
   }
 
