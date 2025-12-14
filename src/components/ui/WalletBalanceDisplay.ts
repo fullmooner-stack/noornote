@@ -7,6 +7,7 @@ import { NWCService } from '../../services/NWCService';
 import { SystemLogger } from '../system/SystemLogger';
 import { ExchangeRateService } from '../../services/ExchangeRateService';
 import { KeychainStorage } from '../../services/KeychainStorage';
+import satsIconUrl from '../../assets/sats.svg';
 
 export class WalletBalanceDisplay {
   private element: HTMLElement;
@@ -57,7 +58,7 @@ export class WalletBalanceDisplay {
     container.innerHTML = `
       <div class="wallet-balance-content">
         <span class="wallet-balance-amount">--</span>
-        <img src="/src/assets/sats.svg" class="sats-icon" alt="sats" />
+        <img src="${satsIconUrl}" class="sats-icon" alt="sats" />
         <span class="wallet-balance-exchange">⇄</span>
         <span class="wallet-balance-fiat-amount">--</span>
       </div>
