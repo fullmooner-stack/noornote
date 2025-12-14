@@ -216,53 +216,46 @@ export class AccountSwitcher {
         }));
     }
 
-    // Build dropdown content
+    // Build dropdown as simple ui-list
     this.dropdown.innerHTML = '';
     const currentPubkey = this.options.pubkey;
 
-    // Account list section (only if more than 1 account)
+    // Header (only if multiple accounts)
     if (accounts.length > 1) {
-      const accountsSection = document.createElement('div');
-      accountsSection.className = 'account-switcher__section';
-      accountsSection.innerHTML = `<div class="account-switcher__section-title">Switch Account</div>`;
+      const header = document.createElement('div');
+      header.className = 'account-switcher__header';
+      header.textContent = 'Switch Account';
+      this.dropdown.appendChild(header);
+    }
 
-      const accountsList = document.createElement('div');
-      accountsList.className = 'account-switcher__accounts';
+    // Create list
+    const list = document.createElement('ul');
+    list.className = 'ui-list';
 
+    // Account items (only if multiple accounts)
+    if (accounts.length > 1) {
       for (const account of accounts) {
         const isActive = account.pubkey === currentPubkey;
         const item = this.createAccountItem(account, isActive);
-        accountsList.appendChild(item);
+        list.appendChild(item);
       }
-
-      accountsSection.appendChild(accountsList);
-      this.dropdown.appendChild(accountsSection);
     }
 
-    // Actions section
-    const actionsSection = document.createElement('div');
-    actionsSection.className = 'account-switcher__section account-switcher__actions';
+    // Add account
+    const addItem = document.createElement('li');
+    addItem.className = 'ui-list__item ui-list__item--clickable';
+    addItem.innerHTML = '<span class="account-switcher__icon">+</span> Add account';
+    addItem.addEventListener('click', () => this.handleAddAccount());
+    list.appendChild(addItem);
 
-    // Add account button - always shown
-    const addBtn = document.createElement('button');
-    addBtn.className = 'account-switcher__action';
-    addBtn.innerHTML = `<span class="account-switcher__action-icon">+</span> Add account`;
-    addBtn.addEventListener('click', () => this.handleAddAccount());
-    actionsSection.appendChild(addBtn);
+    // Sign out
+    const logoutItem = document.createElement('li');
+    logoutItem.className = 'ui-list__item ui-list__item--clickable ui-list__item--danger';
+    logoutItem.innerHTML = '<span class="account-switcher__icon">&larr;</span> Sign out';
+    logoutItem.addEventListener('click', () => this.handleLogout());
+    list.appendChild(logoutItem);
 
-    // Divider
-    const divider = document.createElement('div');
-    divider.className = 'account-switcher__divider';
-    actionsSection.appendChild(divider);
-
-    // Logout current
-    const logoutBtn = document.createElement('button');
-    logoutBtn.className = 'account-switcher__action account-switcher__action--danger';
-    logoutBtn.innerHTML = `<span class="account-switcher__action-icon">&larr;</span> Sign out`;
-    logoutBtn.addEventListener('click', () => this.handleLogout());
-    actionsSection.appendChild(logoutBtn);
-
-    this.dropdown.appendChild(actionsSection);
+    this.dropdown.appendChild(list);
   }
 
   /**
@@ -300,8 +293,8 @@ export class AccountSwitcher {
    * Create account item element
    */
   private createAccountItem(account: DisplayAccount, isActive: boolean): HTMLElement {
-    const item = document.createElement('button');
-    item.className = `account-switcher__account${isActive ? ' account-switcher__account--active' : ''}`;
+    const item = document.createElement('li');
+    item.className = `ui-list__item${isActive ? ' ui-list__item--active' : ' ui-list__item--clickable'}`;
 
     const displayName = account.displayName || `${account.npub.slice(0, 12)}...`;
 

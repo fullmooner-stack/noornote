@@ -19,6 +19,7 @@ import { ErrorService } from './ErrorService';
 import { ToastService } from './ToastService';
 import { KeychainStorage } from './KeychainStorage';
 import { AuthService } from './AuthService';
+import { EventBus } from './EventBus';
 
 export type NWCConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error';
 
@@ -46,7 +47,12 @@ export class NWCService {
   private constructor() {
     this.systemLogger = SystemLogger.getInstance();
 
-    // Restore connection for current user (if any)
+    // Listen for user login to restore NWC connection
+    EventBus.getInstance().on('user:login', () => {
+      this.restoreConnectionForCurrentUser();
+    });
+
+    // Try to restore connection for current user (if already logged in)
     this.restoreConnectionForCurrentUser();
   }
 

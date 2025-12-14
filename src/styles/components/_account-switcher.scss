@@ -1,6 +1,7 @@
 /**
  * Account Switcher Component Styles
  * Dropdown for switching between stored accounts
+ * Uses ui-list for dropdown items
  */
 
 @use 'sass:color';
@@ -70,83 +71,43 @@
     position: absolute;
     top: 100%;
     right: 0;
-    min-width: 220px;
+    min-width: 200px;
     background-color: $color-2;
-    border: none;
     border-radius: $radius-base;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     z-index: 1000;
     overflow: hidden;
-  }
 
-  // Sections
-  &__section {
-    padding: calc($gap / 2);
-
-    &:not(:last-child) {
-      border-bottom: 1px solid $color-2;
+    .ui-list {
+      padding: 0;
     }
   }
 
-  &__section-title {
+  // Header
+  &__header {
     color: $color-3;
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    padding: calc($gap / 4) calc($gap / 2);
-    margin-bottom: calc($gap / 4);
+    padding: $gap $gap calc($gap / 2);
   }
 
-  // Account list
-  &__accounts {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+  // Loading state
+  &__loading {
+    padding: $gap;
+    color: $color-3;
+    font-size: 13px;
   }
 
-  &__account {
-    display: flex;
-    align-items: center;
-    gap: calc($gap / 2);
-    width: 100%;
-    padding: calc($gap / 2);
-    background: transparent;
-    border: none;
-    border-radius: $radius-sm;
-    cursor: pointer;
-    text-align: left;
-    transition: background-color 0.1s ease;
-
-    &:hover:not(&--active) {
-      background-color: color.adjust($color-1, $lightness: 5%);
-    }
-
-    &--active {
-      background-color: color.adjust($color-4, $alpha: -0.85);
-      cursor: default;
-    }
-  }
-
+  // Account name in list item
   &__account-name {
     flex: 1;
     color: $color-5;
     font-size: 13px;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
-  &__badge {
-    color: $color-3;
-    font-size: 10px;
-    font-weight: 500;
-    padding: 2px 6px;
-    background-color: color.adjust($color-2, $lightness: 5%);
-    border-radius: 10px;
-  }
-
+  // Active dot indicator
   &__active-dot {
     width: 6px;
     height: 6px;
@@ -155,49 +116,12 @@
     flex-shrink: 0;
   }
 
-  // Actions section
-  &__actions {
-    padding: calc($gap / 2);
-  }
-
-  &__action {
-    display: flex;
-    align-items: center;
-    gap: calc($gap / 2);
-    width: 100%;
-    padding: calc($gap / 2);
-    background: transparent;
-    border: none;
-    border-radius: $radius-sm;
-    cursor: pointer;
-    text-align: left;
-    color: $color-5;
-    font-size: 13px;
-    transition: background-color 0.1s ease;
-
-    &:hover {
-      background-color: color.adjust($color-1, $lightness: 5%);
-    }
-
-    &--danger {
-      color: $color-error;
-
-      &:hover {
-        background-color: color.adjust($color-error, $alpha: -0.9);
-      }
-    }
-  }
-
-  &__action-icon {
+  // Icon for actions (+ and arrow)
+  &__icon {
     width: 16px;
+    display: inline-block;
     text-align: center;
-    color: inherit;
-  }
-
-  &__divider {
-    height: 1px;
-    background-color: $color-2;
-    margin: calc($gap / 2) 0;
+    margin-right: calc($gap / 2);
   }
 }
 
@@ -209,7 +133,7 @@
     }
 
     &__dropdown {
-      min-width: 200px;
+      min-width: 180px;
     }
   }
 }
