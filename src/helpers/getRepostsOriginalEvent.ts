@@ -42,7 +42,7 @@ export async function getRepostsOriginalEvent(event: NostrEvent): Promise<NostrE
       const { RelayConfig } = await import('../services/RelayConfig');
 
       const transport = NostrTransport.getInstance();
-      const relays = RelayConfig.getReadRelays();
+      const relays = RelayConfig.getInstance().getReadRelays();
 
       const events = await transport.fetch(relays, [{ ids: [eTag[1]] }]);
       if (events.length > 0) {
