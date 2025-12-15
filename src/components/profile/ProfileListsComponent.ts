@@ -42,7 +42,7 @@ export class ProfileListsComponent {
   constructor(pubkey: string) {
     this.pubkey = pubkey;
     this.container = document.createElement('div');
-    this.container.className = 'profile-lists';
+    // Note: 'profile-lists' class added in render() only if folders exist
 
     this.profileMountsService = ProfileMountsService.getInstance();
     this.profileMountsOrch = ProfileMountsOrchestrator.getInstance();
@@ -75,8 +75,12 @@ export class ProfileListsComponent {
 
       if (mountedFolders.length === 0) {
         this.container.innerHTML = '';
+        this.container.className = '';
         return this.container;
       }
+
+      // Add class now that we know folders exist
+      this.container.className = 'profile-lists';
 
       // Fetch bookmark items for each folder
       await this.loadListItems(mountedFolders);
@@ -86,6 +90,7 @@ export class ProfileListsComponent {
     } catch (error) {
       console.error('Failed to load profile lists:', error);
       this.container.innerHTML = '';
+      this.container.className = '';
     }
 
     return this.container;

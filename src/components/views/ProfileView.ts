@@ -24,6 +24,7 @@ import { EventBus } from '../../services/EventBus';
 import { AuthGuard } from '../../services/AuthGuard';
 import { ArticleNotificationService } from '../../services/ArticleNotificationService';
 import { ProfileListsComponent } from '../profile/ProfileListsComponent';
+import { ProfileArticlesCarousel } from '../profile/ProfileArticlesCarousel';
 
 // Shared promise map to prevent duplicate profile loads on rapid navigation
 type ProfileLoadResult = {
@@ -56,6 +57,9 @@ export class ProfileView extends View {
 
   // Profile lists component (mounted bookmark folders)
   private profileListsComponent: ProfileListsComponent | null = null;
+
+  // Articles carousel component
+  private articlesCarousel: ProfileArticlesCarousel | null = null;
 
   constructor(npub: string) {
     super(); // Call View base class constructor
@@ -303,6 +307,7 @@ export class ProfileView extends View {
         <div class="profile-lists-mount"></div>
       </div>
 
+      <div class="profile-articles-mount"></div>
       <div class="profile-timeline-container"></div>
     `;
 
@@ -316,6 +321,9 @@ export class ProfileView extends View {
 
       // Load profile lists (mounted bookmark folders)
       this.loadProfileLists();
+
+      // Load articles carousel
+      this.loadArticlesCarousel();
 
       // Setup QR code button handler
       this.setupQRButton();
@@ -642,6 +650,19 @@ export class ProfileView extends View {
   }
 
   /**
+   * Load articles carousel (user's long-form articles)
+   */
+  private async loadArticlesCarousel(): Promise<void> {
+    const articlesMount = this.container.querySelector('.profile-articles-mount');
+    if (!articlesMount) return;
+
+    // Create and render articles carousel
+    this.articlesCarousel = new ProfileArticlesCarousel(this.pubkey);
+    const element = await this.articlesCarousel.render();
+    articlesMount.appendChild(element);
+  }
+
+  /**
    * Save view state (implements View base class)
    */
   public override saveState(): void {
@@ -706,6 +727,9 @@ export class ProfileView extends View {
     }
     if (this.profileListsComponent) {
       this.profileListsComponent.destroy();
+    }
+    if (this.articlesCarousel) {
+      this.articlesCarousel.destroy();
     }
     this.container.remove();
   }
