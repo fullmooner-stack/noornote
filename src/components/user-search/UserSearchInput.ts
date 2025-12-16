@@ -370,7 +370,7 @@ export class UserSearchInput {
 
     if (this.selectedUserElement) {
       const displayName = user.displayName || user.name || 'Anonymous';
-      const avatarUrl = user.picture || '/assets/default-avatar.png';
+      const avatarUrl = user.picture || '';
 
       this.selectedUserElement.innerHTML = `
         <div class="user-search-input__chip">

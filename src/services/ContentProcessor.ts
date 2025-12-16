@@ -164,8 +164,7 @@ export class ContentProcessor {
 
     // Convert hex to npub for profile URL
     const npub = hexToNpub(hexPubkey);
-    const DEFAULT_AVATAR = '/assets/default-avatar.svg';
-    const picture = profile.picture || DEFAULT_AVATAR;
+    const picture = profile.picture || '';
 
     // Find all mention links that point to this profile and have loading placeholder
     const mentionLinks = document.querySelectorAll(`a[href="/profile/${npub}"][data-loading]`);

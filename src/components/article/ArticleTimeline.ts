@@ -16,8 +16,6 @@ import { hexToNpub } from '../../helpers/nip19';
 import { formatTimestamp } from '../../helpers/formatTimestamp';
 import { setupUserMentionHandlers } from '../../helpers/UserMentionHelper';
 
-const DEFAULT_AVATAR = '/assets/default-avatar.svg';
-
 export class ArticleTimeline {
   private element: HTMLElement;
   private feedOrchestrator: ArticleFeedOrchestrator;
@@ -162,7 +160,7 @@ export class ArticleTimeline {
         <div class="article-card__meta">
           <span class="article-card__author user-mention" data-pubkey="${event.pubkey}">
             <a href="#" class="mention-link" data-profile-pubkey="${event.pubkey}">
-              <img class="profile-pic profile-pic--mini" src="${DEFAULT_AVATAR}" alt="" onerror="this.src='${DEFAULT_AVATAR}'" />Loading...</a>
+              <img class="profile-pic profile-pic--mini" src="" alt="" />Loading...</a>
           </span>
           ${formatTimestamp(event.created_at || 0)}
         </div>
@@ -198,16 +196,16 @@ export class ArticleTimeline {
     try {
       const profile = await this.userProfileService.getUserProfile(pubkey);
       const username = profile?.name || profile?.display_name || npub.slice(0, 12) + '...';
-      const picture = profile?.picture || DEFAULT_AVATAR;
+      const picture = profile?.picture || '';
 
       authorEl.innerHTML = `
         <a href="/profile/${npub}" class="mention-link" data-profile-pubkey="${pubkey}">
-          <img class="profile-pic profile-pic--mini" src="${picture}" alt="" onerror="this.src='${DEFAULT_AVATAR}'" />${username}</a>
+          <img class="profile-pic profile-pic--mini" src="${picture}" alt="" />${username}</a>
       `;
     } catch {
       authorEl.innerHTML = `
         <a href="/profile/${npub}" class="mention-link" data-profile-pubkey="${pubkey}">
-          <img class="profile-pic profile-pic--mini" src="${DEFAULT_AVATAR}" alt="" onerror="this.src='${DEFAULT_AVATAR}'" />${npub.slice(0, 12)}...</a>
+          <img class="profile-pic profile-pic--mini" src="" alt="" />${npub.slice(0, 12)}...</a>
       `;
     }
 

@@ -459,7 +459,7 @@ export class AutoSyncService {
             const followItem = item as FollowItem;
             const profile = await userProfileService.getUserProfile(followItem.pubkey);
             const username = extractDisplayName(profile);
-            const avatarUrl = profile?.picture || '/assets/default-avatar.png';
+            const avatarUrl = profile?.picture || '';
             return renderUserMention(followItem.pubkey, { username, avatarUrl });
           }
           case 'mutes': {
@@ -467,7 +467,7 @@ export class AutoSyncService {
             if (muteItem.type === 'user') {
               const profile = await userProfileService.getUserProfile(muteItem.id);
               const username = extractDisplayName(profile);
-              const avatarUrl = profile?.picture || '/assets/default-avatar.png';
+              const avatarUrl = profile?.picture || '';
               return renderUserMention(muteItem.id, { username, avatarUrl });
             }
             // Thread mute - no HTML, just text

@@ -55,7 +55,7 @@ export class ZapsList {
       // Fetch profile for username and photo
       const profile = await this.userProfileService.getUserProfile(zapperPubkey);
       const username = profile?.display_name || profile?.name || 'Anonymous';
-      const avatarUrl = profile?.picture || '/assets/default-avatar.png';
+      const avatarUrl = profile?.picture || '';
       const bolt11Tag = event.tags.find(tag => tag[0] === 'bolt11');
       const amountSats = bolt11Tag ? this.parseBolt11Amount(bolt11Tag[1]) : 0;
 

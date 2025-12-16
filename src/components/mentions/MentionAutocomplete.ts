@@ -239,10 +239,9 @@ export class MentionAutocomplete {
 
       item.innerHTML = `
         <img
-          src="${suggestion.picture || '/assets/default-avatar.png'}"
+          src="${suggestion.picture || ''}"
           alt="${suggestion.username}"
           class="mention-avatar"
-          onerror="this.src='/assets/default-avatar.png'"
         />
         <div class="mention-info">
           <div class="mention-name">${suggestion.displayName}</div>

@@ -14,8 +14,6 @@ import { AuthGuard } from '../../services/AuthGuard';
 import { escapeHtml } from '../../helpers/escapeHtml';
 import { renderUserMention, setupUserMentionHandlers, type UserMentionProfile } from '../../helpers/UserMentionHelper';
 
-const DEFAULT_AVATAR = '/assets/default-avatar.png';
-
 export class AnalyticsModal {
   private static instance: AnalyticsModal | null = null;
   private orchestrator: ReactionsOrchestrator;
@@ -150,7 +148,7 @@ export class AnalyticsModal {
       Array.from(allPubkeys).map(async (pubkey) => {
         const profile = await this.userProfileService.getUserProfile(pubkey);
         const username = profile.display_name || profile.name || profile.username || 'Anonymous';
-        const avatarUrl = profile.picture || DEFAULT_AVATAR;
+        const avatarUrl = profile.picture || '';
         profileMap.set(pubkey, { username, avatarUrl });
       })
     );
@@ -200,9 +198,9 @@ export class AnalyticsModal {
     }
 
     const userLinks = replyEvents.map(event => {
-      const profile = profileMap.get(event.pubkey) || { username: 'Anonymous', avatarUrl: DEFAULT_AVATAR };
+      const profile = profileMap.get(event.pubkey) || { username: 'Anonymous', avatarUrl: '' };
       // Note link - navigates to the reply note
-      return `<span class="user-mention" data-pubkey="${event.pubkey}"><a href="#" class="mention-link mention-link--bg" data-note-id="${event.id}"><img class="profile-pic profile-pic--mini" src="${profile.avatarUrl}" alt="" onerror="this.src='${DEFAULT_AVATAR}'" />${escapeHtml(profile.username)}</a></span>`;
+      return `<span class="user-mention" data-pubkey="${event.pubkey}"><a href="#" class="mention-link mention-link--bg" data-note-id="${event.id}"><img class="profile-pic profile-pic--mini" src="${profile.avatarUrl}" alt="" />${escapeHtml(profile.username)}</a></span>`;
     }).join(' ');
 
     return `
@@ -247,7 +245,7 @@ export class AnalyticsModal {
         }
       }
 
-      const profile = profileMap.get(zapperPubkey) || { username: 'Anonymous', avatarUrl: DEFAULT_AVATAR };
+      const profile = profileMap.get(zapperPubkey) || { username: 'Anonymous', avatarUrl: '' };
       const bolt11Tag = event.tags.find((tag: string[]) => tag[0] === 'bolt11');
       const amount = bolt11Tag ? this.parseBolt11Amount(bolt11Tag[1]) : 0;
       totalSats += amount;
@@ -289,7 +287,7 @@ export class AnalyticsModal {
     }
 
     const userLinks = repostEvents.map(event => {
-      const profile = profileMap.get(event.pubkey) || { username: 'Anonymous', avatarUrl: DEFAULT_AVATAR };
+      const profile = profileMap.get(event.pubkey) || { username: 'Anonymous', avatarUrl: '' };
       return renderUserMention(event.pubkey, profile);
     }).join(' ');
 
@@ -317,9 +315,9 @@ export class AnalyticsModal {
     }
 
     const userLinks = quotedEvents.map(event => {
-      const profile = profileMap.get(event.pubkey) || { username: 'Anonymous', avatarUrl: DEFAULT_AVATAR };
+      const profile = profileMap.get(event.pubkey) || { username: 'Anonymous', avatarUrl: '' };
       // Note link - navigates to the quote note
-      return `<span class="user-mention" data-pubkey="${event.pubkey}"><a href="#" class="mention-link mention-link--bg" data-note-id="${event.id}"><img class="profile-pic profile-pic--mini" src="${profile.avatarUrl}" alt="" onerror="this.src='${DEFAULT_AVATAR}'" />${escapeHtml(profile.username)}</a></span>`;
+      return `<span class="user-mention" data-pubkey="${event.pubkey}"><a href="#" class="mention-link mention-link--bg" data-note-id="${event.id}"><img class="profile-pic profile-pic--mini" src="${profile.avatarUrl}" alt="" />${escapeHtml(profile.username)}</a></span>`;
     }).join(' ');
 
     return `
@@ -361,7 +359,7 @@ export class AnalyticsModal {
     // Render each emoji group
     const groupsHtml = Array.from(emojiGroups.entries()).map(([emoji, events]) => {
       const userLinks = events.map(event => {
-        const profile = profileMap.get(event.pubkey) || { username: 'Anonymous', avatarUrl: DEFAULT_AVATAR };
+        const profile = profileMap.get(event.pubkey) || { username: 'Anonymous', avatarUrl: '' };
         return renderUserMention(event.pubkey, profile);
       }).join(' ');
 

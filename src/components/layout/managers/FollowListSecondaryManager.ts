@@ -396,8 +396,6 @@ export class FollowListSecondaryManager extends BaseListSecondaryManager<FollowI
     const modal = container.querySelector('.mutual-changes-modal') as HTMLElement;
     if (!modal) return;
 
-    const DEFAULT_AVATAR = '/assets/default-avatar.png';
-
     // Fetch profiles for display (keep pubkey + profile together)
     const unfollowData = await Promise.all(
       result.unfollows.map(async (pubkey) => {
@@ -405,7 +403,7 @@ export class FollowListSecondaryManager extends BaseListSecondaryManager<FollowI
         return {
           pubkey,
           username: extractDisplayName(profile),
-          avatarUrl: profile?.picture || DEFAULT_AVATAR
+          avatarUrl: profile?.picture || ''
         };
       })
     );
@@ -416,7 +414,7 @@ export class FollowListSecondaryManager extends BaseListSecondaryManager<FollowI
         return {
           pubkey,
           username: extractDisplayName(profile),
-          avatarUrl: profile?.picture || DEFAULT_AVATAR
+          avatarUrl: profile?.picture || ''
         };
       })
     );

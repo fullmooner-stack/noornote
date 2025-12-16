@@ -96,7 +96,7 @@ export class UserIdentity {
       (profile) => {
         // Extract data from profile object (no cache)
         const username = profile.display_name || profile.name || profile.username || 'Anon';
-        const picture = profile.picture || '/assets/default-avatar.svg';
+        const picture = profile.picture || '';
 
         // Show element and update UI
         this.element.style.display = '';

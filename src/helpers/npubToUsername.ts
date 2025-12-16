@@ -14,8 +14,6 @@ export interface Profile {
 
 export type ProfileResolver = (hexPubkey: string) => Profile | null;
 
-const DEFAULT_AVATAR = '/assets/default-avatar.svg';
-
 /**
  * MODE 1 (Simple): npub → username string
  * MODE 2 (HTML Single): npub → <a>@username</a>
@@ -90,8 +88,8 @@ function npubToUsernameHTMLSingle(npub: string, profileResolver: ProfileResolver
     const hexPubkey = npubToHex(npub);
     const profile = profileResolver(hexPubkey);
     const username = profile?.display_name || profile?.name || npub;
-    const picture = profile?.picture || DEFAULT_AVATAR;
-    return `<a href="/profile/${npub}" class="mention-link mention-link--bg"><img class="profile-pic profile-pic--mini" src="${picture}" alt="" onerror="this.src='${DEFAULT_AVATAR}'" />${username}</a>`;
+    const picture = profile?.picture || '';
+    return `<a href="/profile/${npub}" class="mention-link mention-link--bg"><img class="profile-pic profile-pic--mini" src="${picture}" alt="" />${username}</a>`;
   } catch {
     return npub;
   }
@@ -101,9 +99,9 @@ function npubToUsernameHTMLSingle(npub: string, profileResolver: ProfileResolver
  * Build mention HTML with profile picture
  */
 function buildMentionHTML(npub: string, username: string, picture?: string, isLoading = false): string {
-  const avatarSrc = picture || DEFAULT_AVATAR;
+  const avatarSrc = picture || '';
   const attrs = isLoading ? 'data-mention data-loading' : 'data-mention';
-  return `<a href="/profile/${npub}" ${attrs} class="mention-link mention-link--bg"><img class="profile-pic profile-pic--mini" src="${avatarSrc}" alt="" onerror="this.src='${DEFAULT_AVATAR}'" />${username}</a>`;
+  return `<a href="/profile/${npub}" ${attrs} class="mention-link mention-link--bg"><img class="profile-pic profile-pic--mini" src="${avatarSrc}" alt="" />${username}</a>`;
 }
 
 /**

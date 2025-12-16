@@ -9,8 +9,6 @@ import { Router } from '../services/Router';
 import { encodeNpub } from '../services/NostrToolsAdapter';
 import { escapeHtml } from './escapeHtml';
 
-const DEFAULT_AVATAR = '/assets/default-avatar.png';
-
 export interface UserMentionProfile {
   username: string;
   avatarUrl: string;
@@ -45,7 +43,7 @@ export function renderUserMention(
   const { withBackground = true } = options;
   const bgClass = withBackground ? ' mention-link--bg' : '';
 
-  return `<span class="user-mention" data-pubkey="${pubkey}"><a href="#" class="mention-link${bgClass}" data-profile-pubkey="${pubkey}"><img class="profile-pic profile-pic--mini" src="${profile.avatarUrl}" alt="" onerror="this.src='${DEFAULT_AVATAR}'" />${escapeHtml(profile.username)}</a></span>`;
+  return `<span class="user-mention" data-pubkey="${pubkey}"><a href="#" class="mention-link${bgClass}" data-profile-pubkey="${pubkey}"><img class="profile-pic profile-pic--mini" src="${profile.avatarUrl}" alt="" />${escapeHtml(profile.username)}</a></span>`;
 }
 
 /**

@@ -146,7 +146,7 @@ export class NoteHeader {
 
     // Extract display name from profile (no cache, direct from profile object)
     const displayName = this.profile.display_name || this.profile.name || this.profile.username || 'Anon';
-    const picture = this.profile.picture || '/assets/default-avatar.svg';
+    const picture = this.profile.picture || '';
 
     const avatarImg = this.element.querySelector('.profile-pic--medium') as HTMLImageElement;
     const displayNameTrigger = this.element.querySelector('.note-header__display-name-trigger');
