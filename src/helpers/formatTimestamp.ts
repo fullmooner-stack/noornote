@@ -27,14 +27,14 @@ export function formatTimestamp(timestamp: number): string {
       formatted = `${Math.floor(diffSeconds / 60)}m`;
     }
   } else {
-    const time = date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    const time = formatTime(date);
 
     // Rule 2: Same calendar day
     if (isSameDay(date, now)) {
       formatted = time;
     } else {
       const day = date.getDate();
-      const month = date.toLocaleString('en-US', { month: 'short' });
+      const month = getMonthShort(date);
 
       // Rule 3: Current calendar year
       if (date.getFullYear() === now.getFullYear()) {
@@ -47,6 +47,33 @@ export function formatTimestamp(timestamp: number): string {
   }
 
   return `<span class="date-time">${formatted}</span>`;
+}
+
+/**
+ * Format time as HH:MM with fallback for Intl.DateTimeFormat errors
+ */
+function formatTime(date: Date): string {
+  try {
+    return date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  } catch {
+    // Fallback: Manual formatting if Intl is unavailable
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  }
+}
+
+/**
+ * Get short month name with fallback for Intl.DateTimeFormat errors
+ */
+function getMonthShort(date: Date): string {
+  try {
+    return date.toLocaleString('en-US', { month: 'short' });
+  } catch {
+    // Fallback: Manual month names if Intl is unavailable
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return months[date.getMonth()];
+  }
 }
 
 /**
