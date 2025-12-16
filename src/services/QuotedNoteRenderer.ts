@@ -16,6 +16,7 @@ import { Router } from './Router';
 import { PollOrchestrator } from './orchestration/PollOrchestrator';
 import { MuteOrchestrator } from './orchestration/MuteOrchestrator';
 import { AuthService } from './AuthService';
+import { escapeHtml } from '../helpers/escapeHtml';
 
 export class QuotedNoteRenderer {
   private static instance: QuotedNoteRenderer;
@@ -247,7 +248,7 @@ export class QuotedNoteRenderer {
     const errorDiv = document.createElement('div');
     errorDiv.className = 'quote-error';
     // NO whitespace to prevent invisible text nodes
-    errorDiv.innerHTML = `<div class="quote-error-content"><span class="error-icon">⚠️</span><span class="error-text">${error.message || 'Failed to load quoted note'}</span></div>`;
+    errorDiv.innerHTML = `<div class="quote-error-content"><span class="error-icon">⚠️</span><span class="error-text">${escapeHtml(error.message || 'Failed to load quoted note')}</span></div>`;
     return errorDiv;
   }
 
